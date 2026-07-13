@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cavali Admin Dashboard</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    /* Styling System */
+    :root {
+      --night: #0E0A08;
+      --card: #1C1411;
+      --card2: #251B17;
+      --ember: #FF5A1F;
+      --gold: #E5B13A;
+      --teal: #14B8A6;
+      --cream: #F8F1EA;
+      --muted: #948375;
+      --line: #2E2018;
+      --danger: #EF4444;
+      --success: #22C55E;
+      --font-outfit: 'Outfit', sans-serif;
+      --font-serif: 'Playfair Display', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--night);
+      color: var(--cream);
+      font-family: var(--font-outfit);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: linear-gradient(180deg, rgba(28,20,17,0.9) 0%, rgba(14,10,8,0) 100%);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(15px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-section h1 {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      color: var(--gold);
+      font-size: 26px;
+      letter-spacing: 1px;
+    }
+
+    .logo-section p {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    /* Tab Navigation */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background-color: rgba(28, 20, 17, 0.5);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+
+    .nav-tab {
+      padding: 10px 24px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-tab.active {
+      background-color: var(--ember);
+      color: #fff;
+    }
+
+    .nav-tab:hover:not(.active) {
+      color: var(--cream);
+      background-color: rgba(255, 90, 31, 0.1);
+    }
+
+    /* Header Controls */
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background-color: var(--card);
+      color: var(--cream);
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background-color: var(--card2);
+      border-color: var(--muted);
+    }
+
+    .btn-primary {
+      background-color: var(--ember);
+      border-color: var(--ember);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: #e04e17;
+      border-color: #e04e17;
+    }
+
+    .btn-danger {
+      background-color: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background-color: var(--danger);
+      color: #fff;
+    }
+
+    /* Toggle Switch */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--card2);
+      border: 1px solid var(--line);
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--muted);
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--teal);
+      border-color: var(--teal);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+      background-color: #fff;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 30px 40px;
+      max-width: 1600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Grid System */
+    .kds-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 30px;
+    }
+
+    .full-width-layout {
+      display: block;
+    }
+
+    .tickets-section h2, .inventory-section h2 {
+      font-size: 18px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tickets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    /* Ticket Card */
+    .ticket-card {
+      background-color: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+
+    .ticket-card.fulfilled {
+      opacity: 0.5;
+      transform: scale(0.98);
+    }
+
+    .ticket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+      padding-bottom: 12px;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .ticket-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--cream);
+    }
+
+    .ticket-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .ticket-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge-pending {
+      background-color: rgba(229, 177, 58, 0.1);
+      color: var(--gold);
+    }
+
+    .badge-toast {
+      background-color: rgba(20, 184, 166, 0.1);
+      color: var(--teal);
+    }
+
+    .badge-fulfilled {
+      background-color: rgba(34, 197, 94, 0.1);
+      color: var(--success);
+    }
+
+    .ticket-items {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ticket-item-group-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 6px;
+    }
+
+    .ticket-item-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14.5px;
+      font-weight: 600;
+    }
+
+    .ticket-item-name {
+      color: var(--cream);
+    }
+
+    .ticket-item-addons {
+      font-size: 12px;
+      color: var(--gold);
+      margin-left: 18px;
+      margin-top: 2px;
+    }
+
+    .ticket-note {
+      margin-top: 12px;
+      padding: 8px 10px;
+      background-color: rgba(229,177,58,0.08);
+      border-left: 3px solid var(--gold);
+      border-radius: 4px;
+      font-size: 13.5px;
+      color: var(--gold);
+      line-height: 1.4;
+    }
+
+    .ticket-total-row {
+      margin-top: 15px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--gold);
+    }
+
+    .ticket-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .ticket-actions .btn {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 13px;
+      justify-content: center;
+    }
+
+    /* Inventory Panel */
+    .inventory-card {
+      background-color: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: fit-content;
+      position: sticky;
+      top: 100px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+
+    .inventory-groups {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .inventory-groups::-webkit-scrollbar {
+      width: 6px;
+    }
+    .inventory-groups::-webkit-scrollbar-thumb {
+      background-color: var(--line);
+      border-radius: 3px;
+    }
+
+    .inventory-group-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .inventory-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(46, 32, 24, 0.4);
+    }
+
+    .inventory-row:last-child {
+      border-bottom: none;
+    }
+
+    .inventory-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .inventory-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cream);
+    }
+
+    .inventory-stock {
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 1px;
+    }
+
+    .stock-ok {
+      color: var(--teal);
+    }
+
+    .stock-low {
+      color: var(--danger);
+    }
+
+    .inventory-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .box-btn-adjust {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background-color: var(--card2);
+      color: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 15px;
+      transition: all 0.2s ease;
+    }
+
+    .box-btn-adjust:hover {
+      background-color: var(--line);
+      color: #fff;
+    }
+
+    /* Print Area Styles */
+    #print-area {
+      display: none;
+    }
+
+    @media print {
+      body * {
+        display: none !important;
+      }
+      #print-area, #print-area * {
+        display: block !important;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3in;
+        padding: 10px;
+        background: #fff !important;
+        color: #000 !important;
+        font-family: monospace;
+      }
+      .ticket-card {
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .ticket-title {
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: #000 !important;
+        border-bottom: 1px dashed #000;
+        padding-bottom: 5px;
+      }
+      .ticket-meta {
+        color: #000 !important;
+        font-size: 11px !important;
+      }
+      .ticket-badge {
+        display: none !important;
+      }
+      .ticket-item-group-title {
+        color: #000 !important;
+        font-weight: bold !important;
+        border-bottom: 1px solid #000;
+        margin-top: 10px !important;
+        font-size: 11px !important;
+      }
+      .ticket-item-line {
+        color: #000 !important;
+        font-size: 12px !important;
+        font-weight: normal !important;
+      }
+      .ticket-item-name {
+        color: #000 !important;
+      }
+      .ticket-item-addons {
+        color: #000 !important;
+        font-size: 10px !important;
+        margin-left: 10px !important;
+      }
+      .ticket-note {
+        background-color: #f3f4f6 !important;
+        border-left: 3px solid #000 !important;
+        color: #000 !important;
+        margin-top: 10px !important;
+        padding: 5px !important;
+        font-size: 11px !important;
+      }
+      .ticket-total-row {
+        color: #000 !important;
+        border-top: 1px dashed #000 !important;
+        margin-top: 10px !important;
+        font-size: 13px !important;
+      }
+      .ticket-actions {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hidden print payload mount -->
+  <div id="print-area"></div>
+
+  <!-- Audio Alert -->
+  <audio id="orderChime" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-120.wav" preload="auto"></audio>
+
+  <header>
+    <div class="logo-section">
+      <h1>Cavali</h1>
+      <p>Lounge Operations KDS</p>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('live')">
+        <i data-lucide="bell" style="width: 16px; height: 16px;"></i>
+        Live Orders
+      </button>
+      <button class="nav-tab" onclick="switchTab('archive')">
+        <i data-lucide="archive" style="width: 16px; height: 16px;"></i>
+        History Archive
+      </button>
+    </div>
+
+    <div class="header-controls">
+      <div class="toggle-wrap">
+        <span>Auto-Print</span>
+        <label class="switch">
+          <input type="checkbox" id="autoPrintToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <button class="btn btn-danger" onclick="clearArchive()">
+        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+        Clear Archive
+      </button>
+      
+      <button class="btn" onclick="testNotification()">
+        <i data-lucide="volume-2" style="width: 16px; height: 16px;"></i>
+        Test Sound
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="kds-layout" id="kdsLayout">
+      
+      <!-- Left: Ticket list container -->
+      <section class="tickets-section">
+        <h2>
+          <span id="tabTitle">Active Tickets</span>
+          <span id="activeCount" style="font-size: 13px; font-weight: normal; text-transform: none; color: var(--muted);"></span>
+        </h2>
+        
+        <div class="tickets-grid" id="ticketsList">
+          <!-- Populated by JavaScript -->
+        </div>
+        <div class="tickets-grid" id="archiveList" style="display: none;">
+          <!-- Populated by JavaScript -->
+        </div>
+      </section>
+
+      <!-- Right: Inventory stock controller -->
+      <section class="inventory-section" id="inventorySidebar">
+        <h2>Inventory Levels</h2>
+        <div class="inventory-card">
+          <div class="inventory-groups" id="inventoryList">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    const API_URL = window.location.origin;
+    let orders = [];
+    let inventory = {};
+    let activeTab = 'live';
+
+    // Fetch orders and inventory on load
+    async function loadData() {
+      try {
+        const [ordersRes, inventoryRes] = await Promise.all([
+          fetch(`${API_URL}/api/orders`),
+          fetch(`${API_URL}/api/orders/inventory`)
+        ]);
+        
+        const ordersData = await ordersRes.json();
+        const inventoryData = await inventoryRes.json();
+
+        if (ordersData.success) {
+          orders = ordersData.orders;
+        }
+        if (inventoryData.success) {
+          inventory = inventoryData.inventory;
+        }
+
+        renderOrders();
+        renderInventory();
+      } catch (err) {
+        console.error('Failed loading KDS state:', err);
+      }
+    }
+
+    // Helper to render individual ticket cards
+    function renderTicketCard(order, isArchived) {
+      const date = new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      let hookahsHtml = '';
+      if (order.hookahs && order.hookahs.length > 0) {
+        hookahsHtml = `
+          <div class="ticket-item-group-title">Hookah</div>
+          ${order.hookahs.map(h => `
+            <div>
+              <div class="ticket-item-line">
+                <span class="ticket-item-name">💨 ${h.flavor.name}</span>
+                <span>$18</span>
+              </div>
+              ${(h.iceHose || h.iceBase) ? `
+                <div class="ticket-item-addons">
+                  ${[h.iceHose && '🧊 Ice Hose', h.iceBase && '❄️ Ice Base'].filter(Boolean).join(' + ')}
+                </div>
+              ` : ''}
+            </div>
+          `).join('')}
+        `;
+      }
+
+      let foodHtml = '';
+      if (order.food && order.food.length > 0) {
+        foodHtml = `
+          <div class="ticket-item-group-title">Food</div>
+          ${order.food.map(f => `
+            <div>
+              <div class="ticket-item-line">
+                <span class="ticket-item-name">${f.item.emoji} ${f.item.name} x${f.qty}</span>
+                <span>$${f.item.price * f.qty}</span>
+              </div>
+              ${f.sauce ? `<div class="ticket-item-addons">Sauce: ${f.sauce}</div>` : ''}
+            </div>
+          `).join('')}
+        `;
+      }
+
+      let drinksHtml = '';
+      if (order.drinks && order.drinks.length > 0) {
+        drinksHtml = `
+          <div class="ticket-item-group-title">Drinks</div>
+          ${order.drinks.map(d => `
+            <div>
+              <div class="ticket-item-line">
+                <span class="ticket-item-name">${d.item.emoji} ${d.item.name} x${d.qty}</span>
+                <span>$${d.item.price * d.qty}</span>
+              </div>
+            </div>
+          `).join('')}
+        `;
+      }
+
+      let loyaltyHtml = '';
+      if (order.kind === 'chai') {
+        loyaltyHtml = `
+          <div class="ticket-item-group-title">Loyalty Reward</div>
+          <div>
+            <div class="ticket-item-line">
+              <span class="ticket-item-name">☕ ${order.name || 'Karak Chai'} (Free Reward)</span>
+              <span>$0</span>
+            </div>
+          </div>
+        `;
+      }
+
+      let badgeClass = 'badge-pending';
+      let badgeText = 'Pending';
+      if (order.status === 'sent_to_toast') {
+        badgeClass = 'badge-toast';
+        badgeText = 'Sent to POS';
+      } else if (order.status === 'fulfilled') {
+        badgeClass = 'badge-fulfilled';
+        badgeText = 'Fulfilled';
+      }
+
+      let actionsHtml = '';
+      if (isArchived) {
+        actionsHtml = `
+          <div class="ticket-actions">
+            <button class="btn" onclick="printTicket('${order.id}')">
+              <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+              Print
+            </button>
+          </div>
+        `;
+      } else {
+        actionsHtml = `
+          <div class="ticket-actions">
+            <button class="btn" onclick="printTicket('${order.id}')">
+              <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+              Print
+            </button>
+            <button class="btn btn-primary" onclick="fulfillOrder('${order.id}')">
+              <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+              Fulfill
+            </button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="ticket-card" id="card-${order.id}">
+          <div class="ticket-header">
+            <div>
+              <div class="ticket-title">Table ${order.table} · Order #${String(order.id).slice(-4).toUpperCase()}</div>
+              <div class="ticket-meta">${order.customerName || 'Walk-in'} · ${date}</div>
+            </div>
+            <span class="ticket-badge ${badgeClass}">
+              ${badgeText}
+            </span>
+          </div>
+          
+          <div class="ticket-items">
+            ${hookahsHtml}
+            ${foodHtml}
+            ${drinksHtml}
+            ${loyaltyHtml}
+          </div>
+
+          ${order.note ? `
+            <div class="ticket-note">
+              <strong>Note:</strong> "${order.note}"
+            </div>
+          ` : ''}
+
+          <div class="ticket-total-row">
+            <span>Total</span>
+            <span>$${order.total || 0}</span>
+          </div>
+
+          ${actionsHtml}
+        </div>
+      `;
+    }
+
+    // Render Live & Archived Tickets
+    function renderOrders() {
+      const ticketsList = document.getElementById('ticketsList');
+      const archiveList = document.getElementById('archiveList');
+      
+      const activeTickets = orders.filter(o => o.status !== 'fulfilled');
+      const archivedTickets = orders.filter(o => o.status === 'fulfilled');
+
+      document.getElementById('activeCount').innerText = activeTab === 'live' 
+        ? `(${activeTickets.length} pending)` 
+        : `(${archivedTickets.length} fulfilled)`;
+
+      // Active Tickets
+      if (activeTickets.length === 0) {
+        ticketsList.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--muted); font-size: 15px;">No active orders right now.</div>`;
+      } else {
+        ticketsList.innerHTML = activeTickets.map(order => renderTicketCard(order, false)).join('');
+      }
+
+      // Archive Tickets
+      if (archivedTickets.length === 0) {
+        archiveList.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--muted); font-size: 15px;">No archived orders.</div>`;
+      } else {
+        archiveList.innerHTML = archivedTickets.map(order => renderTicketCard(order, true)).join('');
+      }
+
+      // Trigger Lucide icon parsing
+      lucide.createIcons();
+    }
+
+    // Render Inventory stock levels by category
+    function renderInventory() {
+      const listContainer = document.getElementById('inventoryList');
+      if (!listContainer) return;
+
+      const categories = {
+        shisha: 'Shisha Material (g)',
+        base_extras: 'Base Add-ons (qty)',
+        tea: 'Tea Bar Ingredients',
+        kitchen: 'Kitchen / Food Stock'
+      };
+
+      let html = '';
+      
+      for (const [catKey, catName] of Object.entries(categories)) {
+        const catItems = Object.values(inventory).filter(item => item.category === catKey);
+        
+        if (catItems.length === 0) continue;
+
+        html += `
+          <div class="inventory-group">
+            <div class="inventory-group-title">${catName}</div>
+            ${catItems.map(item => {
+              const isLow = item.stock < 100;
+              const stockClass = isLow ? 'stock-low' : 'stock-ok';
+              return `
+                <div class="inventory-row">
+                  <div class="inventory-info">
+                    <span class="inventory-name">${item.name}</span>
+                    <span class="inventory-stock ${stockClass}">${item.stock} ${item.unit}</span>
+                  </div>
+                  <div class="inventory-controls">
+                    <button class="box-btn-adjust" onclick="adjustInventory('${item.id}', 50, 'decrease')">-</button>
+                    <button class="box-btn-adjust" onclick="adjustInventory('${item.id}', 100, 'increase')">+</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+
+      listContainer.innerHTML = html;
+    }
+
+    // Tab switcher
+    function switchTab(tab) {
+      activeTab = tab;
+      const tabs = document.querySelectorAll('.nav-tab');
+      tabs[0].classList.toggle('active', tab === 'live');
+      tabs[1].classList.toggle('active', tab === 'archive');
+
+      document.getElementById('tabTitle').innerText = tab === 'live' ? 'Active Tickets' : 'Fulfilled History';
+      document.getElementById('ticketsList').style.display = tab === 'live' ? 'grid' : 'none';
+      document.getElementById('archiveList').style.display = tab === 'archive' ? 'grid' : 'none';
+      
+      // Update count badge
+      renderOrders();
+    }
+
+    // Trigger Print layout for ticket
+    function printTicket(orderId) {
+      const card = document.getElementById(`card-${orderId}`);
+      if (card) {
+        const printArea = document.getElementById('print-area');
+        printArea.innerHTML = card.innerHTML;
+        window.print();
+        printArea.innerHTML = '';
+      }
+    }
+
+    // Call Fulfill API endpoint
+    async function fulfillOrder(orderId) {
+      try {
+        const card = document.getElementById(`card-${orderId}`);
+        if (card) card.classList.add('fulfilled');
+
+        const res = await fetch(`${API_URL}/api/orders/fulfill`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          // Update orders list and reload KDS
+          orders = orders.map(o => String(o.id) === String(orderId) ? data.order : o);
+          renderOrders();
+          
+          // Re-fetch inventory to show real-time deductions
+          loadData();
+        } else {
+          alert('Fulfillment failed: ' + data.message);
+          if (card) card.classList.remove('fulfilled');
+        }
+      } catch (err) {
+        console.error('Error fulfilling order:', err);
+      }
+    }
+
+    // Call Adjust Inventory API endpoint
+    async function adjustInventory(ingredientId, amount, type) {
+      let pin = '';
+      if (type === 'decrease') {
+        pin = prompt(`Security PIN required to decrease ${inventory[ingredientId].name} stock:`);
+        if (pin === null) return; // cancelled
+        if (pin !== '1577') {
+          alert('Incorrect Security PIN. Unauthorized adjustment.');
+          return;
+        }
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/api/orders/inventory/adjust`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ingredientId, amount, type, pin })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          inventory[ingredientId] = data.item;
+          renderInventory();
+        } else {
+          alert('Failed to adjust stock: ' + data.message);
+        }
+      } catch (err) {
+        console.error('Error adjusting inventory:', err);
+      }
+    }
+
+    // Call Clear Archive API endpoint
+    async function clearArchive() {
+      if (!confirm('Are you sure you want to clear all fulfilled orders in the history archive?')) return;
+      try {
+        const res = await fetch(`${API_URL}/api/orders/archive/clear`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          orders = orders.filter(o => o.status !== 'fulfilled');
+          renderOrders();
+        }
+      } catch (err) {
+        console.error('Error clearing archive:', err);
+      }
+    }
+
+    // Server-Sent Events stream for real-time dashboard updates
+    function connectSSE() {
+      const source = new EventSource(`${API_URL}/api/orders/live`);
+
+      source.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        console.log('📡 [SSE] Received event:', data);
+
+        if (data.type === 'ping') {
+          console.log('📡 [SSE] Connection verified.');
+          return;
+        }
+
+        // New Customer Order has arrived!
+        if (data.id && data.status !== 'fulfilled' && data.type !== 'order_fulfilled' && data.type !== 'inventory_update') {
+          // Play Alert Chime
+          const chime = document.getElementById('orderChime');
+          chime.play().catch(e => console.log('Chime blocked by browser autoplay rules.'));
+
+          // Add to local orders list
+          const idx = orders.findIndex(o => o.id === data.id);
+          if (idx >= 0) {
+            orders[idx] = data;
+          } else {
+            orders.unshift(data);
+          }
+          renderOrders();
+
+          // AUTO-PRINT TICKET!
+          const autoPrint = document.getElementById('autoPrintToggle').checked;
+          if (autoPrint) {
+            setTimeout(() => {
+              printTicket(data.id);
+            }, 500);
+          }
+        }
+
+        // Fulfill event broadcast from other terminal / action
+        if (data.type === 'order_fulfilled') {
+          orders = orders.map(o => o.id === data.orderId ? data.order : o);
+          renderOrders();
+          loadData();
+        }
+
+        // Inventory update broadcast
+        if (data.type === 'inventory_update') {
+          loadData();
+        }
+      };
+
+      source.onerror = function() {
+        console.warn('📡 [SSE] Live connection closed. Reconnecting...');
+        source.close();
+        setTimeout(connectSSE, 3000);
+      };
+    }
+
+    function testNotification() {
+      const chime = document.getElementById('orderChime');
+      chime.play().catch(e => alert('Please interact with the page first to enable audio.'));
+    }
+
+    // Initial load
+    loadData();
+    connectSSE();
+  </script>
+</body>
+</html>
