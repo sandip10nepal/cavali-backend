@@ -855,7 +855,6 @@
 
       const categories = {
         shisha: 'Shisha Material (g)',
-        base_extras: 'Base Add-ons (qty)',
         tea: 'Tea Bar Ingredients',
         kitchen: 'Kitchen / Food Stock'
       };
@@ -863,7 +862,17 @@
       let html = '';
       
       for (const [catKey, catName] of Object.entries(categories)) {
-        const catItems = Object.values(inventory).filter(item => item.category === catKey);
+        let catItems = [];
+        if (catKey === 'shisha') {
+          catItems = Object.values(inventory).filter(item => item.category === 'shisha');
+        } else if (catKey === 'tea') {
+          const teaIds = ['black_tea', 'pink_tea', 'coffee_beans', 'syrup', 'soda', 'milk'];
+          catItems = Object.values(inventory).filter(item => teaIds.includes(item.id));
+        } else {
+          // kitchen / food stock (proteins, dairy_bakery, veggies, dry_goods, beverages, desserts)
+          const teaIds = ['black_tea', 'pink_tea', 'coffee_beans', 'syrup', 'soda', 'milk'];
+          catItems = Object.values(inventory).filter(item => item.category !== 'shisha' && !teaIds.includes(item.id));
+        }
         
         if (catItems.length === 0) continue;
 
