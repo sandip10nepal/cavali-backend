@@ -224,15 +224,129 @@
       margin: 0 auto;
     }
 
-    /* Grid System */
+    /* Grid/Layout System */
     .kds-layout {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 30px;
+      display: block;
     }
 
-    .full-width-layout {
-      display: block;
+    /* Inventory Page Layout */
+    .inventory-page-layout {
+      width: 100%;
+    }
+    .inventory-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--line);
+    }
+    .inventory-sub-tabs {
+      display: flex;
+      gap: 10px;
+      background-color: rgba(28, 20, 17, 0.4);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+    .sub-tab {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .sub-tab.active {
+      background-color: var(--ember);
+      color: #fff;
+    }
+    .sub-tab:hover:not(.active) {
+      color: var(--cream);
+      background-color: rgba(255, 90, 31, 0.1);
+    }
+
+    .inventory-grid-square {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .inventory-box {
+      background-color: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      aspect-ratio: 1 / 1;
+      text-align: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .inventory-box:hover {
+      border-color: var(--ember);
+      transform: translateY(-2px);
+    }
+    .inventory-box-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--cream);
+      margin-top: 10px;
+    }
+    .inventory-box-stock {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 15px 0;
+    }
+    .inventory-box-controls {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      justify-content: center;
+    }
+    .inventory-box-btn {
+      flex: 1;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background-color: var(--card2);
+      color: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 18px;
+      transition: all 0.2s ease;
+    }
+    .inventory-box-btn:hover {
+      background-color: var(--line);
+      border-color: var(--muted);
+    }
+    .inventory-box-btn.decrease {
+      color: var(--danger);
+      background-color: rgba(239, 68, 68, 0.05);
+      border-color: rgba(239, 68, 68, 0.15);
+    }
+    .inventory-box-btn.decrease:hover {
+      background-color: var(--danger);
+      color: #fff;
+    }
+    .inventory-box-btn.increase {
+      color: var(--success);
+      background-color: rgba(34, 197, 94, 0.05);
+      border-color: rgba(34, 197, 94, 0.15);
+    }
+    .inventory-box-btn.increase:hover {
+      background-color: var(--success);
+      color: #fff;
     }
 
     .tickets-section h2, .inventory-section h2 {
@@ -595,6 +709,10 @@
         <i data-lucide="archive" style="width: 16px; height: 16px;"></i>
         History Archive
       </button>
+      <button class="nav-tab" onclick="switchTab('inventory')">
+        <i data-lucide="package" style="width: 16px; height: 16px;"></i>
+        Inventory Stock
+      </button>
     </div>
 
     <div class="header-controls">
@@ -619,9 +737,8 @@
   </header>
 
   <main>
+    <!-- KDS Orders Page (visible on 'live' or 'archive') -->
     <div class="kds-layout" id="kdsLayout">
-      
-      <!-- Left: Ticket list container -->
       <section class="tickets-section">
         <h2>
           <span id="tabTitle">Active Tickets</span>
@@ -635,17 +752,21 @@
           <!-- Populated by JavaScript -->
         </div>
       </section>
+    </div>
 
-      <!-- Right: Inventory stock controller -->
-      <section class="inventory-section" id="inventorySidebar">
-        <h2>Inventory Levels</h2>
-        <div class="inventory-card">
-          <div class="inventory-groups" id="inventoryList">
-            <!-- Populated by JavaScript -->
-          </div>
+    <!-- Inventory Stock Page (visible on 'inventory') -->
+    <div class="inventory-page-layout" id="inventoryPageLayout" style="display: none;">
+      <div class="inventory-header">
+        <h2 style="font-size: 18px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin: 0;">Inventory Levels</h2>
+        <div class="inventory-sub-tabs">
+          <button class="sub-tab active" onclick="switchInventorySubTab('hookah')">💨 Hookah</button>
+          <button class="sub-tab" onclick="switchInventorySubTab('food')">🍔 Food</button>
+          <button class="sub-tab" onclick="switchInventorySubTab('drinks')">🥤 Drinks</button>
         </div>
-      </section>
-
+      </div>
+      <div class="inventory-grid-square" id="inventoryGridSquare">
+        <!-- Populated by JavaScript -->
+      </div>
     </div>
   </main>
 
@@ -674,7 +795,7 @@
         }
 
         renderOrders();
-        renderInventory();
+        renderInventoryPage();
       } catch (err) {
         console.error('Failed loading KDS state:', err);
       }
@@ -848,58 +969,67 @@
       lucide.createIcons();
     }
 
-    // Render Inventory stock levels by category
-    function renderInventory() {
-      const listContainer = document.getElementById('inventoryList');
-      if (!listContainer) return;
+    let activeInventorySubTab = 'hookah';
 
-      const categories = {
-        shisha: 'Shisha Material (g)',
-        tea: 'Tea Bar Ingredients',
-        kitchen: 'Kitchen / Food Stock'
-      };
+    // Render Inventory stock levels by sub-category in square boxes
+    function renderInventoryPage() {
+      const gridContainer = document.getElementById('inventoryGridSquare');
+      if (!gridContainer) return;
 
-      let html = '';
-      
-      for (const [catKey, catName] of Object.entries(categories)) {
-        let catItems = [];
-        if (catKey === 'shisha') {
-          catItems = Object.values(inventory).filter(item => item.category === 'shisha');
-        } else if (catKey === 'tea') {
-          const teaIds = ['black_tea', 'pink_tea', 'coffee_beans', 'syrup', 'soda', 'milk'];
-          catItems = Object.values(inventory).filter(item => teaIds.includes(item.id));
-        } else {
-          // kitchen / food stock (proteins, dairy_bakery, veggies, dry_goods, beverages, desserts)
-          const teaIds = ['black_tea', 'pink_tea', 'coffee_beans', 'syrup', 'soda', 'milk'];
-          catItems = Object.values(inventory).filter(item => item.category !== 'shisha' && !teaIds.includes(item.id));
-        }
-        
-        if (catItems.length === 0) continue;
-
-        html += `
-          <div class="inventory-group">
-            <div class="inventory-group-title">${catName}</div>
-            ${catItems.map(item => {
-              const isLow = item.stock < 100;
-              const stockClass = isLow ? 'stock-low' : 'stock-ok';
-              return `
-                <div class="inventory-row">
-                  <div class="inventory-info">
-                    <span class="inventory-name">${item.name}</span>
-                    <span class="inventory-stock ${stockClass}">${item.stock} ${item.unit}</span>
-                  </div>
-                  <div class="inventory-controls">
-                    <button class="box-btn-adjust" onclick="adjustInventory('${item.id}', 50, 'decrease')">-</button>
-                    <button class="box-btn-adjust" onclick="adjustInventory('${item.id}', 100, 'increase')">+</button>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        `;
+      let catItems = [];
+      if (activeInventorySubTab === 'hookah') {
+        // Shisha category
+        catItems = Object.values(inventory).filter(item => item.category === 'shisha');
+      } else if (activeInventorySubTab === 'drinks') {
+        // Beverages + tea-related items
+        const drinkIds = ['black_tea', 'pink_tea', 'coffee_beans', 'syrup', 'soda', 'milk'];
+        catItems = Object.values(inventory).filter(item => item.category === 'beverages' || drinkIds.includes(item.id));
+      } else {
+        // Food category (proteins, dairy_bakery except milk, veggies, dry_goods except tea items, desserts)
+        const drinkIds = ['black_tea', 'pink_tea', 'coffee_beans', 'syrup', 'soda', 'milk'];
+        catItems = Object.values(inventory).filter(item => 
+          item.category !== 'shisha' && 
+          item.category !== 'beverages' && 
+          !drinkIds.includes(item.id)
+        );
       }
 
-      listContainer.innerHTML = html;
+      if (catItems.length === 0) {
+        gridContainer.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--muted); font-size: 15px;">No items in this category.</div>`;
+        return;
+      }
+
+      gridContainer.innerHTML = catItems.map(item => {
+        const isLow = item.stock < 100;
+        const stockClass = isLow ? 'stock-low' : 'stock-ok';
+        
+        // Emojis based on item name or type
+        let emoji = '📦';
+        if (item.category === 'shisha') emoji = '💨';
+        else if (item.id.includes('tea') || item.id === 'milk' || item.id === 'coffee_beans') emoji = '☕';
+        else if (item.category === 'beverages') emoji = '🥤';
+        else if (item.category === 'proteins') emoji = '🥩';
+        else if (item.category === 'desserts') emoji = '🍰';
+        else if (item.category === 'veggies') emoji = '🥬';
+        else if (item.id.includes('bun') || item.id.includes('bread')) emoji = '🍞';
+        else if (item.id.includes('fries') || item.id.includes('chips')) emoji = '🍟';
+
+        return `
+          <div class="inventory-box">
+            <div>
+              <div style="font-size: 28px;">${emoji}</div>
+              <div class="inventory-box-title">${item.name}</div>
+            </div>
+            <div class="inventory-box-stock ${stockClass}">
+              ${item.stock} <span style="font-size: 14px; font-weight: 600; color: var(--muted);">${item.unit}</span>
+            </div>
+            <div class="inventory-box-controls">
+              <button class="inventory-box-btn decrease" onclick="adjustInventory('${item.id}', 50, 'decrease')">-</button>
+              <button class="inventory-box-btn increase" onclick="adjustInventory('${item.id}', 100, 'increase')">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     // Tab switcher
@@ -908,13 +1038,32 @@
       const tabs = document.querySelectorAll('.nav-tab');
       tabs[0].classList.toggle('active', tab === 'live');
       tabs[1].classList.toggle('active', tab === 'archive');
+      tabs[2].classList.toggle('active', tab === 'inventory');
 
-      document.getElementById('tabTitle').innerText = tab === 'live' ? 'Active Tickets' : 'Fulfilled History';
-      document.getElementById('ticketsList').style.display = tab === 'live' ? 'grid' : 'none';
-      document.getElementById('archiveList').style.display = tab === 'archive' ? 'grid' : 'none';
+      if (tab === 'inventory') {
+        document.getElementById('kdsLayout').style.display = 'none';
+        document.getElementById('inventoryPageLayout').style.display = 'block';
+        renderInventoryPage();
+      } else {
+        document.getElementById('kdsLayout').style.display = 'block';
+        document.getElementById('inventoryPageLayout').style.display = 'none';
+        
+        document.getElementById('tabTitle').innerText = tab === 'live' ? 'Active Tickets' : 'Fulfilled History';
+        document.getElementById('ticketsList').style.display = tab === 'live' ? 'grid' : 'none';
+        document.getElementById('archiveList').style.display = tab === 'archive' ? 'grid' : 'none';
+        
+        renderOrders();
+      }
+    }
+
+    function switchInventorySubTab(subTab) {
+      activeInventorySubTab = subTab;
+      const subTabs = document.querySelectorAll('.inventory-sub-tabs .sub-tab');
+      subTabs[0].classList.toggle('active', subTab === 'hookah');
+      subTabs[1].classList.toggle('active', subTab === 'food');
+      subTabs[2].classList.toggle('active', subTab === 'drinks');
       
-      // Update count badge
-      renderOrders();
+      renderInventoryPage();
     }
 
     // Trigger Print layout for ticket
@@ -979,7 +1128,7 @@
 
         if (data.success) {
           inventory[ingredientId] = data.item;
-          renderInventory();
+          renderInventoryPage();
         } else {
           alert('Failed to adjust stock: ' + data.message);
         }
