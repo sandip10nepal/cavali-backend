@@ -2258,7 +2258,7 @@
       "active": true,
       "_id": "USR_40B099FD4BA1",
       "created_at": "2026-08-19T01:55:22.201Z",
-      "updated_at": "2026-08-19T02:21:22.014Z"
+      "updated_at": "2026-08-19T16:21:01.600Z"
     },
     {
       "failed_login_attempts": 0,
@@ -2290,7 +2290,7 @@
       "active": true,
       "_id": "USR_93194BB468B1",
       "created_at": "2026-08-19T02:01:11.097Z",
-      "updated_at": "2026-08-19T02:01:11.097Z"
+      "updated_at": "2026-08-19T16:20:29.084Z"
     },
     {
       "failed_login_attempts": 0,
@@ -12038,70 +12038,6 @@
   ],
   "orders": [
     {
-      "_id": "cav-1787105164402",
-      "restaurant_id": "RES_2B914C800CF3",
-      "table_id": "Table 1",
-      "device_id": "dev-local",
-      "session_id": "ses-1787105164402",
-      "customer_name": "Ram",
-      "customer_phone": "",
-      "items": [
-        {
-          "id": "ITM_F571F9615B28",
-          "name": "Tandoori Chicken",
-          "price": 15,
-          "emoji": "🍔",
-          "qty": 1,
-          "modifiers": [],
-          "notes": ""
-        },
-        {
-          "item": {
-            "name": "Tandoori Chicken",
-            "price": 15,
-            "emoji": "🍔"
-          },
-          "qty": 1,
-          "note": ""
-        }
-      ],
-      "subtotal": 16.2375,
-      "tax_amount": 1.34,
-      "tip_amount": 0,
-      "discount_amount": 0,
-      "grand_total": 17.58,
-      "totalPaid": 17.58,
-      "totalDue": 0,
-      "status": "fulfilled",
-      "payment_method": "CASH",
-      "payment_status": "paid",
-      "payment_session_id": null,
-      "notes": "",
-      "fulfilledDepartments": [
-        "food"
-      ],
-      "kind": "order",
-      "accepted_at": null,
-      "completed_at": null,
-      "idempotencyKey": "idem_1787105164390_gayq6y, idem_1787105164390_gayq6y",
-      "created_at": "2026-08-19T02:06:04.403Z",
-      "updated_at": "2026-08-19T02:07:34.050Z",
-      "paymentStatus": "paid",
-      "paymentMethod": "CASH",
-      "paid_at": "2026-08-19T02:07:29.486Z",
-      "updatedAt": "2026-08-19T02:07:29.486Z",
-      "payment_logs": [
-        {
-          "id": "pay-cash-1787105249486",
-          "order_id": "cav-1787105164402",
-          "amount": 17.58,
-          "payment_method": "CASH",
-          "payment_status": "paid",
-          "timestamp": "2026-08-19T02:07:29.486Z"
-        }
-      ]
-    },
-    {
       "_id": "ORD_MSUWW1YV_AB23B0",
       "restaurant_id": "RES_3B53E12445A4",
       "table_id": "Table 1",
@@ -12501,6 +12437,35 @@
   ],
   "payment_sessions": [],
   "audit_logs": [
+    {
+      "_id": "AUD_MT0ATBDN_C261E8",
+      "restaurant_id": "RES_2B914C800CF3",
+      "actor_id": "USR_40B099FD4BA1",
+      "actor_name": "Sandip",
+      "action": "employee_added",
+      "resource_type": "user",
+      "resource_id": "USR_40B099FD4BA1",
+      "metadata": {
+        "action": "manager_email_login",
+        "email": "manager@chillpill.com",
+        "role": "owner"
+      },
+      "timestamp": "2026-08-19T16:21:01.787Z"
+    },
+    {
+      "_id": "AUD_MT0ASM8V_8715A1",
+      "restaurant_id": "RES_2B914C800CF3",
+      "actor_id": "USR_93194BB468B1",
+      "actor_name": "Nikesh",
+      "action": "employee_added",
+      "resource_type": "user",
+      "resource_id": "USR_93194BB468B1",
+      "metadata": {
+        "action": "staff_auth_login",
+        "role": "chef"
+      },
+      "timestamp": "2026-08-19T16:20:29.215Z"
+    },
     {
       "_id": "AUD_MSZIZU7A_020EF7",
       "restaurant_id": "RES_EED4E9D266DF",
