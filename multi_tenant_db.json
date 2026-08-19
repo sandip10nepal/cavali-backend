@@ -3483,6 +3483,36 @@
       "last_activity": "Registered",
       "paired_at": "2026-08-19T16:24:18.408Z",
       "created_at": "2026-08-19T16:24:18.408Z"
+    },
+    {
+      "_id": "DEV_4D3F2DF8E1FC",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "device_name": "iPad Table Device",
+      "device_type": "customer_table",
+      "table_id": "TBL_163081C2360D",
+      "device_token": "dev_48f1e91131b1683f7d9a822a07f28cfc5f3d19823910a832",
+      "status": "ACTIVE",
+      "app_version": "2.0.0",
+      "os_version": "iOS / iPadOS",
+      "last_seen_at": "2026-08-19T16:34:12.147Z",
+      "last_activity": "Registered",
+      "paired_at": "2026-08-19T16:34:12.147Z",
+      "created_at": "2026-08-19T16:34:12.147Z"
+    },
+    {
+      "_id": "DEV_7F286145BD41",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "device_name": "iPad Table Device",
+      "device_type": "customer_table",
+      "table_id": "TBL_163081C2360D",
+      "device_token": "dev_ae7bbb4c9ac39c48762bd8ba0c86468095ac6fc5c3130d65",
+      "status": "ACTIVE",
+      "app_version": "2.0.0",
+      "os_version": "iOS / iPadOS",
+      "last_seen_at": "2026-08-19T16:36:34.956Z",
+      "last_activity": "Registered",
+      "paired_at": "2026-08-19T16:36:34.956Z",
+      "created_at": "2026-08-19T16:36:34.956Z"
     }
   ],
   "tables": [
@@ -12452,6 +12482,40 @@
   ],
   "payment_sessions": [],
   "audit_logs": [
+    {
+      "_id": "AUD_MT0BDBJE_AB4190",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "actor_id": "USR_504897B0CC2C",
+      "actor_name": "Owner",
+      "action": "device_configured",
+      "resource_type": "device",
+      "resource_id": "DEV_7F286145BD41",
+      "metadata": {
+        "table_number": 1,
+        "device_id": "DEV_7F286145BD41",
+        "device_name": "iPad Table Device",
+        "authorized_by": "Owner",
+        "role": "owner"
+      },
+      "timestamp": "2026-08-19T16:36:35.114Z"
+    },
+    {
+      "_id": "AUD_MT0BA9DA_8F003E",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "actor_id": "USR_504897B0CC2C",
+      "actor_name": "Owner",
+      "action": "device_configured",
+      "resource_type": "device",
+      "resource_id": "DEV_4D3F2DF8E1FC",
+      "metadata": {
+        "table_number": 1,
+        "device_id": "DEV_4D3F2DF8E1FC",
+        "device_name": "iPad Table Device",
+        "authorized_by": "Owner",
+        "role": "owner"
+      },
+      "timestamp": "2026-08-19T16:34:12.334Z"
+    },
     {
       "_id": "AUD_MT0AXJ82_2F91D1",
       "restaurant_id": "RES_2B914C800CF3",
