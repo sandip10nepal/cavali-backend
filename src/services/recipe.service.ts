@@ -1,4 +1,5 @@
 import { DbService } from './db.service';
+import { MultiTenantDbService } from './multi-tenant-db.service';
 
 export interface IngredientDeduction {
   ingredientId: string;
@@ -362,12 +363,23 @@ const HOUSE_MIX_RECIPES: Record<string, { id: string; ratio: number }[]> = {
   ]
 };
 
+import { InventoryRepository } from '../modules/inventory/inventory.repository';
+
 export class RecipeService {
   /**
-   * Deducts ingredients for a given mixed order payload
+   * Process order deductions for raw material inventory based on recipes
    */
-  static processOrderDeductions(order: any) {
-    if (order.kind !== 'mixed') return;
+  static async processOrderDeductions(order: any): Promise<void> {
+    if (!order) return;
+    const restaurantId = order.restaurant_id || order.restaurantId || 'RES_EED4E9D266DF';
+
+    const deduct = (ingredientId: string, amount: number) => {
+      InventoryRepository.updateStock(ingredientId, restaurantId, -amount, {
+        type: 'SALE_DEDUCTION',
+        reason: `Auto deduction for Order #${order.id || order._id}`,
+        orderId: String(order.id || order._id),
+      }).catch(err => console.warn('[RecipeService] Deduct note:', err.message));
+    };
 
     // 1. Process Hookahs
     if (Array.isArray(order.hookahs)) {
@@ -377,21 +389,18 @@ export class RecipeService {
 
         const mixComponents = HOUSE_MIX_RECIPES[flavor.id];
         if (mixComponents) {
-          // House Mix. Deduct raw flavors using ratio of 20g standard head
           for (const component of mixComponents) {
             const shishaAmount = 20 * (component.ratio / 100);
-            DbService.deductInventory(component.id, shishaAmount);
+            deduct(component.id, shishaAmount);
           }
         } else if (flavor.isMix && Array.isArray(flavor.mixDetails)) {
-          // Custom mix
           for (const component of flavor.mixDetails) {
             const ratio = Number(component.ratio) || 0;
             const shishaAmount = 20 * (ratio / 100);
-            DbService.deductInventory(component.id, shishaAmount);
+            deduct(component.id, shishaAmount);
           }
         } else if (flavor.id) {
-          // Standard single shisha flavor
-          DbService.deductInventory(flavor.id, 20);
+          deduct(flavor.id, 20);
         }
       }
     }
@@ -406,7 +415,7 @@ export class RecipeService {
         const ingredients = RECIPES[item.id];
         if (ingredients) {
           for (const ing of ingredients) {
-            DbService.deductInventory(ing.ingredientId, ing.amount * qty);
+            deduct(ing.ingredientId, ing.amount * qty);
           }
         }
       }
@@ -422,9 +431,47 @@ export class RecipeService {
         const ingredients = RECIPES[item.id];
         if (ingredients) {
           for (const ing of ingredients) {
-            DbService.deductInventory(ing.ingredientId, ing.amount * qty);
+            deduct(ing.ingredientId, ing.amount * qty);
           }
         }
+      }
+    }
+
+    // 4. Process Unified Items Array & Custom Menu Ingredient Recipes (Lookup from database menu catalog)
+    const itemsList = Array.isArray(order.items) ? order.items : [];
+    if (itemsList.length > 0) {
+      try {
+        const dbMenuItems = await MultiTenantDbService.listMenuItems(restaurantId);
+        for (const lineItem of itemsList) {
+          const itemQty = Number(lineItem.qty || lineItem.quantity) || 1;
+          const itemId = lineItem.id || lineItem._id || lineItem.menu_item_id;
+          const itemName = lineItem.name || lineItem.item?.name;
+
+          const dbMatch = dbMenuItems.find((m: any) => (itemId && (m._id === itemId || (m as any).id === itemId)) || (itemName && m.name.toLowerCase() === String(itemName).toLowerCase()));
+          
+          const recipeToProcess = lineItem.recipe || dbMatch?.recipe;
+          const ingId = lineItem.ingredient_id || dbMatch?.ingredient_id;
+          const ingAmount = lineItem.ingredient_amount || dbMatch?.ingredient_amount;
+
+          if (Array.isArray(recipeToProcess) && recipeToProcess.length > 0) {
+            for (const ing of recipeToProcess) {
+              if (ing.ingredientId && ing.amount) {
+                deduct(ing.ingredientId, Number(ing.amount) * itemQty);
+              }
+            }
+          } else if (ingId && ingAmount) {
+            deduct(ingId, Number(ingAmount) * itemQty);
+          } else if (itemId || itemName) {
+            const staticIngredients = RECIPES[itemId] || (itemName ? RECIPES[String(itemName).toLowerCase()] : null);
+            if (staticIngredients) {
+              for (const ing of staticIngredients) {
+                deduct(ing.ingredientId, ing.amount * itemQty);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[RecipeService] Error looking up db menu recipes:', err);
       }
     }
   }
