@@ -3468,6 +3468,21 @@
       "last_activity": "Registered",
       "paired_at": "2026-08-19T02:17:23.473Z",
       "created_at": "2026-08-19T02:17:23.473Z"
+    },
+    {
+      "_id": "DEV_20D9ED13824F",
+      "restaurant_id": "RES_2B914C800CF3",
+      "device_name": "iPad Table Device",
+      "device_type": "customer_table",
+      "table_id": "TBL_F3AAD52F8260",
+      "device_token": "dev_95a29a890273bfd8439ce21c95181dcdfbfc7be14f85827e",
+      "status": "ACTIVE",
+      "app_version": "2.0.0",
+      "os_version": "iOS / iPadOS",
+      "last_seen_at": "2026-08-19T16:24:18.408Z",
+      "last_activity": "Registered",
+      "paired_at": "2026-08-19T16:24:18.408Z",
+      "created_at": "2026-08-19T16:24:18.408Z"
     }
   ],
   "tables": [
@@ -12437,6 +12452,23 @@
   ],
   "payment_sessions": [],
   "audit_logs": [
+    {
+      "_id": "AUD_MT0AXJ82_2F91D1",
+      "restaurant_id": "RES_2B914C800CF3",
+      "actor_id": "USR_40B099FD4BA1",
+      "actor_name": "Sandip",
+      "action": "device_configured",
+      "resource_type": "device",
+      "resource_id": "DEV_20D9ED13824F",
+      "metadata": {
+        "table_number": 1,
+        "device_id": "DEV_20D9ED13824F",
+        "device_name": "iPad Table Device",
+        "authorized_by": "Sandip",
+        "role": "owner"
+      },
+      "timestamp": "2026-08-19T16:24:18.578Z"
+    },
     {
       "_id": "AUD_MT0ATBDN_C261E8",
       "restaurant_id": "RES_2B914C800CF3",
