@@ -12,7 +12,7 @@ export function requestIdMiddleware(req: Request, res: Response, next: NextFunct
   req.context = {
     ...(req.context || {}),
     requestId,
-    tenantId: (req.context?.tenantId || req.headers['x-restaurant-id'] || 'RES_EED4E9D266DF') as string,
+    tenantId: (req.context?.tenantId || req.headers['x-restaurant-id'] || '') as string,
     ipAddress: req.ip || (req.headers['x-forwarded-for'] as string) || null,
     userAgent: req.headers['user-agent'] || null,
   };

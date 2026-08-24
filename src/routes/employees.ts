@@ -11,7 +11,7 @@ const router = Router();
 // Helper to resolve restaurant ID from request
 async function resolveRestaurantId(req: any): Promise<string> {
   const rid = await resolveTenantRestaurantId(req);
-  return rid || 'RES_EED4E9D266DF';
+  return rid || '';
 }
 
 // Helper to check if caller is an authorized Manager or Owner
@@ -85,7 +85,10 @@ router.get('/', optionalAuth, async (req, res) => {
 // GET /api/employees/payroll/summary — Get manager weekly payroll summary across all staff
 router.get('/payroll/summary', optionalAuth, async (req, res) => {
   try {
-    const restaurantId = (await resolveRestaurantId(req)) || req.tenant?.restaurant_id || 'RES_EED4E9D266DF';
+    const restaurantId = (await resolveRestaurantId(req)) || req.tenant?.restaurant_id;
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const users = await MultiTenantDbService.listUsers(restaurantId);
     const timecards = await MultiTenantDbService.listTimecards(restaurantId);
 
@@ -161,7 +164,10 @@ router.post('/payroll/fulfill', optionalAuth, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden: Payroll fulfillment requires Manager or Owner authorization.' });
     }
 
-    const restaurantId = (await resolveRestaurantId(req)) || req.tenant?.restaurant_id || 'RES_EED4E9D266DF';
+    const restaurantId = (await resolveRestaurantId(req)) || req.tenant?.restaurant_id;
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const { userId, weekKey } = req.body || {};
 
     const timecards = await MultiTenantDbService.listTimecards(restaurantId);
@@ -265,7 +271,10 @@ router.get('/:id/profile', optionalAuth, async (req, res) => {
       }
     }
 
-    const restaurantId = (await resolveRestaurantId(req)) || authRestaurantId || 'RES_EED4E9D266DF';
+    const restaurantId = (await resolveRestaurantId(req)) || authRestaurantId;
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
 
     let targetUserId = String(req.params.id || '');
     if (!targetUserId || targetUserId === 'me' || targetUserId === 'undefined') {

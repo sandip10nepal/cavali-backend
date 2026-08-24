@@ -371,9 +371,22 @@ export class RecipeService {
    */
   static async processOrderDeductions(order: any): Promise<void> {
     if (!order) return;
-    const restaurantId = order.restaurant_id || order.restaurantId || 'RES_EED4E9D266DF';
+    const restaurantId = order.restaurant_id || order.restaurantId;
+    if (!restaurantId) {
+      throw new Error('Order is missing restaurant_id required for inventory deduction');
+    }
 
-    const deduct = (ingredientId: string, amount: number) => {
+    const deduct = async (ingredientId: string, amount: number) => {
+      if (!ingredientId || !Number.isFinite(amount) || amount <= 0) return;
+
+      // Verify ingredient belongs to the SAME restaurant before deduction
+      const invItems = await InventoryRepository.list(restaurantId);
+      const invItem = invItems.find(i => (i._id === ingredientId || (i as any).id === ingredientId || (i.name && i.name.toLowerCase() === ingredientId.toLowerCase())) && i.active !== false);
+      if (!invItem) {
+        console.warn(`[RecipeService] Cross-tenant or missing ingredient protection: Ingredient "${ingredientId}" does not belong to restaurant "${restaurantId}"`);
+        return;
+      }
+
       InventoryRepository.updateStock(ingredientId, restaurantId, -amount, {
         type: 'SALE_DEDUCTION',
         reason: `Auto deduction for Order #${order.id || order._id}`,
@@ -391,31 +404,41 @@ export class RecipeService {
         if (mixComponents) {
           for (const component of mixComponents) {
             const shishaAmount = 20 * (component.ratio / 100);
-            deduct(component.id, shishaAmount);
+            await deduct(component.id, shishaAmount);
           }
         } else if (flavor.isMix && Array.isArray(flavor.mixDetails)) {
           for (const component of flavor.mixDetails) {
             const ratio = Number(component.ratio) || 0;
             const shishaAmount = 20 * (ratio / 100);
-            deduct(component.id, shishaAmount);
+            await deduct(component.id, shishaAmount);
           }
-        } else if (flavor.id) {
-          deduct(flavor.id, 20);
+        } else {
+          await deduct(flavor.id, 20);
         }
       }
     }
 
-    // 2. Process Food
+    // 2. Process Food Items & Custom Recipes
     if (Array.isArray(order.food)) {
       for (const cartLine of order.food) {
         const item = cartLine.item;
         const qty = Number(cartLine.qty) || 0;
         if (!item || qty <= 0) continue;
 
-        const ingredients = RECIPES[item.id];
-        if (ingredients) {
-          for (const ing of ingredients) {
-            deduct(ing.ingredientId, ing.amount * qty);
+        if (Array.isArray(item.recipe) && item.recipe.length > 0) {
+          for (const ing of item.recipe) {
+            const ingId = ing.ingredient_id || ing.ingredientId;
+            const amountPerItem = Number(ing.quantity || ing.amount || 0);
+            if (ingId && amountPerItem > 0) {
+              await deduct(ingId, amountPerItem * qty);
+            }
+          }
+        } else {
+          const ingredients = RECIPES[item.id];
+          if (ingredients) {
+            for (const ing of ingredients) {
+              await deduct(ing.ingredientId, ing.amount * qty);
+            }
           }
         }
       }

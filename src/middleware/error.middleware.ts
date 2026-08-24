@@ -6,7 +6,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../core/errors';
 
 export function errorMiddleware(err: any, req: Request, res: Response, next: NextFunction): void {
-  const requestId = req.context?.requestId || 'req_unknown';
+  const requestId = (req as any).context?.requestId || 'req_unknown';
 
   if (err instanceof AppError) {
     res.status(err.statusCode).json({

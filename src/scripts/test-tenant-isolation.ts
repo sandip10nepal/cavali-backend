@@ -48,7 +48,7 @@ async function testTenantIsolation() {
     body: JSON.stringify({
       restaurant_id: '4821',
       email: 'owner@cavali.com',
-      password: '1234abcD',
+      pin: '1234',
     }),
   });
   const cavaliLoginData = await cavaliLoginRes.json();
@@ -163,9 +163,36 @@ async function testTenantIsolation() {
   if (vinduOrderFoundInCavali) {
     throw new Error('❌ ISOLATION LEAK: Vindu order found in Cavali orders list!');
   }
-  console.log('✅ Cross-Tenant Verification Verified: Order belongs strictly to Vindu, not visible to Cavali!');
+  // 8. Test Inventory Data Isolation: Vindu & ChillPill must NOT see Cavali inventory stock items
+  console.log('8. Testing Raw Materials & Stock Inventory Isolation...');
+  const vinduInvRes = await fetch(`${API_BASE}/api/orders/inventory?restaurant_id=${vinduId}`, {
+    headers: { 'Authorization': `Bearer ${vinduToken}`, 'x-restaurant-id': vinduId }
+  });
+  const vinduInvData = await vinduInvRes.json();
+  const vinduInvItems = Object.values(vinduInvData.inventory || {});
+  console.log('Vindu Initial Inventory Items Count:', vinduInvItems.length);
+  const cavaliItemsInVindu = vinduInvItems.some((item: any) =>
+    ['Pan Ras', 'Lady Killer', 'Bagdadi', 'Watermelon Lit', 'Love 66'].includes(item.name)
+  );
+  if (cavaliItemsInVindu) {
+    throw new Error('❌ ISOLATION LEAK: Cavali inventory items found in Vindu inventory response!');
+  }
 
-  console.log('\n🎉 ALL 7 STRICT MULTI-TENANT ISOLATION TESTS PASSED 100%! 🚀');
+  // Test ChillPill (RES_CA027A1D1C55 / Code 8204) inventory isolation
+  const chillPillInvRes = await fetch(`${API_BASE}/api/orders/inventory`, {
+    headers: { 'x-restaurant-code': '8204', 'x-restaurant-id': 'RES_CA027A1D1C55' }
+  });
+  const chillPillInvData = await chillPillInvRes.json();
+  const chillPillInvItems = Object.values(chillPillInvData.inventory || {});
+  const cavaliItemsInChillPill = chillPillInvItems.some((item: any) =>
+    ['Pan Ras', 'Lady Killer', 'Bagdadi', 'Watermelon Lit', 'Love 66'].includes(item.name)
+  );
+  if (cavaliItemsInChillPill) {
+    throw new Error('❌ ISOLATION LEAK: Cavali inventory items found in ChillPill inventory response!');
+  }
+  console.log('✅ Inventory Isolation Verified: Zero Cavali stock items leaked into Vindu or ChillPill!\n');
+
+  console.log('🎉 ALL 8 STRICT MULTI-TENANT ISOLATION TESTS PASSED 100%! 🚀');
 }
 
 testTenantIsolation().catch(err => {

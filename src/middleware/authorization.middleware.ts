@@ -37,10 +37,13 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
 
 export function requirePermission(permission: string) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const user = req.context?.user || (req as any).user;
-    const role = (user?.role || req.headers['x-user-role'] || 'server').toString().toLowerCase();
+    const user = req.context?.user || (req as any).user || (req as any).tenant;
+    if (!user || !user.role) {
+      throw new UnauthorizedError('Authentication required to verify permissions.');
+    }
 
-    const allowedPermissions = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS['server'];
+    const role = user.role.toString().toLowerCase();
+    const allowedPermissions = ROLE_PERMISSIONS[role] || [];
 
     if (allowedPermissions.includes('*') || allowedPermissions.includes(permission)) {
       return next();

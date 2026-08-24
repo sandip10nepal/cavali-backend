@@ -149,8 +149,8 @@ router.post('/:id/complete', async (req, res) => {
 
   if (!updated) return res.status(500).json({ success: false, message: 'Failed to complete session' });
 
-  // Update order paid and due amounts dynamically
-  const restaurantId = session.restaurant_id || 'RES_EED4E9D266DF';
+  const restaurantId = session.restaurant_id;
+  if (!restaurantId) throw new Error('Payment session is missing restaurant_id');
   const order = await OrderRepository.findById(session.order_id, restaurantId);
   let finalOrder = order;
 

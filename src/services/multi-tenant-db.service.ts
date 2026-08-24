@@ -50,6 +50,7 @@ export const COLLECTIONS = {
   customer_sessions: 'customer_sessions',
   credits: 'credits',
   timecards: 'timecards',
+  leads: 'leads',
 } as const;
 
 interface LocalSchema {
@@ -69,6 +70,7 @@ interface LocalSchema {
   customer_sessions: CustomerSession[];
   credits: Credit[];
   timecards: Timecard[];
+  leads: any[];
 }
 
 export class MultiTenantDbService {
@@ -134,6 +136,7 @@ export class MultiTenantDbService {
         if (!parsed.device_activation_codes) parsed.device_activation_codes = [];
         if (!parsed.inventory_transactions) parsed.inventory_transactions = [];
         if (!parsed.inventory_categories) parsed.inventory_categories = [];
+        if (!parsed.leads) parsed.leads = [];
         return parsed;
       }
     } catch (e) {
@@ -143,7 +146,7 @@ export class MultiTenantDbService {
       restaurants: [], users: [], devices: [], device_activation_codes: [], tables: [],
       menu_categories: [], menu_items: [], orders: [], inventory_items: [], inventory_categories: [],
       inventory_transactions: [], payment_sessions: [], audit_logs: [],
-      customer_sessions: [], credits: [], timecards: [],
+      customer_sessions: [], credits: [], timecards: [], leads: [],
     };
     this.saveLocalDb(empty);
     return empty;
@@ -285,54 +288,51 @@ export class MultiTenantDbService {
     } catch (err) {}
   }
 
-  static async ensureDefaultInventory(): Promise<void> {
+  static async ensureDefaultInventory(targetRestaurantId?: string): Promise<void> {
     try {
-      const restaurant = await this.getRestaurantBySlug('cavali');
-      if (!restaurant) return;
-      const restId = restaurant._id;
-
-      const defaultItems: Omit<InventoryItem, '_id' | 'created_at' | 'updated_at'>[] = [
-        { restaurant_id: restId, name: 'Pan Ras', stock: 1500, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Lady Killer', stock: 1200, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Bagdadi', stock: 1000, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Lychee Shisha', stock: 800, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Blueberry Shisha', stock: 950, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Red Bull Shisha', stock: 1100, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Mint Pro', stock: 2000, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Mango Shisha', stock: 750, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Peach Shisha', stock: 650, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Vanilla Shisha', stock: 900, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
-        { restaurant_id: restId, name: 'Karak Black Tea', stock: 250, unit: 'bags', category: 'beverages', active: true, low_threshold: 20 },
-        { restaurant_id: restId, name: 'Kashmiri Pink Tea', stock: 180, unit: 'bags', category: 'beverages', active: true, low_threshold: 20 },
-        { restaurant_id: restId, name: 'Desi Coffee Beans', stock: 500, unit: 'g', category: 'beverages', active: true, low_threshold: 50 },
-        { restaurant_id: restId, name: 'Flavored Syrup', stock: 3500, unit: 'ml', category: 'beverages', active: true, low_threshold: 500 },
-        { restaurant_id: restId, name: 'Club Soda', stock: 120, unit: 'cans', category: 'beverages', active: true, low_threshold: 24 },
-        { restaurant_id: restId, name: 'Fresh Milk', stock: 25, unit: 'L', category: 'beverages', active: true, low_threshold: 5 },
-        { restaurant_id: restId, name: 'Chickpeas', stock: 50, unit: 'kg', category: 'food', active: true, low_threshold: 5 },
-        { restaurant_id: restId, name: 'Tahini Paste', stock: 15, unit: 'kg', category: 'food', active: true, low_threshold: 2 },
-        { restaurant_id: restId, name: 'Pita Bread', stock: 200, unit: 'packs', category: 'food', active: true, low_threshold: 20 },
-        { restaurant_id: restId, name: 'Chicken Breast', stock: 40, unit: 'kg', category: 'food', active: true, low_threshold: 5 },
-        { restaurant_id: restId, name: 'Basmati Rice', stock: 100, unit: 'kg', category: 'food', active: true, low_threshold: 10 }
+      const templateItems = [
+        { name: 'House Shisha Blend', stock: 1500, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
+        { name: 'Mint Shisha Flavor', stock: 2000, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
+        { name: 'Fruit Mix Shisha', stock: 1000, unit: 'g', category: 'shisha', active: true, low_threshold: 100 },
+        { name: 'Karak Black Tea', stock: 250, unit: 'bags', category: 'beverages', active: true, low_threshold: 20 },
+        { name: 'Desi Coffee Beans', stock: 500, unit: 'g', category: 'beverages', active: true, low_threshold: 50 },
+        { name: 'Chicken Breast', stock: 40, unit: 'kg', category: 'food', active: true, low_threshold: 5 },
+        { name: 'Basmati Rice', stock: 100, unit: 'kg', category: 'food', active: true, low_threshold: 10 }
       ];
 
-      const existingList = await this.listInventory(restId);
-      if (existingList.length === 0) {
-        for (const item of defaultItems) {
-          const now = new Date().toISOString();
-          const newItem: InventoryItem = {
-            _id: item.name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
-            ...item,
-            created_at: now,
-            updated_at: now
-          };
-          const list = this.getCollection('inventory_items');
-          list.push(newItem);
-          this.saveCollection('inventory_items', list);
-          await this.syncDirectMongo(COLLECTIONS.inventory, 'upsert', newItem);
+      const targetIds = targetRestaurantId 
+        ? [targetRestaurantId] 
+        : (this.getCollection('restaurants') || []).map((r: any) => r._id || r.id);
+
+      const allInv = this.getCollection('inventory_items');
+      let changed = false;
+
+      for (const rid of targetIds) {
+        if (!rid) continue;
+        const existing = allInv.filter(i => i.restaurant_id === rid);
+        if (existing.length === 0) {
+          for (const item of templateItems) {
+            const now = new Date().toISOString();
+            const newItem: InventoryItem = {
+              _id: `INV_${rid}_${item.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+              restaurant_id: rid,
+              ...item,
+              created_at: now,
+              updated_at: now
+            };
+            allInv.push(newItem);
+            changed = true;
+          }
+          console.log(`✅ [MultiTenantDB] Seeded initial default inventory stock for venue ${rid}`);
         }
-        console.log('✅ [MultiTenantDB] Seeded default inventory items for Cavali Lounge');
       }
-    } catch (e) {}
+
+      if (changed) {
+        this.saveCollection('inventory_items', allInv);
+      }
+    } catch (e) {
+      console.error('[MultiTenantDB] error in ensureDefaultInventory:', e);
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -378,31 +378,9 @@ export class MultiTenantDbService {
     }
     if (!restaurant) return null;
 
-    const categories = await this.listCategories(restaurant._id);
+    const categories = await this.listMenuCategories(restaurant._id);
     const menuItems = await this.listMenuItems(restaurant._id);
     const tables = await this.listTables(restaurant._id);
-
-    const catMap = new Map<string, MenuCategory>();
-    categories.forEach(c => catMap.set(c._id, c));
-
-    const formattedMenuItems = menuItems.map(item => {
-      const parentCat = catMap.get(item.category_id);
-      return {
-        id: item._id,
-        _id: item._id,
-        restaurant_id: item.restaurant_id,
-        category_id: item.category_id,
-        name: item.name,
-        description: item.desc || '',
-        price: item.price,
-        category: (parentCat?.menu_type as any) || 'food',
-        subcategory: parentCat?.subtitle || parentCat?.title || 'General',
-        image: item.image_url || undefined,
-        emoji: item.emoji || '🍽️',
-        available: item.available !== false,
-        modifierGroups: item.modifier_groups || [],
-      };
-    });
 
     return {
       restaurant: {
@@ -422,9 +400,45 @@ export class MultiTenantDbService {
           session_timeout_minutes: restaurant.settings.session_timeout_minutes,
         },
       },
-      categories,
-      menu_items: formattedMenuItems,
-      tables,
+      categories: categories.filter(c => c.active !== false).map(c => ({
+        _id: c._id,
+        id: c._id,
+        restaurant_id: c.restaurant_id,
+        parent_id: c.parent_id !== undefined ? c.parent_id : null,
+        name: c.name || c.title || 'Category',
+        title: c.name || c.title || 'Category',
+        description: c.description || c.subtitle || '',
+        icon: c.icon || (c.parent_id === null ? '👑' : '📋'),
+        color: c.color || '#E5B13A',
+        sort_order: c.sort_order ?? 0,
+        active: c.active !== false,
+      })).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+      menu_items: menuItems.filter(i => i.active !== false).map(item => ({
+        _id: item._id,
+        id: item._id,
+        restaurant_id: item.restaurant_id,
+        category_id: item.category_id,
+        name: item.name,
+        description: item.description || item.desc || '',
+        desc: item.desc || item.description || '',
+        price: Number(item.price) || 0,
+        emoji: item.emoji || '🍽️',
+        image_url: item.image_url || null,
+        imageUrl: item.image_url || null,
+        sort_order: item.sort_order ?? 0,
+        active: item.active !== false,
+        available: item.available !== false,
+        recipe: item.recipe || [],
+        modifier_groups: item.modifier_groups || [],
+        modifierGroups: item.modifier_groups || [],
+        variants: item.variants || [],
+      })).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+      tables: tables.map(t => ({
+        id: t._id,
+        table_number: String(t.number || t.label || '1'),
+        section: t.label || 'Main',
+        status: t.active !== false ? 'available' : 'inactive',
+      })),
     };
   }
 
@@ -470,6 +484,12 @@ export class MultiTenantDbService {
 
   static async getUserByEmail(restaurantId: string, email: string): Promise<User | null> {
     return this.getCollection('users').find(u => u.restaurant_id === restaurantId && u.email?.toLowerCase() === email.toLowerCase()) || null;
+  }
+
+  static async findUserByEmail(email: string): Promise<User | null> {
+    if (!email) return null;
+    const cleanEmail = email.trim().toLowerCase();
+    return this.getCollection('users').find(u => u.active !== false && u.email?.toLowerCase() === cleanEmail) || null;
   }
 
   static async listUsers(restaurantId: string, includeInactive = false): Promise<User[]> {
@@ -681,30 +701,64 @@ export class MultiTenantDbService {
   }
 
   static async listMenuCategories(restaurantId: string): Promise<MenuCategory[]> {
-    const list = this.getCollection('menu_categories').filter(c => (c.restaurant_id === restaurantId || !c.restaurant_id) && c.active !== false);
-    if (list.length > 0) return list;
+    if (!restaurantId) throw new Error('Restaurant ID is required to list menu categories');
+    const allCats = this.getCollection('menu_categories') as MenuCategory[];
+    const venueCats = allCats.filter(c => c.restaurant_id === restaurantId && c.active !== false);
 
-    const defaults: Partial<MenuCategory>[] = [
-      { _id: 'CAT_HKH_1', restaurant_id: restaurantId, menu_type: 'hookah', title: 'Signature House Mixes', subtitle: 'Lounge Specials', icon: '👑', color: '#FF5A1F', active: true },
-      { _id: 'CAT_HKH_2', restaurant_id: restaurantId, menu_type: 'hookah', title: 'Popular Favorites', subtitle: 'Bestselling Flavors', icon: '⭐', color: '#E5B13A', active: true },
-      { _id: 'CAT_FD_1', restaurant_id: restaurantId, menu_type: 'food', title: 'Appetizers & Starters', subtitle: 'Small Plates', icon: '🥗', color: '#10B981', active: true },
-      { _id: 'CAT_FD_2', restaurant_id: restaurantId, menu_type: 'food', title: 'Mains & Sandwiches', subtitle: 'Burgers & Dishes', icon: '🍔', color: '#F59E0B', active: true },
-      { _id: 'CAT_FD_3', restaurant_id: restaurantId, menu_type: 'food', title: 'Desserts & Sweets', subtitle: 'Sweet Treats', icon: '🍰', color: '#EC4899', active: true },
-      { _id: 'CAT_DRK_1', restaurant_id: restaurantId, menu_type: 'drinks', title: 'Refreshers & Mojitos', subtitle: 'Signature Mocktails', icon: '🍸', color: '#3B82F6', active: true },
-      { _id: 'CAT_DRK_2', restaurant_id: restaurantId, menu_type: 'drinks', title: 'Tea & Coffee', subtitle: 'Chai & Desi Brews', icon: '☕', color: '#8B5CF6', active: true },
-      { _id: 'CAT_DRK_3', restaurant_id: restaurantId, menu_type: 'drinks', title: 'Cold Beverages & Sodas', subtitle: 'Iced Drinks', icon: '🥤', color: '#06B6D4', active: true },
-    ];
-    return defaults as MenuCategory[];
+    return venueCats.map(c => {
+      const isSuper = c.parent_id === null;
+      const catName = c.name || c.title || 'Category';
+      return {
+        ...c,
+        parent_id: c.parent_id !== undefined ? c.parent_id : (c.is_super ? null : `CAT_SUPER_${restaurantId}_${(c.menu_type || 'hookah').toUpperCase()}`),
+        name: catName,
+        title: catName,
+        is_super: isSuper,
+        active: c.active !== false,
+      };
+    }).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   }
 
-  static async createMenuCategory(data: Omit<MenuCategory, '_id' | 'created_at' | 'updated_at'>): Promise<MenuCategory> {
+  static async createMenuCategory(data: Partial<MenuCategory> & { restaurant_id: string; title?: string; name?: string }): Promise<MenuCategory> {
+    if (!data.restaurant_id) throw new Error('Restaurant ID is required to create a menu category');
+    const name = (data.name || data.title || '').trim();
+
+    if (!name) {
+      throw new Error('Category name is required');
+    }
+
+    const allCats = this.getCollection('menu_categories') as MenuCategory[];
+    let parentId: string | null = data.parent_id !== undefined ? data.parent_id : (data.is_super ? null : null);
+
+    // Validate parent_id for Sub Categories
+    if (parentId !== null) {
+      const parent = allCats.find(c => c.restaurant_id === data.restaurant_id && (c._id === parentId || (c as any).id === parentId) && c.active !== false);
+      if (!parent) {
+        throw new Error(`Parent category "${parentId}" not found or inactive`);
+      }
+      if (parent.parent_id !== null) {
+        throw new Error(`Parent category "${parent.name || parent._id}" is a Sub Category. Categories can only be 2 levels deep (Super -> Sub).`);
+      }
+    }
+
     const now = new Date().toISOString();
+    const finalParentId = parentId === undefined ? null : parentId;
     const cat: MenuCategory = {
       _id: `CAT_${crypto.randomBytes(6).toString('hex').toUpperCase()}`,
-      ...data,
+      restaurant_id: data.restaurant_id,
+      parent_id: finalParentId,
+      name,
+      title: name,
+      description: data.description || data.subtitle || '',
+      icon: data.icon || (finalParentId === null ? '👑' : '📋'),
+      color: data.color || '#6366F1',
+      sort_order: data.sort_order ?? 0,
+      is_super: finalParentId === null,
+      active: true,
       created_at: now,
       updated_at: now,
     };
+
     const list = this.getCollection('menu_categories');
     list.push(cat);
     this.saveCollection('menu_categories', list);
@@ -713,36 +767,113 @@ export class MultiTenantDbService {
   }
 
   static async updateMenuCategory(id: string, restaurantId: string, update: Partial<MenuCategory>): Promise<boolean> {
-    const list = this.getCollection('menu_categories');
-    const idx = list.findIndex(c => c._id === id && (c.restaurant_id === restaurantId || !restaurantId));
-    if (idx === -1) return false;
-    list[idx] = { ...list[idx], ...update, updated_at: new Date().toISOString() };
+    if (!restaurantId) throw new Error('Restaurant ID is required to update a menu category');
+    const list = this.getCollection('menu_categories') as MenuCategory[];
+    const targetId = String(id).trim();
+
+    // Match ONLY by immutable _id / id
+    const index = list.findIndex(c => c.restaurant_id === restaurantId && (c._id === targetId || (c as any).id === targetId) && c.active !== false);
+
+    if (index === -1) {
+      return false; // NO auto-creation on PATCH!
+    }
+
+    // If updating parent_id, validate new parent
+    if (update.parent_id !== undefined && update.parent_id !== null) {
+      const parent = list.find(c => c.restaurant_id === restaurantId && (c._id === update.parent_id || (c as any).id === update.parent_id) && c.active !== false);
+      if (!parent) {
+        throw new Error(`Parent category "${update.parent_id}" not found or inactive`);
+      }
+      if (parent.parent_id !== null) {
+        throw new Error(`Parent category "${parent.name || parent._id}" is a Sub Category. Categories can only be 2 levels deep.`);
+      }
+    }
+
+    const updatedName = (update.name || update.title || list[index].name || list[index].title || '').trim();
+
+    list[index] = {
+      ...list[index],
+      ...update,
+      name: updatedName,
+      title: updatedName,
+      description: update.description || update.subtitle || list[index].description,
+      updated_at: new Date().toISOString()
+    };
+
     this.saveCollection('menu_categories', list);
-    await this.syncDirectMongo(COLLECTIONS.menu_categories, 'upsert', list[idx]);
+    await this.syncDirectMongo(COLLECTIONS.menu_categories, 'upsert', list[index]);
     return true;
   }
 
-  static async deleteMenuCategory(id: string, restaurantId: string): Promise<boolean> {
-    const list = this.getCollection('menu_categories');
-    const idx = list.findIndex(c => c._id === id && (c.restaurant_id === restaurantId || !restaurantId));
-    if (idx === -1) return false;
-    const removed = list.splice(idx, 1)[0];
+  static async deleteMenuCategory(id: string, restaurantId: string): Promise<{ success: boolean; conflict?: boolean; notFound?: boolean; message?: string }> {
+    if (!restaurantId) throw new Error('Restaurant ID is required to delete a menu category');
+    const list = this.getCollection('menu_categories') as MenuCategory[];
+    const targetId = String(id).trim();
+
+    // Match ONLY by immutable _id / id
+    const targetIdx = list.findIndex(c => c.restaurant_id === restaurantId && (c._id === targetId || (c as any).id === targetId) && c.active !== false);
+
+    if (targetIdx === -1) {
+      return { success: false, notFound: true, message: 'Category not found.' };
+    }
+
+    const targetCat = list[targetIdx];
+
+    // Safety Check 1: Active child categories (if Super Category)
+    if (targetCat.parent_id === null) {
+      const activeChildren = list.filter(c => c.restaurant_id === restaurantId && c.parent_id === targetCat._id && c.active !== false);
+      if (activeChildren.length > 0) {
+        return {
+          success: false,
+          conflict: true,
+          message: `Cannot delete "${targetCat.name || targetCat.title}" because it contains ${activeChildren.length} active sub-category(ies).`
+        };
+      }
+    }
+
+    // Safety Check 2: Active menu items
+    const items = this.getCollection('menu_items') as MenuItemModel[];
+    const activeItems = items.filter(i => {
+      if (i.restaurant_id !== restaurantId || i.active === false) return false;
+      return i.category_id === targetCat._id || (i as any).category === targetCat._id;
+    });
+
+    if (activeItems.length > 0) {
+      return {
+        success: false,
+        conflict: true,
+        message: `Cannot delete "${targetCat.name || targetCat.title}" because it contains ${activeItems.length} active menu item(s).`
+      };
+    }
+
+    // Soft delete: set active = false
+    list[targetIdx].active = false;
+    list[targetIdx].updated_at = new Date().toISOString();
+
     this.saveCollection('menu_categories', list);
-    await this.syncDirectMongo(COLLECTIONS.menu_categories, 'delete', removed._id);
-    return true;
+    await this.syncDirectMongo(COLLECTIONS.menu_categories, 'upsert', list[targetIdx]);
+
+    return { success: true };
   }
 
   static async listInventoryCategories(restaurantId: string): Promise<any[]> {
-    const list = (this.getCollection('inventory_categories') as any[]).filter(c => c.restaurant_id === restaurantId && c.active !== false);
-    if (list.length === 0) {
-      // Default initial inventory categories
+    const allInvCats = this.getCollection('inventory_categories') as any[];
+    const venueCats = allInvCats.filter(c => c.restaurant_id === restaurantId);
+    let list = venueCats.filter(c => c.active !== false);
+    if (venueCats.length === 0 && restaurantId) {
+      const now = new Date().toISOString();
       const defaults = [
-        { _id: 'INVCAT_SHISHA', restaurant_id: restaurantId, title: 'Shisha Flavors', icon: '💨', sort_order: 10, active: true },
-        { _id: 'INVCAT_COALS', restaurant_id: restaurantId, title: 'Coals & Heads', icon: '🔥', sort_order: 20, active: true },
-        { _id: 'INVCAT_LIQUOR', restaurant_id: restaurantId, title: 'Liquors & Drinks', icon: '🍾', sort_order: 30, active: true },
-        { _id: 'INVCAT_RAW', restaurant_id: restaurantId, title: 'Raw Ingredients', icon: '🍅', sort_order: 40, active: true },
+        { _id: `INVCAT_${restaurantId}_SHISHA`, restaurant_id: restaurantId, title: 'Shisha Flavors', icon: '💨', sort_order: 10, active: true, created_at: now, updated_at: now },
+        { _id: `INVCAT_${restaurantId}_COALS`, restaurant_id: restaurantId, title: 'Coals & Heads', icon: '🔥', sort_order: 20, active: true, created_at: now, updated_at: now },
+        { _id: `INVCAT_${restaurantId}_LIQUOR`, restaurant_id: restaurantId, title: 'Liquors & Drinks', icon: '🍾', sort_order: 30, active: true, created_at: now, updated_at: now },
+        { _id: `INVCAT_${restaurantId}_RAW`, restaurant_id: restaurantId, title: 'Raw Ingredients', icon: '🍅', sort_order: 40, active: true, created_at: now, updated_at: now },
       ];
-      return defaults;
+      for (const d of defaults) {
+        allInvCats.push(d);
+        await this.syncDirectMongo('inventory_categories', 'upsert', d);
+      }
+      this.saveCollection('inventory_categories', allInvCats);
+      list = allInvCats.filter(c => c.restaurant_id === restaurantId && c.active !== false);
     }
     return list.sort((a, b) => (a.sort_order || 99) - (b.sort_order || 99));
   }
@@ -768,7 +899,13 @@ export class MultiTenantDbService {
 
   static async updateInventoryCategory(id: string, restaurantId: string, update: Partial<any>): Promise<boolean> {
     const list = this.getCollection('inventory_categories') as any[];
-    const idx = list.findIndex(c => (c._id === id || c.id === id) && (c.restaurant_id === restaurantId || !restaurantId));
+    const targetId = String(id).toLowerCase();
+    const idx = list.findIndex(c => {
+      if (c.restaurant_id !== restaurantId) return false;
+      const cId = String(c._id || c.id || '').toLowerCase();
+      const cTitle = String(c.title || '').toLowerCase();
+      return cId === targetId || cTitle === targetId || cId.endsWith(`_${targetId}`);
+    });
     if (idx === -1) return false;
     list[idx] = { ...list[idx], ...update, updated_at: new Date().toISOString() };
     this.saveCollection('inventory_categories', list as any);
@@ -778,11 +915,18 @@ export class MultiTenantDbService {
 
   static async deleteInventoryCategory(id: string, restaurantId: string): Promise<boolean> {
     const list = this.getCollection('inventory_categories') as any[];
-    const idx = list.findIndex(c => (c._id === id || c.id === id) && (c.restaurant_id === restaurantId || !restaurantId));
+    const targetId = String(id).toLowerCase();
+    const idx = list.findIndex(c => {
+      if (c.restaurant_id !== restaurantId) return false;
+      const cId = String(c._id || c.id || '').toLowerCase();
+      const cTitle = String(c.title || '').toLowerCase();
+      return cId === targetId || cTitle === targetId || cId.endsWith(`_${targetId}`);
+    });
     if (idx === -1) return false;
-    const removed = list.splice(idx, 1)[0];
+    list[idx].active = false;
+    list[idx].updated_at = new Date().toISOString();
     this.saveCollection('inventory_categories', list as any);
-    await this.syncDirectMongo('inventory_categories', 'delete', removed._id);
+    await this.syncDirectMongo('inventory_categories', 'upsert', list[idx]);
     return true;
   }
 
@@ -820,23 +964,91 @@ export class MultiTenantDbService {
   }
 
   static async listMenuItems(restaurantId: string, categoryId?: string): Promise<MenuItemModel[]> {
-    let items = this.getCollection('menu_items').filter(i => i.restaurant_id === restaurantId);
-    if (categoryId) items = items.filter(i => i.category_id === categoryId);
-    return items.sort((a, b) => (a.sort_order || 99) - (b.sort_order || 99));
+    let items = (this.getCollection('menu_items') as MenuItemModel[]).filter(i => i.restaurant_id === restaurantId && i.active !== false);
+    if (categoryId) items = items.filter(i => (i.category_id || i.category || '').toLowerCase() === categoryId.toLowerCase());
+    return items.map(i => ({
+      ...i,
+      category_id: i.category_id || i.category || '',
+      category: i.category_id || i.category || '',
+      active: i.active !== false,
+      available: i.available !== false,
+    })).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   }
 
   static async getMenuItem(id: string, restaurantId: string): Promise<MenuItemModel | null> {
-    return this.getCollection('menu_items').find(i => i._id === id && i.restaurant_id === restaurantId) || null;
+    const item = (this.getCollection('menu_items') as MenuItemModel[]).find(i => (i._id === id || (i as any).id === id) && i.restaurant_id === restaurantId && i.active !== false);
+    if (!item) return null;
+    return {
+      ...item,
+      category_id: item.category_id || item.category || '',
+      category: item.category_id || item.category || '',
+      active: item.active !== false,
+      available: item.available !== false,
+    };
   }
 
-  static async createMenuItem(data: Omit<MenuItemModel, '_id' | 'created_at' | 'updated_at'>): Promise<MenuItemModel> {
+  static async createMenuItem(data: Partial<MenuItemModel> & { restaurant_id: string; name: string; price: number }): Promise<MenuItemModel> {
+    if (!data.restaurant_id) throw new Error('Restaurant ID is required to create a menu item');
+    if (!data.name || !data.name.trim()) throw new Error('Menu item name is required');
+
+    const price = Number(data.price);
+    if (!Number.isFinite(price) || price < 0) {
+      throw new Error(`Invalid price "${data.price}": Price must be a finite non-negative number`);
+    }
+
+    const categories = await this.listMenuCategories(data.restaurant_id);
+    const categoryId = String(data.category_id || data.category || '').trim();
+
+    const matchedCat = categories.find(c => (c._id === categoryId || (c as any).id === categoryId) && c.active !== false);
+
+    if (!matchedCat) {
+      throw new Error(`Category "${categoryId}" not found or inactive for this venue`);
+    }
+
+    if (matchedCat.parent_id === null) {
+      throw new Error(`Category "${matchedCat.name || matchedCat._id}" is a Super Category. Menu items can only be assigned to Sub Categories.`);
+    }
+
+    // Standardize & Validate recipes
+    let recipe = data.recipe;
+    if (Array.isArray(recipe)) {
+      const invItems = (this.getCollection('inventory_items') as any[]).filter(i => i.restaurant_id === data.restaurant_id && i.active !== false);
+      recipe = recipe.map((r: any) => {
+        const ingId = String(r.ingredient_id || r.ingredientId || '').trim();
+        const qty = Number(r.quantity || r.amount || 0);
+        const unit = r.unit || 'g';
+
+        if (ingId) {
+          const invMatch = invItems.find(i => i._id === ingId || i.id === ingId || (i.name && i.name.toLowerCase() === ingId.toLowerCase()));
+          if (!invMatch) {
+            throw new Error(`Recipe ingredient "${ingId}" does not exist in inventory for this venue.`);
+          }
+        }
+
+        return { ingredient_id: ingId, quantity: qty, unit };
+      }).filter((r: any) => r.ingredient_id && r.quantity > 0);
+    }
+
     const now = new Date().toISOString();
     const item: MenuItemModel = {
       _id: `ITM_${crypto.randomBytes(6).toString('hex').toUpperCase()}`,
-      ...data,
+      restaurant_id: data.restaurant_id,
+      category_id: matchedCat._id,
+      name: data.name.trim(),
+      description: data.description || data.desc || '',
+      price,
+      emoji: data.emoji || '🍽️',
+      image_url: data.image_url || null,
+      sort_order: data.sort_order ?? 0,
+      active: true,
+      available: data.available !== false,
+      recipe: recipe || [],
+      modifier_groups: data.modifier_groups || [],
+      variants: data.variants || [],
       created_at: now,
       updated_at: now,
     };
+
     const list = this.getCollection('menu_items');
     list.push(item);
     this.saveCollection('menu_items', list);
@@ -845,22 +1057,74 @@ export class MultiTenantDbService {
   }
 
   static async updateMenuItem(id: string, restaurantId: string, update: Partial<MenuItemModel>): Promise<boolean> {
-    const list = this.getCollection('menu_items');
-    const idx = list.findIndex(i => i._id === id && (i.restaurant_id === restaurantId || !restaurantId));
+    if (!restaurantId) throw new Error('Restaurant ID is required to update a menu item');
+    const list = this.getCollection('menu_items') as MenuItemModel[];
+    const idx = list.findIndex(i => (i._id === id || (i as any).id === id) && i.restaurant_id === restaurantId && i.active !== false);
     if (idx === -1) return false;
-    list[idx] = { ...list[idx], ...update, updated_at: new Date().toISOString() };
+
+    if (update.price !== undefined) {
+      const p = Number(update.price);
+      if (!Number.isFinite(p) || p < 0) {
+        throw new Error(`Invalid price "${update.price}": Price must be a finite non-negative number`);
+      }
+    }
+
+    let categoryId = list[idx].category_id;
+    if (update.category_id || update.category) {
+      const targetCatId = String(update.category_id || update.category || '').trim();
+      const categories = await this.listMenuCategories(restaurantId);
+      const matched = categories.find(c => (c._id === targetCatId || (c as any).id === targetCatId) && c.active !== false);
+      if (!matched) {
+        throw new Error(`Category "${targetCatId}" not found or inactive for this venue`);
+      }
+      if (matched.parent_id === null) {
+        throw new Error(`Category "${matched.name || matched._id}" is a Super Category. Menu items can only belong to Sub Categories.`);
+      }
+      categoryId = matched._id;
+    }
+
+    let recipe = update.recipe !== undefined ? update.recipe : list[idx].recipe;
+    if (Array.isArray(recipe)) {
+      const invItems = (this.getCollection('inventory_items') as any[]).filter(i => i.restaurant_id === restaurantId && i.active !== false);
+      recipe = recipe.map((r: any) => {
+        const ingId = String(r.ingredient_id || r.ingredientId || '').trim();
+        const qty = Number(r.quantity || r.amount || 0);
+        const unit = r.unit || 'g';
+        if (ingId) {
+          const invMatch = invItems.find(i => i._id === ingId || i.id === ingId || (i.name && i.name.toLowerCase() === ingId.toLowerCase()));
+          if (!invMatch) {
+            throw new Error(`Recipe ingredient "${ingId}" does not exist in inventory for this venue.`);
+          }
+        }
+        return { ingredient_id: ingId, quantity: qty, unit };
+      }).filter((r: any) => r.ingredient_id && r.quantity > 0);
+    }
+
+    list[idx] = {
+      ...list[idx],
+      ...update,
+      category_id: categoryId,
+      category: categoryId,
+      price: update.price !== undefined ? Number(update.price) : list[idx].price,
+      recipe: recipe || list[idx].recipe,
+      description: update.description || update.desc || list[idx].description,
+      updated_at: new Date().toISOString()
+    };
+
     this.saveCollection('menu_items', list);
     await this.syncDirectMongo(COLLECTIONS.menu_items, 'upsert', list[idx]);
     return true;
   }
 
   static async deleteMenuItem(id: string, restaurantId: string): Promise<boolean> {
-    const list = this.getCollection('menu_items');
-    const idx = list.findIndex(i => i._id === id && (i.restaurant_id === restaurantId || !restaurantId));
+    if (!restaurantId) throw new Error('Restaurant ID is required to delete a menu item');
+    const list = this.getCollection('menu_items') as MenuItemModel[];
+    const idx = list.findIndex(i => (i._id === id || (i as any).id === id) && i.restaurant_id === restaurantId && i.active !== false);
     if (idx === -1) return false;
-    const removed = list.splice(idx, 1)[0];
+    list[idx].active = false;
+    list[idx].updated_at = new Date().toISOString();
     this.saveCollection('menu_items', list);
-    await this.syncDirectMongo(COLLECTIONS.menu_items, 'delete', removed._id);
+    await this.syncDirectMongo(COLLECTIONS.menu_items, 'upsert', list[idx]);
     return true;
   }
 
@@ -1017,9 +1281,12 @@ export class MultiTenantDbService {
 
   static async listInventory(restaurantId: string): Promise<InventoryItem[]> {
     const allItems = this.getCollection('inventory_items');
-    const filtered = allItems.filter(i => !i.restaurant_id || i.restaurant_id === restaurantId || i.restaurant_id === 'RES_EED4E9D266DF');
-    if (filtered.length > 0) return filtered;
-    return allItems;
+    let items = allItems.filter(i => i.restaurant_id === restaurantId);
+    if (items.length === 0 && restaurantId) {
+      await this.ensureDefaultInventory(restaurantId);
+      items = this.getCollection('inventory_items').filter(i => i.restaurant_id === restaurantId);
+    }
+    return items;
   }
 
   static async updateInventoryStock(
@@ -1064,7 +1331,7 @@ export class MultiTenantDbService {
     fields: Partial<InventoryItem>
   ): Promise<boolean> {
     const list = this.getCollection('inventory_items');
-    const idx = list.findIndex(i => (i._id === id || (i as any).id === id) && (i.restaurant_id === restaurantId || restaurantId === 'RES_EED4E9D266DF'));
+    const idx = list.findIndex(i => (i._id === id || (i as any).id === id) && i.restaurant_id === restaurantId);
     if (idx === -1) return false;
 
     list[idx] = {
@@ -1079,7 +1346,7 @@ export class MultiTenantDbService {
 
   static async deleteInventoryItem(id: string, restaurantId: string): Promise<boolean> {
     const list = this.getCollection('inventory_items');
-    const idx = list.findIndex(i => (i._id === id || (i as any).id === id) && (i.restaurant_id === restaurantId || restaurantId === 'RES_EED4E9D266DF'));
+    const idx = list.findIndex(i => (i._id === id || (i as any).id === id) && i.restaurant_id === restaurantId);
     if (idx === -1) return false;
 
     const item = list[idx];
@@ -1249,6 +1516,43 @@ export class MultiTenantDbService {
     return this.getCollection('audit_logs')
       .filter(l => l.restaurant_id === restaurantId)
       .slice(0, limit);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════ */
+  /*                         MARKETING LEADS CRUD                                */
+  /* ═══════════════════════════════════════════════════════════════════════════ */
+
+  static async createLead(data: {
+    name: string;
+    restaurant_name: string;
+    email: string;
+    phone?: string;
+    message?: string;
+    source?: string;
+  }): Promise<any> {
+    const now = new Date().toISOString();
+    const lead = {
+      _id: `LEAD_${Date.now().toString(36)}_${crypto.randomBytes(3).toString('hex')}`.toUpperCase(),
+      name: data.name,
+      restaurant_name: data.restaurant_name,
+      email: data.email,
+      phone: data.phone || null,
+      message: data.message || null,
+      status: 'new',
+      source: data.source || 'website',
+      assigned_to: null,
+      created_at: now,
+      updated_at: now,
+    };
+    const list = this.getCollection('leads') as any[];
+    list.unshift(lead);
+    this.saveCollection('leads', list as any);
+    await this.syncDirectMongo(COLLECTIONS.leads, 'upsert', lead);
+    return lead;
+  }
+
+  static async listLeads(limit = 100): Promise<any[]> {
+    return (this.getCollection('leads') as any[]).slice(0, limit);
   }
 
   static async close(): Promise<void> {

@@ -63,7 +63,33 @@ export type AuditAction =
   | 'order_status_changed'
   | 'payment_processed'
   | 'login_failed'
-  | 'account_locked';
+  | 'account_locked'
+  | 'marketing_demo_request';
+
+export type RestaurantCapability =
+  | 'kitchen'
+  | 'bar'
+  | 'hookah'
+  | 'tables'
+  | 'takeout'
+  | 'delivery'
+  | 'customer_ordering'
+  | 'payments'
+  | 'inventory';
+
+export interface Lead {
+  _id: string;
+  name: string;
+  restaurant_name: string;
+  email: string;
+  phone?: string | null;
+  message?: string | null;
+  status: 'new' | 'contacted' | 'demo_scheduled' | 'qualified' | 'converted' | 'closed';
+  source: string;
+  assigned_to?: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*                           BRANDING & SETTINGS                               */
@@ -96,6 +122,7 @@ export interface RestaurantSettings {
   tip_options: number[];      // e.g. [15, 18, 20, 25]
   enable_split_payment: boolean;
   session_timeout_minutes: number;  // auto-reset after inactivity
+  capabilities?: RestaurantCapability[];
   payment_provider: 'square' | 'stripe' | 'none';
   payment_credentials: Record<string, string>;  // encrypted provider keys
 }
@@ -226,44 +253,73 @@ export interface RestaurantTable {
 export interface MenuCategory {
   _id: string;
   restaurant_id: string;
-  title: string;              // e.g. "Small Plates to Share"
-  subtitle: string;           // e.g. "Appetizers"
-  icon: string;               // emoji
-  color: string;              // hex color
+  parent_id?: string | null;    // null = Super Category, string = Sub Category
+  name?: string;               // Canonical category name
+  description?: string;        // Category description
+  title?: string;              // Backward-compatible title getter/setter
+  subtitle?: string;           // Backward-compatible subtitle
+  icon?: string;               // Emoji icon
+  color?: string;              // Hex color
   sort_order: number;
-  menu_type: string;          // e.g. "food", "drinks", "hookah"
+  menu_type?: string;          // Backward-compatible slug ('food', 'drinks', 'hookah')
+  is_super?: boolean;          // Backward-compatible flag
   active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export interface ModifierOption {
-  id: string;
-  name: string;
-  price_adjustment: number;   // additional cost (can be 0)
+export interface MenuRecipeIngredient {
+  ingredient_id: string;
+  quantity: number;
+  unit: string;
 }
 
-export interface ModifierGroup {
+export interface MenuItemModifierOption {
   id: string;
-  name: string;               // e.g. "Wing Sauce", "Ice Add-ons"
+  name: string;
+  price_adjustment: number;
+  available?: boolean;
+  sort_order?: number;
+}
+
+export interface MenuItemModifierGroup {
+  id: string;
+  name: string;
+  min_selections?: number;
+  max_selections: number;
   required: boolean;
-  max_selections: number;     // 0 = unlimited
-  options: ModifierOption[];
+  sort_order?: number;
+  options: MenuItemModifierOption[];
+}
+
+export type ModifierGroup = MenuItemModifierGroup;
+
+export interface MenuItemVariant {
+  _id: string;
+  menu_item_id: string;
+  name: string;
+  price: number;
+  available: boolean;
+  sort_order: number;
 }
 
 export interface MenuItemModel {
   _id: string;
   restaurant_id: string;
-  category_id: string;
+  category_id: string;         // MUST point to a Sub Category
+  category?: string;           // Backward-compatible category link / title
   name: string;
+  description?: string;
+  desc?: string;
   price: number;
-  desc: string;
-  emoji: string;
-  image_url: string | null;
-  available: boolean;
-  modifier_groups: ModifierGroup[];
+  emoji?: string;
+  image_url?: string | null;
+  available: boolean;          // Ordering availability toggle
+  active?: boolean;            // Soft delete flag
+  modifier_groups?: MenuItemModifierGroup[] | ModifierGroup[];
+  variants?: MenuItemVariant[];
   sort_order: number;
-  recipe?: any[];
+  recipe?: MenuRecipeIngredient[] | any[];
   ingredient_id?: string;
   ingredient_amount?: number;
   created_at: string;

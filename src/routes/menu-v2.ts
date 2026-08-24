@@ -36,20 +36,26 @@ router.get('/categories', requireAuth, requirePermission('menu:read'), async (re
 
 router.post('/categories', requireAuth, requirePermission('menu:create'), async (req, res) => {
   try {
-    const { title, subtitle, icon, color, menu_type, sort_order } = req.body;
-    if (!title || !menu_type) {
-      res.status(400).json({ success: false, error: 'Missing required fields: title, menu_type' });
+    const { name, title, description, subtitle, icon, color, menu_type, sort_order, is_super, parent_id } = req.body;
+    const catName = (name || title || '').trim();
+
+    if (!catName) {
+      res.status(400).json({ success: false, error: 'Missing required field: name' });
       return;
     }
 
     const category = await MultiTenantDbService.createMenuCategory({
       restaurant_id: req.tenant!.restaurant_id,
-      title,
-      subtitle: subtitle || '',
-      icon: icon || '📋',
+      name: catName,
+      title: catName,
+      description: description || subtitle || '',
+      subtitle: subtitle || description || '',
+      icon: icon || (is_super || parent_id === null ? '👑' : '📋'),
       color: color || '#6366F1',
       sort_order: sort_order ?? 0,
-      menu_type,
+      menu_type: menu_type || (parent_id === null ? catName.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'hookah'),
+      is_super: is_super === true || is_super === 'true' || parent_id === null,
+      parent_id: parent_id !== undefined ? parent_id : (is_super ? null : null),
       active: true,
     });
 
@@ -60,13 +66,13 @@ router.post('/categories', requireAuth, requirePermission('menu:create'), async 
       'menu_item_created',
       'menu_category',
       category._id,
-      { title, menu_type }
+      { name: catName, parent_id: category.parent_id }
     );
 
     res.status(201).json({ success: true, category });
   } catch (err: any) {
     console.error('[Menu] Create category error:', err);
-    res.status(500).json({ success: false, error: 'Internal server error.' });
+    res.status(400).json({ success: false, error: err.message || 'Could not create category.' });
   }
 });
 
@@ -93,29 +99,18 @@ router.delete('/categories/:id', requireAuth, requirePermission('menu:delete'), 
     const id = req.params.id as string;
     const restaurantId = req.tenant!.restaurant_id;
 
-    // Safety Check: verify if any menu items exist in this category
-    const items = await MultiTenantDbService.listMenuItems(restaurantId);
-    const catCategories = await MultiTenantDbService.listMenuCategories(restaurantId);
-    const catObj = catCategories.find((c: any) => (c._id || c.id) === id);
-    const catTitle = (catObj?.title || '').toLowerCase();
+    const result = await MultiTenantDbService.deleteMenuCategory(id, restaurantId);
 
-    const matchingItems = items.filter((i: any) => {
-      const c = (i.category_id || i.category || '').toLowerCase();
-      return c === id.toLowerCase() || (catTitle && c === catTitle);
-    });
-
-    if (matchingItems.length > 0) {
-      res.status(400).json({
-        success: false,
-        error: `Cannot delete category because it contains ${matchingItems.length} active menu item(s). Please delete or move the items first.`
-      });
-      return;
-    }
-
-    // Soft delete: set active = false
-    const updated = await MultiTenantDbService.updateMenuCategory(id, restaurantId, { active: false });
-    if (!updated) {
-      res.status(404).json({ success: false, error: 'Category not found.' });
+    if (!result.success) {
+      if (result.conflict) {
+        res.status(409).json({ success: false, error: result.message });
+        return;
+      }
+      if (result.notFound) {
+        res.status(404).json({ success: false, error: result.message || 'Category not found.' });
+        return;
+      }
+      res.status(400).json({ success: false, error: result.message || 'Could not delete category.' });
       return;
     }
 
@@ -126,10 +121,10 @@ router.delete('/categories/:id', requireAuth, requirePermission('menu:delete'), 
       'menu_item_deleted',
       'menu_category',
       id,
-      {}
+      { category_id: id }
     );
 
-    res.status(200).json({ success: true, message: 'Category deactivated.' });
+    res.status(200).json({ success: true, message: 'Category deleted.' });
   } catch (err: any) {
     console.error('[Menu] Delete category error:', err);
     res.status(500).json({ success: false, error: 'Internal server error.' });

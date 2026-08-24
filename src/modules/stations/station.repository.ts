@@ -12,9 +12,9 @@ export interface Station {
 }
 
 const DEFAULT_STATIONS: Station[] = [
-  { _id: 'stn-kitchen', restaurant_id: 'RES_EED4E9D266DF', name: 'Main Kitchen', code: 'KITCHEN', categories: ['appetizers', 'mains', 'burgers', 'wraps', 'wings', 'vegetarian', 'continental'], active: true },
-  { _id: 'stn-bar', restaurant_id: 'RES_EED4E9D266DF', name: 'Bar & Refreshers', code: 'BAR', categories: ['drinks_refreshers', 'drinks_tea_coffee', 'drinks_soft'], active: true },
-  { _id: 'stn-hookah', restaurant_id: 'RES_EED4E9D266DF', name: 'Hookah Prep Station', code: 'HOOKAH', categories: ['hookah'], active: true },
+  { _id: 'stn-kitchen', restaurant_id: '', name: 'Main Kitchen', code: 'KITCHEN', categories: ['appetizers', 'mains', 'burgers', 'wraps', 'wings', 'vegetarian', 'continental'], active: true },
+  { _id: 'stn-bar', restaurant_id: '', name: 'Bar & Refreshers', code: 'BAR', categories: ['drinks_refreshers', 'drinks_tea_coffee', 'drinks_soft'], active: true },
+  { _id: 'stn-hookah', restaurant_id: '', name: 'Hookah Prep Station', code: 'HOOKAH', categories: ['hookah'], active: true },
 ];
 
 export class StationRepository {

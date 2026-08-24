@@ -21,7 +21,8 @@ export class MenuRepository {
   }
 
   static async deleteCategory(id: string, restaurantId: string): Promise<boolean> {
-    return await MultiTenantDbService.deleteMenuCategory(id, restaurantId);
+    const res = await MultiTenantDbService.deleteMenuCategory(id, restaurantId);
+    return res.success;
   }
 
   static async listItems(restaurantId: string, categoryId?: string): Promise<MenuItemModel[]> {

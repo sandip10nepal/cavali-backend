@@ -152,11 +152,37 @@ export class AuthService {
   }
 
   /* ═══════════════════════════════════════════════════════════════════════════ */
-  /*                          PIN HASHING                                       */
+  /*                     PASSWORD & PIN HASHING                                 */
   /* ═══════════════════════════════════════════════════════════════════════════ */
 
   /**
-   * Hash a PIN using PBKDF2 (no bcrypt dependency needed).
+   * Hash a full user password using hardened PBKDF2 (210,000 iterations + SHA-512).
+   */
+  static hashPassword(password: string): string {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.pbkdf2Sync(password, salt, 210000, 64, 'sha512').toString('hex');
+    return `pbkdf2_sha512:${salt}:${hash}`;
+  }
+
+  /**
+   * Verify a password against stored PBKDF2 hash.
+   */
+  static verifyPassword(password: string, storedHash: string): boolean {
+    if (!storedHash) return false;
+    if (storedHash.startsWith('pbkdf2_sha512:')) {
+      const parts = storedHash.split(':');
+      if (parts.length !== 3) return false;
+      const salt = parts[1];
+      const hash = parts[2];
+      const candidateHash = crypto.pbkdf2Sync(password, salt, 210000, 64, 'sha512').toString('hex');
+      return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(candidateHash, 'hex'));
+    }
+    // Fallback for legacy PIN hashes
+    return this.verifyPin(password, storedHash);
+  }
+
+  /**
+   * Hash a PIN using PBKDF2.
    */
   static hashPin(pin: string): string {
     const salt = crypto.randomBytes(16).toString('hex');
@@ -167,13 +193,13 @@ export class AuthService {
   /**
    * Verify a PIN against its stored hash.
    */
-  /**
-   * Verify a PIN against its stored hash.
-   */
   static verifyPin(pin: string, storedHash: string): boolean {
-    const [salt, hash] = storedHash.split(':');
-    if (!salt || !hash) return false;
-    const candidateHash = crypto.pbkdf2Sync(pin, salt, 100000, 64, 'sha512').toString('hex');
+    const parts = storedHash.split(':');
+    if (parts.length < 2) return false;
+    const salt = parts[parts.length - 2];
+    const hash = parts[parts.length - 1];
+    const iterations = storedHash.startsWith('pbkdf2_sha512:') ? 210000 : 100000;
+    const candidateHash = crypto.pbkdf2Sync(pin, salt, iterations, 64, 'sha512').toString('hex');
     return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(candidateHash, 'hex'));
   }
 

@@ -9,7 +9,11 @@ import { resolveTenantRestaurantId } from '../../middleware/tenant.middleware';
 export class PaymentController {
   static async createSession(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+      const restaurantId = await resolveTenantRestaurantId(req);
+      if (!restaurantId) {
+        res.status(400).json({ success: false, message: 'Restaurant ID required' });
+        return;
+      }
       const { order_id, orderId, amount_cents } = req.body;
       const targetOrderId = order_id || orderId;
 

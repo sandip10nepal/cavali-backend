@@ -75,7 +75,7 @@ async function isManagerOrOwner(req: any, authPin?: any): Promise<boolean> {
     const pin = authPin || req.headers?.['x-admin-pin'] || req.query?.authPin;
     if (pin) {
       const pinStr = String(pin).trim();
-      const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+      const restaurantId = await resolveTenantRestaurantId(req);
       if (restaurantId && MultiTenantDbService.isInitialized()) {
         const users = await MultiTenantDbService.listUsers(restaurantId);
         for (const u of users) {
@@ -370,6 +370,8 @@ function mapOrderForClient(o: any): any {
   return {
     id: o._id || o.id,
     _id: o._id || o.id,
+    restaurant_id: o.restaurant_id || o.restaurantId || '',
+    restaurantId: o.restaurant_id || o.restaurantId || '',
     table: o.table_id || o.table || '1',
     status: o.status,
     paymentStatus: o.payment_status || o.paymentStatus || (o.status === 'paid' ? 'paid' : 'unpaid'),
@@ -399,15 +401,15 @@ async function findUnifiedOrder(orderId: string, restaurantId?: string | null): 
   if (!orderId) return null;
   const mtOrder = await OrderRepository.findById(orderId, restaurantId || undefined);
   if (mtOrder) {
-    return { order: mtOrder, isMultiTenant: true, restaurantId: mtOrder.restaurant_id || restaurantId || 'RES_EED4E9D266DF' };
+    return { order: mtOrder, isMultiTenant: true, restaurantId: mtOrder.restaurant_id || restaurantId || undefined };
   }
   return null;
 }
 
 // Unified Order Updater using OrderRepository
 async function updateUnifiedOrder(orderId: string, updateFields: any, restaurantId?: string | null): Promise<any> {
-  const restId = restaurantId || 'RES_EED4E9D266DF';
-  const updatedObj = await OrderRepository.update(orderId, restId, updateFields);
+  if (!restaurantId) throw new Error('restaurant_id is required to update order');
+  const updatedObj = await OrderRepository.update(orderId, restaurantId, updateFields);
   return mapOrderForClient(updatedObj);
 }
 
@@ -421,7 +423,10 @@ async function deleteUnifiedOrder(orderId: string, restaurantId?: string | null)
 router.get('/', async (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
-  const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+  const restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
   const rawOrders = await OrderRepository.listByRestaurant(restaurantId);
   const allOrders = rawOrders.map(mapOrderForClient);
 
@@ -478,7 +483,10 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const orderPayload = req.body;
-    const restaurantId = (await resolveTenantRestaurantId(req)) || req.tenant?.restaurant_id || orderPayload.restaurant_id || 'RES_EED4E9D266DF';
+    const restaurantId = (await resolveTenantRestaurantId(req)) || req.tenant?.restaurant_id || orderPayload.restaurant_id;
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     
     // Check Idempotency-Key header or payload to eliminate duplicate orders 100%
     const idempotencyKey = req.headers['idempotency-key'] || req.headers['x-idempotency-key'] || orderPayload?.idempotencyKey || orderPayload?.idempotency_key;
@@ -572,7 +580,10 @@ router.post('/server-call', async (req, res) => {
 
     const label = note || requestLabels[requestType] || 'Assistance Needed';
 
-    const restId = (await resolveTenantRestaurantId(req)) || req.tenant?.restaurant_id || restaurant_id || 'RES_EED4E9D266DF';
+    const restId = (await resolveTenantRestaurantId(req)) || req.tenant?.restaurant_id || restaurant_id;
+    if (!restId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     
     const serviceReq = await ServiceRequestRepository.create({
       restaurant_id: restId,
@@ -628,7 +639,10 @@ const handleFulfillOrder = async (req: any, res: Response) => {
 
   const order = found.order;
   const targetId = order._id || order.id;
-  const restId = found.restaurantId || restaurantId || 'RES_EED4E9D266DF';
+  const restId = found.restaurantId || restaurantId;
+  if (!restId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
 
   if (order.status === 'fulfilled') {
     return res.status(400).json({ success: false, message: 'Order already fulfilled' });
@@ -664,7 +678,11 @@ const handleFulfillOrder = async (req: any, res: Response) => {
 
     // 1. Process inventory deductions
     if (clientOrderForDeps) {
-      RecipeService.processOrderDeductions(clientOrderForDeps);
+      try {
+        await RecipeService.processOrderDeductions(clientOrderForDeps);
+      } catch (recipeErr) {
+        console.warn('[OrdersRoute] Auto inventory deduction error during fulfillment:', recipeErr);
+      }
     }
 
     // 2. Mark order status as fulfilled
@@ -683,7 +701,10 @@ router.post('/:id/fulfill', handleFulfillOrder);
 // Comprehensive Sales, Tax, Tips, YTD & Payment Logs Analytics Endpoint
 router.get('/sales/summary', async (req, res) => {
   try {
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const allOrders = await MultiTenantDbService.listOrders(restaurantId);
 
     const now = new Date();
@@ -827,7 +848,10 @@ router.get('/sales/summary', async (req, res) => {
 // Clears all fulfilled orders permanently from MongoDB Atlas for the tenant
 router.post('/archive/clear', async (req, res) => {
   try {
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const count = await MultiTenantDbService.clearArchive(restaurantId);
 
     console.log(`🗑️ [OrdersArchive] Cleared ${count} fulfilled orders for restaurant [${restaurantId}]`);
@@ -843,7 +867,10 @@ router.post('/archive/clear', async (req, res) => {
 // Returns current raw materials inventory levels for the target restaurant tenant
 router.get('/inventory', async (req, res) => {
   try {
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const items = await InventoryRepository.list(restaurantId);
     const inventory: Record<string, any> = {};
     items.forEach((i: any) => {
@@ -867,7 +894,10 @@ router.get('/inventory', async (req, res) => {
 // GET /api/orders/inventory/categories — list inventory categories for restaurant
 router.get('/inventory/categories', async (req, res) => {
   try {
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const categories = await MultiTenantDbService.listInventoryCategories(restaurantId);
     res.status(200).json({ success: true, categories });
   } catch (err: any) {
@@ -882,7 +912,10 @@ router.post('/inventory/categories', async (req, res) => {
     if (!isAuth) {
       return res.status(403).json({ success: false, message: 'Forbidden: Restricted to Managers and Owners.' });
     }
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const { title, icon, sort_order } = req.body;
     if (!title) {
       return res.status(400).json({ success: false, message: 'Title is required' });
@@ -907,7 +940,10 @@ router.post('/inventory/categories/update', async (req, res) => {
     if (!isAuth) {
       return res.status(403).json({ success: false, message: 'Forbidden: Restricted to Managers and Owners.' });
     }
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const { id, title, icon, sort_order } = req.body;
     if (!id) {
       return res.status(400).json({ success: false, message: 'Category ID is required' });
@@ -931,7 +967,10 @@ router.post('/inventory/categories/delete', async (req, res) => {
     if (!isAuth) {
       return res.status(403).json({ success: false, message: 'Forbidden: Restricted to Managers and Owners.' });
     }
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const { id } = req.body;
     if (!id) {
       return res.status(400).json({ success: false, message: 'Category ID is required' });
@@ -973,7 +1012,10 @@ router.post('/inventory/adjust', async (req, res) => {
     return res.status(403).json({ success: false, message: 'Forbidden: Adjusting inventory is restricted to Managers and Owners.' });
   }
 
-  const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+  const restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
   
   if (!ingredientId || amount === undefined || Number(amount) <= 0 || !['increase', 'decrease'].includes(type)) {
     return res.status(400).json({ success: false, message: 'Invalid adjust payload parameters' });
@@ -1012,7 +1054,11 @@ router.post('/inventory/create', async (req, res) => {
     return res.status(403).json({ success: false, message: 'Forbidden: Adding new inventory items is restricted to Managers and Owners.' });
   }
 
-  const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+  const restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
+
   if (!name || isNaN(Number(stock))) {
     return res.status(400).json({ success: false, message: 'Item name and valid initial stock quantity are required.' });
   }
@@ -1047,7 +1093,11 @@ router.post('/inventory/update', async (req, res) => {
     return res.status(403).json({ success: false, message: 'Forbidden: Editing inventory items is restricted to Managers and Owners.' });
   }
 
-  const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+  const restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
+
   if (!targetId) {
     return res.status(400).json({ success: false, message: 'ingredientId is required' });
   }
@@ -1061,6 +1111,9 @@ router.post('/inventory/update', async (req, res) => {
     if (reorder_threshold !== undefined && !isNaN(Number(reorder_threshold))) updateData.reorder_threshold = Number(reorder_threshold);
 
     const success = await MultiTenantDbService.updateInventoryItem(targetId, restaurantId, updateData);
+    if (!success) {
+      return res.status(404).json({ success: false, message: 'Inventory item not found or does not belong to this venue.' });
+    }
     sseService.broadcast({ type: 'inventory_update', ingredientId: targetId, updateData }, restaurantId);
 
     return res.status(200).json({ success: true, message: `Updated inventory item ${targetId}` });
@@ -1080,13 +1133,20 @@ router.post('/inventory/delete', async (req, res) => {
     return res.status(403).json({ success: false, message: 'Forbidden: Deleting inventory items is restricted to Managers and Owners.' });
   }
 
-  const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+  const restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
+
   if (!targetId) {
     return res.status(400).json({ success: false, message: 'ingredientId is required' });
   }
 
   try {
     const success = await MultiTenantDbService.deleteInventoryItem(targetId, restaurantId);
+    if (!success) {
+      return res.status(404).json({ success: false, message: 'Inventory item not found or does not belong to this venue.' });
+    }
     sseService.broadcast({ type: 'inventory_delete', ingredientId: targetId }, restaurantId);
 
     return res.status(200).json({ success: true, message: `Deleted inventory item ${targetId}` });
@@ -1153,7 +1213,7 @@ router.post('/:orderId/payment-session', async (req, res) => {
 
   const session = await PaymentRepository.createSession({
     id: `pay-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-    restaurant_id: restaurantId || 'RES_EED4E9D266DF',
+    restaurant_id: restaurantId,
     order_id: String(order.id),
     amount_cents: amountCents,
     currency: 'USD',
@@ -1617,7 +1677,10 @@ router.get('/payments', async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden: Access to payment and revenue records is restricted to Managers and Owners.' });
     }
 
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const period = String(req.query.period || 'today');
     const tenantOrders = await MultiTenantDbService.listOrders(restaurantId);
     const allOrders = tenantOrders.filter((o: any) => o.kind !== 'server_request');
@@ -1678,7 +1741,10 @@ router.get('/tax-report', async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden: Access to tax reports is restricted to Managers and Owners.' });
     }
 
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const period = String(req.query.period || 'today');
     const tenantOrders = await MultiTenantDbService.listOrders(restaurantId);
     const allOrders = tenantOrders.filter((o: any) => o.kind !== 'server_request' && !o.taxExempt);

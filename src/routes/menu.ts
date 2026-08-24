@@ -41,9 +41,10 @@ function mapCategoryToLegacy(catTitleOrId: string, itemName = '', itemDesc = '')
 
 export function invalidateMenuCache() {}
 
-export async function preloadMenuCache(): Promise<any[]> {
+export async function preloadMenuCache(restaurantId?: string): Promise<any[]> {
+  if (!restaurantId) return [];
   try {
-    const items = await MenuRepository.listItems('RES_EED4E9D266DF');
+    const items = await MenuRepository.listItems(restaurantId);
     return items.map(i => ({
       id: i._id,
       name: i.name,
@@ -69,7 +70,7 @@ async function isAuthorizedManager(authPin?: any, req?: any): Promise<boolean> {
   }
   if (authPin) {
     const pinStr = String(authPin).trim();
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
     if (restaurantId && MultiTenantDbService.isInitialized()) {
       const users = await MultiTenantDbService.listUsers(restaurantId);
       for (const u of users) {
@@ -85,34 +86,33 @@ async function isAuthorizedManager(authPin?: any, req?: any): Promise<boolean> {
 // GET /api/menu — list all menu items for the target tenant
 router.get('/', async (req, res) => {
   try {
-    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
     const [tenantItems, categories] = await Promise.all([
       MenuRepository.listItems(restaurantId),
       MenuRepository.listCategories(restaurantId)
     ]);
     const catMap = new Map(categories.map((c: any) => [c._id, c.title]));
 
-    const items = tenantItems.map((i: any) => {
-      const catTitle = catMap.get(i.category_id) || i.category_id;
-      return {
-        id: i._id,
-        _id: i._id,
-        name: i.name,
-        category: mapCategoryToLegacy(catTitle, i.name, i.desc),
-        price: i.price,
-        emoji: i.emoji || '🍽️',
-        image_url: i.image_url || i.image || i.imageUrl || undefined,
-        desc: i.desc || i.description || '',
-        available: i.available !== false,
-        recipe: i.recipe || undefined,
-        ingredient_id: i.ingredient_id || undefined,
-        ingredient_amount: i.ingredient_amount || undefined,
-        requiresSauce: false,
-        sort_order: i.sort_order !== undefined ? i.sort_order : 99,
-        createdAt: i.created_at || new Date().toISOString(),
-        updatedAt: i.updated_at || new Date().toISOString()
-      };
-    });
+    const items = tenantItems.map((i: any) => ({
+      id: i._id,
+      _id: i._id,
+      name: i.name,
+      category_id: i.category_id,
+      category: mapCategoryToLegacy(catMap.get(i.category_id) || i.category_id, i.name, i.desc),
+      price: i.price,
+      emoji: i.emoji || '🍽️',
+      image_url: i.image_url || i.image || i.imageUrl || undefined,
+      desc: i.desc || i.description || '',
+      available: i.available !== false,
+      recipe: i.recipe || [],
+      requiresSauce: false,
+      sort_order: i.sort_order ?? 99,
+      createdAt: i.created_at || new Date().toISOString(),
+      updatedAt: i.updated_at || new Date().toISOString()
+    }));
 
     const { category, available } = req.query;
     let filtered = items;
@@ -121,7 +121,7 @@ router.get('/', async (req, res) => {
 
     filtered.sort((a, b) => (a.sort_order ?? 99) - (b.sort_order ?? 99));
 
-    res.json({ success: true, menuItems: filtered });
+    res.json({ success: true, count: filtered.length, items: filtered });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch menu items' });
   }
@@ -129,7 +129,10 @@ router.get('/', async (req, res) => {
 
 // GET /api/menu/:id — get single item
 router.get('/:id', async (req, res) => {
-  const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+  const restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
   const item = await MenuRepository.getItem(req.params.id, restaurantId);
   if (item) {
     return res.json({
@@ -163,11 +166,15 @@ router.post('/', optionalAuth, async (req, res) => {
     return res.status(403).json({ success: false, message: 'Manager or Owner authorization required to add menu items' });
   }
 
+  const restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
+
   if (!name || !category || price === undefined) {
     return res.status(400).json({ success: false, message: 'name, category, and price are required' });
   }
 
-  const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
   const parsedSortOrder = sort_order !== undefined && !isNaN(parseInt(sort_order)) ? parseInt(sort_order) : 99;
 
   const newItem = await MenuRepository.createItem({
@@ -201,7 +208,11 @@ router.patch('/:id', optionalAuth, async (req, res) => {
     return res.status(403).json({ success: false, message: 'Manager or Owner authorization required to edit menu items' });
   }
 
-  const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+  const restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
+
   const updated = await MenuRepository.updateItem(id, restaurantId, fields);
 
   if (!updated) {
@@ -223,7 +234,10 @@ router.delete('/:id', optionalAuth, async (req, res) => {
     return res.status(403).json({ success: false, message: 'Manager or Owner authorization required to remove menu items' });
   }
 
-  const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+  const restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+  }
   await MenuRepository.deleteItem(id, restaurantId);
 
   sseService.broadcast({ type: 'menu_update', action: 'delete', menuItemId: id }, restaurantId);

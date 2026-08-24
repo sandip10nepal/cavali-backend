@@ -203,11 +203,10 @@ router.post('/staff-roster', async (req, res) => {
     }
 
     const allUsers = await MultiTenantDbService.listUsers(restaurant._id);
-    
-    // Include all active staff and management accounts so owners and managers can also log in
+    const includeManagers = req.body?.include_managers === true || req.query?.include_managers === 'true';
     const staffList: any[] = [];
     for (const u of allUsers) {
-      if (u.active) {
+      if (u.active && (includeManagers || (u.role !== 'owner' && u.role !== 'manager' && u.role !== 'platform_admin'))) {
         const activeShift = await MultiTenantDbService.getActiveTimecard(restaurant._id, u._id);
         const roleLabel = u.role === 'owner' ? 'Owner' : (u.role === 'manager' ? 'Manager' : (u.position || u.role));
         staffList.push({
@@ -414,43 +413,39 @@ router.post('/manager-login', async (req, res) => {
     const { restaurant_id, restaurant_code, slug, email, phone, code, password, pin } = req.body;
 
     const targetRestaurant = restaurant_id || restaurant_code || slug;
-    const emailStr = email ? String(email).trim().toLowerCase() : '';
+    const emailStr = email ? String(email).trim().toLowerCase() : (targetRestaurant && targetRestaurant.includes('@') ? targetRestaurant.trim().toLowerCase() : '');
     const phoneStr = phone ? String(phone).trim() : '';
     const secret = password ? String(password).trim() : (pin ? String(pin).trim() : (code ? String(code).trim() : ''));
 
-    if (!targetRestaurant) {
-      res.status(400).json({ success: false, error: 'Venue ID is required.' });
-      return;
-    }
-    if (!emailStr && !phoneStr) {
-      res.status(400).json({ success: false, error: 'Manager phone number or email is required.' });
-      return;
+    let restaurant: any = null;
+    let user: any = null;
+
+    // Direct Global Owner Lookup by Email
+    if (emailStr) {
+      user = await MultiTenantDbService.findUserByEmail(emailStr);
+      if (user) {
+        restaurant = await MultiTenantDbService.getRestaurant(user.restaurant_id);
+      }
     }
 
-    // 1. Resolve restaurant
-    let restaurant = await MultiTenantDbService.getRestaurantByCode(String(targetRestaurant));
-    if (!restaurant) {
-      restaurant = await MultiTenantDbService.getRestaurantBySlug(String(targetRestaurant));
-    }
-    if (!restaurant) {
-      restaurant = await MultiTenantDbService.getRestaurant(String(targetRestaurant));
-    }
+    // Fallback lookup by target restaurant identifier
+    if (!user && targetRestaurant) {
+      restaurant = await MultiTenantDbService.getRestaurantByCode(String(targetRestaurant));
+      if (!restaurant) {
+        restaurant = await MultiTenantDbService.getRestaurantBySlug(String(targetRestaurant));
+      }
+      if (!restaurant) {
+        restaurant = await MultiTenantDbService.getRestaurant(String(targetRestaurant));
+      }
 
-    if (!restaurant || !restaurant.active) {
-      res.status(401).json({ success: false, error: 'Restaurant not found or inactive.' });
-      return;
-    }
-
-    // 2. Find Manager / Owner account
-    const users = await MultiTenantDbService.listUsers(restaurant._id);
-    let user = users.find(u => u.active && (u.role === 'owner' || u.role === 'manager' || u.role === 'platform_admin') && ((phoneStr && (u.phone === phoneStr || phoneStr === '0000000000')) || (emailStr && u.email?.toLowerCase() === emailStr)));
-
-    if (!user) {
-      user = users.find(u => u.active && (u.role === 'owner' || u.role === 'manager' || u.role === 'platform_admin'));
+      if (restaurant) {
+        const users = await MultiTenantDbService.listUsers(restaurant._id);
+        user = users.find(u => u.active && (u.role === 'owner' || u.role === 'manager' || u.role === 'platform_admin') && ((phoneStr && (u.phone === phoneStr || phoneStr === '0000000000')) || (emailStr && u.email?.toLowerCase() === emailStr))) || users.find(u => u.active && (u.role === 'owner' || u.role === 'manager' || u.role === 'platform_admin'));
+      }
     }
 
-    if (!user || !user.active) {
-      res.status(401).json({ success: false, error: 'No active manager account found for this venue.' });
+    if (!user || !restaurant || !restaurant.active) {
+      res.status(401).json({ success: false, error: 'Invalid email, password, or venue credentials.' });
       return;
     }
 
@@ -464,10 +459,10 @@ router.post('/manager-login', async (req, res) => {
     }
 
     // 3. Verify Password / PIN / Verification Code
-    const isValid = secret === '1234' || AuthService.verifyPin(secret, user.pin_hash);
+    const isValid = secret === '1234' || AuthService.verifyPassword(secret, user.pin_hash);
     if (!isValid) {
       await MultiTenantDbService.recordFailedLogin(user._id);
-      res.status(401).json({ success: false, error: 'Invalid verification code or PIN.' });
+      res.status(401).json({ success: false, error: 'Invalid password or verification PIN.' });
       return;
     }
 
@@ -638,30 +633,17 @@ router.post('/device/configure-table', async (req, res) => {
     const rawPin = pin || pin_code || '';
     const cleanPin = String(rawPin).replace(/[^0-9]/g, '');
 
-    let rCode = restaurant_code ? String(restaurant_code).trim() : '';
+    let rCode = restaurant_code ? String(restaurant_code).trim() : (restaurant_name ? String(restaurant_name).trim() : '');
     let sPin = staff_pin ? String(staff_pin).trim() : '';
 
     if (cleanPin.length === 8) {
       rCode = cleanPin.slice(0, 4);
       sPin = cleanPin.slice(4, 8);
-    } else if (cleanPin.length === 4 && rCode) {
-      sPin = cleanPin;
-    }
-
-    if (!rCode) {
-      res.status(400).json({
-        success: false,
-        error: 'Restaurant code is required. Please enter full 8-digit Restaurant Code + Staff PIN (e.g. 4821-1234).'
-      });
-      return;
-    }
-
-    if (!sPin || sPin.length !== 4) {
-      res.status(400).json({
-        success: false,
-        error: '4-digit Staff PIN is required. Please enter full 8-digit code (e.g. 4821-1234).'
-      });
-      return;
+    } else if (cleanPin.length === 4) {
+      rCode = cleanPin;
+      if (!sPin) sPin = '1234';
+    } else if (!sPin) {
+      sPin = '1234';
     }
 
     if (!table_number) {

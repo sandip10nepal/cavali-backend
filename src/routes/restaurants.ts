@@ -12,7 +12,7 @@ import { Router } from 'express';
 import { MultiTenantDbService } from '../services/multi-tenant-db.service';
 import { AuthService } from '../services/auth.service';
 import { requireAuth, requirePermission, requireRole, validateTenantParam } from '../middleware/tenant.middleware';
-import type { RestaurantBranding, RestaurantSettings } from '../models/types';
+import type { RestaurantBranding, RestaurantSettings, RestaurantCapability } from '../models/types';
 
 const router = Router();
 
@@ -235,17 +235,42 @@ router.post('/onboard', async (req, res) => {
       } while (allRestaurants.some(r => r.restaurant_code === targetCode) && attempts < 100);
     }
 
-    // 3. Setup Branding & Settings
+    // 3. Setup Capabilities, Branding & Settings
+    const computeCapabilities = (type: string): RestaurantCapability[] => {
+      switch (type) {
+        case 'hookah_lounge':
+        case 'hookah':
+          return ['hookah', 'bar', 'tables', 'customer_ordering', 'payments', 'inventory'];
+        case 'restaurant':
+        case 'fine_dining':
+          return ['kitchen', 'tables', 'customer_ordering', 'payments', 'inventory'];
+        case 'bar':
+        case 'lounge':
+          return ['bar', 'kitchen', 'tables', 'payments', 'inventory'];
+        case 'cafe':
+        case 'coffee_shop':
+        case 'bakery':
+          return ['takeout', 'payments', 'inventory'];
+        case 'food_truck':
+        case 'fast_casual':
+          return ['takeout', 'payments', 'customer_ordering'];
+        default:
+          return ['kitchen', 'tables', 'payments', 'inventory'];
+      }
+    };
+
+    const venueCapabilities = computeCapabilities(business_type);
+
     const defaultBranding: RestaurantBranding = {
-      primary_color: branding?.primary_color || (business_type === 'hookah_lounge' ? '#FF5A1F' : '#E5B13A'),
-      secondary_color: branding?.secondary_color || '#E5B13A',
-      accent_color: branding?.accent_color || '#14B8A6',
-      background_color: '#0E0A08',
-      card_color: '#1C1411',
-      text_color: '#F8F1EA',
-      muted_color: '#948375',
+      primary_color: branding?.primary_color || (business_type === 'hookah_lounge' ? '#0066FF' : '#0066FF'),
+      secondary_color: branding?.secondary_color || '#0284C7',
+      accent_color: branding?.accent_color || '#10B981',
+      background_color: '#F8FAFC',
+      card_color: '#FFFFFF',
+      text_color: '#0F172A',
+      muted_color: '#475569',
       logo_url: branding?.logo_url || null,
-      font_family: 'ui-rounded',
+      font_family: 'Plus Jakarta Sans',
     };
 
     const defaultSettings: RestaurantSettings = {
@@ -256,11 +281,12 @@ router.post('/onboard', async (req, res) => {
         category_rates: {},
       },
       auto_accept_orders: false,
-      require_table_number: true,
+      require_table_number: venueCapabilities.includes('tables'),
       enable_tips: true,
       tip_options: [15, 18, 20, 25],
       enable_split_payment: true,
       session_timeout_minutes: 5,
+      capabilities: venueCapabilities,
       payment_provider: 'square',
       payment_credentials: {},
     };
@@ -275,7 +301,7 @@ router.post('/onboard', async (req, res) => {
       active: true,
     });
 
-    // 5. Create Owner / Manager User
+    // 5. Create Owner / Manager User with PBKDF2 Password Hashing
     const ownerEmail = owner_email ? String(owner_email).trim().toLowerCase() : `manager@${targetSlug}.com`;
     const owner = await MultiTenantDbService.createUser({
       restaurant_id: restaurant._id,
@@ -283,20 +309,24 @@ router.post('/onboard', async (req, res) => {
       email: ownerEmail,
       phone: req.body.owner_phone || req.body.phone || null,
       role: 'owner',
-      pin_hash: AuthService.hashPin(String(manager_password).trim()),
+      pin_hash: AuthService.hashPassword(cleanPass),
       active: true,
     });
 
-    // 6. Create Standard Floor Staff Accounts
-    const firstName = String(owner_name).trim().split(' ')[0] || 'Floor';
-    const staffMembers: { name: string; role: any }[] = [
-      { name: `${firstName} (Floor Server)`, role: 'server' },
-      { name: 'Lead Bartender', role: 'bartender' },
-      { name: 'Kitchen Chef', role: 'chef' },
-    ];
-
-    if (business_type === 'hookah_lounge' || business_type === 'hookah') {
+    // 6. Create Capability-Based Floor Staff Accounts
+    const staffMembers: { name: string; role: any }[] = [];
+    if (venueCapabilities.includes('kitchen')) {
+      staffMembers.push({ name: 'Kitchen Chef', role: 'chef' });
+      staffMembers.push({ name: 'Floor Server', role: 'server' });
+    }
+    if (venueCapabilities.includes('bar')) {
+      staffMembers.push({ name: 'Lead Bartender', role: 'bartender' });
+    }
+    if (venueCapabilities.includes('hookah')) {
       staffMembers.push({ name: 'Hookah Master', role: 'hookah_maker' });
+    }
+    if (staffMembers.length === 0) {
+      staffMembers.push({ name: 'Counter Staff', role: 'server' });
     }
 
     for (const staff of staffMembers) {
@@ -311,8 +341,11 @@ router.post('/onboard', async (req, res) => {
       });
     }
 
-    // 7. Create Floor Tables
-    const totalTables = Math.min(Math.max(parseInt(String(table_count), 10) || 10, 1), 100);
+    // 7. Create Floor Tables (if venue uses tables)
+    const totalTables = venueCapabilities.includes('tables')
+      ? Math.min(Math.max(parseInt(String(table_count), 10) || 10, 1), 100)
+      : 0;
+
     for (let t = 1; t <= totalTables; t++) {
       await MultiTenantDbService.createTable({
         restaurant_id: restaurant._id,
@@ -323,118 +356,40 @@ router.post('/onboard', async (req, res) => {
       });
     }
 
-    // 8. Create Starter Categories & Menu Items
-    const categoriesToCreate = [
-      { id: 'appetizers', title: 'Small Plates & Appetizers', subtitle: 'Starters', icon: '🍿', color: defaultBranding.primary_color, menu_type: 'food', sort_order: 10 },
-      { id: 'mains', title: 'Entrees & Specialties', subtitle: 'Mains', icon: '🍖', color: defaultBranding.secondary_color, menu_type: 'food', sort_order: 20 },
-      { id: 'beverages', title: 'Refreshers & Mocktails', subtitle: 'Drinks', icon: '🍹', color: defaultBranding.accent_color, menu_type: 'drinks', sort_order: 30 },
-    ];
+    // 8. Create Category Skeletons tailored to Venue Concept (NO Fictional Sample Items inserted)
+    const superCategories: any[] = [];
+    if (venueCapabilities.includes('kitchen')) {
+      superCategories.push({ name: 'Food & Dining', icon: '🍔' });
+    }
+    if (venueCapabilities.includes('bar')) {
+      superCategories.push({ name: 'Beverages & Bar', icon: '🍹' });
+    }
+    if (venueCapabilities.includes('hookah')) {
+      superCategories.push({ name: 'Hookah Lounge', icon: '💨' });
+    }
+    if (superCategories.length === 0) {
+      superCategories.push({ name: 'Main Menu', icon: '📋' });
+    }
 
-    if (business_type === 'hookah_lounge' || business_type === 'hookah') {
-      categoriesToCreate.unshift({
-        id: 'hookahs',
-        title: 'Signature Hookah Mixes',
-        subtitle: 'Hookahs',
-        icon: '💨',
+    for (let i = 0; i < superCategories.length; i++) {
+      const superCat = await MultiTenantDbService.createMenuCategory({
+        restaurant_id: restaurant._id,
+        parent_id: null,
+        name: superCategories[i].name,
+        icon: superCategories[i].icon,
         color: defaultBranding.primary_color,
-        menu_type: 'hookah',
-        sort_order: 5,
+        sort_order: (i + 1) * 10,
       });
-    }
 
-    const createdCats: any[] = [];
-    for (const cat of categoriesToCreate) {
-      const created = await MultiTenantDbService.createMenuCategory({
+      // Sub-category skeleton
+      await MultiTenantDbService.createMenuCategory({
         restaurant_id: restaurant._id,
-        title: cat.title,
-        subtitle: cat.subtitle,
-        icon: cat.icon,
-        color: cat.color,
-        menu_type: cat.menu_type,
-        sort_order: cat.sort_order,
-        active: true,
+        parent_id: superCat._id,
+        name: `${superCategories[i].name} Items`,
+        icon: superCategories[i].icon,
+        color: defaultBranding.secondary_color,
+        sort_order: 10,
       });
-      createdCats.push({ ...created, original_id: cat.id });
-    }
-
-    // Create Sample Starter Menu Items
-    const starterItems: any[] = [];
-    if (business_type === 'hookah_lounge' || business_type === 'hookah') {
-      const hCat = createdCats.find(c => c.original_id === 'hookahs') || createdCats[0];
-      starterItems.push(
-        {
-          restaurant_id: restaurant._id,
-          category_id: hCat._id,
-          name: 'House Signature Hookah',
-          desc: 'Premium double-apple & mint slow-roasted hookah blend.',
-          price: 25.00,
-          cost_price: 4.50,
-          inventory_tracking: true,
-          active: true,
-        },
-        {
-          restaurant_id: restaurant._id,
-          category_id: hCat._id,
-          name: 'Tropical Ice Blend Hookah',
-          desc: 'Refreshing mango, passionfruit, and chilled peppermint.',
-          price: 28.00,
-          cost_price: 5.00,
-          inventory_tracking: true,
-          active: true,
-        }
-      );
-    }
-
-    const appCat = createdCats.find(c => c.original_id === 'appetizers') || createdCats[0];
-    starterItems.push(
-      {
-        restaurant_id: restaurant._id,
-        category_id: appCat._id,
-        name: 'Crispy Truffle Fries',
-        desc: 'Hand-cut fries with white truffle oil, parmesan, and herbs.',
-        price: 12.00,
-        cost_price: 2.50,
-        inventory_tracking: true,
-        active: true,
-      },
-      {
-        restaurant_id: restaurant._id,
-        category_id: appCat._id,
-        name: 'Fire-Roasted Wings (8 pcs)',
-        desc: 'Crispy jumbo wings tossed in spicy peri-peri or sweet BBQ.',
-        price: 16.00,
-        cost_price: 4.00,
-        inventory_tracking: true,
-        active: true,
-      }
-    );
-
-    const drinkCat = createdCats.find(c => c.original_id === 'beverages') || createdCats[createdCats.length - 1];
-    starterItems.push(
-      {
-        restaurant_id: restaurant._id,
-        category_id: drinkCat._id,
-        name: 'Signature Passionfruit Mojito',
-        desc: 'Fresh crushed mint, lime, passionfruit puree, and sparkling soda.',
-        price: 9.00,
-        cost_price: 1.50,
-        inventory_tracking: true,
-        active: true,
-      },
-      {
-        restaurant_id: restaurant._id,
-        category_id: drinkCat._id,
-        name: 'Spiced Karak Chai Tea',
-        desc: 'Traditional slow-brewed black tea infused with cardamom and evaporated milk.',
-        price: 5.00,
-        cost_price: 0.80,
-        inventory_tracking: true,
-        active: true,
-      }
-    );
-
-    for (const item of starterItems) {
-      await MultiTenantDbService.createMenuItem(item);
     }
 
     // 9. Generate Owner JWT
@@ -485,8 +440,8 @@ router.post('/onboard', async (req, res) => {
       stats: {
         tables_created: totalTables,
         staff_accounts_created: staffMembers.length + 1,
-        categories_created: createdCats.length,
-        menu_items_created: starterItems.length,
+        categories_created: superCategories.length * 2,
+        menu_items_created: 0,
       },
       token,
     });
@@ -681,6 +636,54 @@ router.get('/:id/config', async (req, res) => {
     res.status(200).json({ success: true, ...config });
   } catch (err: any) {
     console.error('[Restaurants] Config error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*                    MARKETING DEMO & LEAD INTAKE                            */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * POST /api/restaurants/contact-lead
+ * POST /api/leads
+ *
+ * Stores website marketing leads (Book a Demo / Contact Benzin).
+ */
+router.post('/contact-lead', async (req, res) => {
+  try {
+    const { name, restaurantName, email, phone, message } = req.body;
+    if (!name || !email) {
+      res.status(400).json({ success: false, error: 'Name and email are required.' });
+      return;
+    }
+
+    const lead = await MultiTenantDbService.createLead({
+      name: String(name).trim(),
+      restaurant_name: String(restaurantName || 'Prospect Venue').trim(),
+      email: String(email).trim().toLowerCase(),
+      phone: phone ? String(phone).trim() : undefined,
+      message: message ? String(message).trim() : undefined,
+      source: 'website_contact',
+    });
+
+    await MultiTenantDbService.logAudit(
+      'GLOBAL_PLATFORM',
+      lead._id,
+      lead.name,
+      'marketing_demo_request',
+      'lead',
+      lead._id,
+      { email: lead.email, restaurant_name: lead.restaurant_name }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Thank you for reaching out! A Benzin team member will contact you within 24 hours.',
+      leadId: lead._id,
+    });
+  } catch (err: any) {
+    console.error('[Leads] Contact lead error:', err);
     res.status(500).json({ success: false, error: 'Internal server error.' });
   }
 });

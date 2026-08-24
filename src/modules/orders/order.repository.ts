@@ -13,7 +13,10 @@ export class OrderRepository {
    * Create a new order in persistent multi-tenant store
    */
   static async create(orderData: any): Promise<any> {
-    const restaurantId = orderData.restaurant_id || orderData.restaurantId || 'RES_EED4E9D266DF';
+    const restaurantId = orderData.restaurant_id || orderData.restaurantId;
+    if (!restaurantId) {
+      throw new Error('Order is missing restaurant_id');
+    }
     
     // Normalize items
     const rawItems: any[] = [];

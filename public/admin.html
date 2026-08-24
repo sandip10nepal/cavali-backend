@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,33 +15,33 @@
     /*                 BENZIN V2 - DESIGN SYSTEM & THEME TOKENS                    */
     /* ═══════════════════════════════════════════════════════════════════════════ */
     :root {
-      --night: #0E0A08;
-      --card: #1C1411;
-      --card2: #251B17;
-      --ember: #FF5A1F;
-      --gold: #E5B13A;
-      --teal: #14B8A6;
-      --cream: #F8F1EA;
-      --muted: #948375;
-      --line: #2E2018;
+      --night: #F4F6F9;
+      --card: #FFFFFF;
+      --card2: #F8FAFC;
+      --ember: #0066FF;
+      --gold: #0284C7;
+      --teal: #10B981;
+      --cream: #0F172A;
+      --muted: #475569;
+      --line: #E2E8F0;
       --danger: #EF4444;
-      --success: #22C55E;
+      --success: #10B981;
       --font-outfit: 'Outfit', sans-serif;
       --font-serif: 'Playfair Display', serif;
     }
 
     [data-theme="light"] {
-      --night: #F4F1EA;
+      --night: #F4F6F9;
       --card: #FFFFFF;
-      --card2: #FAF8F4;
-      --ember: #FF5A1F;
-      --gold: #C0841D;
-      --teal: #0D9488;
-      --cream: #1C1411;
-      --muted: #786C62;
-      --line: #E3DDD4;
-      --danger: #DC2626;
-      --success: #16A34A;
+      --card2: #F8FAFC;
+      --ember: #0066FF;
+      --gold: #0284C7;
+      --teal: #10B981;
+      --cream: #0F172A;
+      --muted: #475569;
+      --line: #E2E8F0;
+      --danger: #EF4444;
+      --success: #10B981;
     }
 
     [data-theme="light"] body {
@@ -483,8 +483,8 @@
   <audio id="orderChime" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-120.wav" preload="auto"></audio>
 
   <!-- ════════════════ BENZIN STAFF LOGIN & CLOCK OVERLAY ════════════════ -->
-  <div id="benzinLoginOverlay" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.95); backdrop-filter: blur(24px); z-index: 99999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="width: 100%; max-width: 460px; background: var(--card); border: 1.5px solid var(--gold); border-radius: 24px; padding: 32px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
+  <div id="benzinLoginOverlay" style="display: none; position: fixed; inset: 0; background: rgba(244, 246, 249, 0.95); backdrop-filter: blur(24px); z-index: 99999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="width: 100%; max-width: 460px; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 24px; padding: 32px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.08);">
       
       <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 16px;">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style="filter: drop-shadow(0 0 10px rgba(59,130,246,0.6));">
@@ -541,21 +541,21 @@
         </div>
       </div>
 
-      <!-- Mode 2: Manager Login (Venue ID + Manager Phone Number + Verification Code) -->
+      <!-- Mode 2: Manager / Owner Unified Login (Email + Password) -->
       <div id="loginFormEmail" style="display: none;">
         <div style="margin-bottom: 14px; text-align: left;">
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; margin-bottom: 4px;">Venue ID *</label>
-          <input type="text" id="loginManagerVenueCode" placeholder="Enter Venue ID" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px; font-weight: 700; text-transform: uppercase;">
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; margin-bottom: 4px;">Owner / Manager Email *</label>
+          <input type="email" id="loginManagerEmailInput" placeholder="alex@restaurant.com" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px;">
         </div>
         <div style="margin-bottom: 14px; text-align: left;">
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Manager Phone Number *</label>
-          <input type="tel" id="loginManagerPhoneInput" placeholder="Enter Manager Phone Number" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px;">
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Password *</label>
+          <input type="password" id="loginManagerPassInput" placeholder="••••••••••••" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px;">
         </div>
         <div style="margin-bottom: 20px; text-align: left;">
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Verification Code *</label>
-          <input type="text" maxlength="6" id="loginManagerCodeInput" placeholder="Enter Verification Code" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 16px; font-weight: 800; letter-spacing: 4px; text-align: center;">
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Venue Code (Optional)</label>
+          <input type="text" id="loginManagerVenueCode" placeholder="e.g. 4821 or leave blank" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px; font-weight: 700; text-transform: uppercase;">
         </div>
-        <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 15px; font-weight: 800;" onclick="handleManagerCodeLogin()">Open Dashboard</button>
+        <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 15px; font-weight: 800;" onclick="handleManagerEmailLogin()">Open Dashboard</button>
       </div>
     </div>
   </div>
@@ -712,28 +712,37 @@
 
     <!-- PAGE 4: MENU CATALOG MANAGEMENT -->
     <div id="menuPageLayout" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
-        <div>
-          <h2 style="font-size: 20px; font-weight: 800; color: var(--cream); margin: 0;">Menu Catalog</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; flex: 1; min-width: 0;">
+          <h2 style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; font-size: 24px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px; white-space: nowrap;">
+            Menu Catalog
+          </h2>
+          <!-- Super Category Slider Controls & Container (NO BORDER!) -->
+          <div style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 16px; max-width: 480px;">
+            <button onclick="scrollSuperCategories(-1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 6px; font-weight: 900;" title="Scroll Left">◀</button>
+            <div id="superCategoryHeaderNav" style="display: flex; gap: 6px; align-items: center; overflow-x: auto; scroll-behavior: smooth; flex-wrap: nowrap; white-space: nowrap; scrollbar-width: none; -ms-overflow-style: none; flex: 1;"></div>
+            <button onclick="scrollSuperCategories(1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 6px; font-weight: 900;" title="Scroll Right">▶</button>
+          </div>
         </div>
-        <div style="display: flex; gap: 12px; align-items: center; flex: 1; max-width: 500px;">
-          <div style="position: relative; flex: 1;">
-            <input type="text" id="menuSearchInput" placeholder="🔍 Search menu items by name, category, or ingredient..." oninput="renderMenuCatalog()" style="width: 100%; box-sizing: border-box; padding: 10px 14px 10px 36px; background: var(--card); border: 1.5px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 13px;">
+
+        <div style="display: flex; gap: 10px; align-items: center; flex: 1; max-width: 550px; justify-content: flex-end;">
+          <div style="position: relative; flex: 1; min-width: 180px;">
+            <input type="text" id="menuSearchInput" placeholder="🔍 Search menu items..." oninput="renderMenuCatalog()" style="width: 100%; box-sizing: border-box; padding: 10px 14px 10px 36px; background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; color: var(--cream); font-size: 13px;">
             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: 0.6;">🔍</span>
           </div>
-          <button class="btn btn-primary" onclick="openAddMenuCategoryModal()" style="background: linear-gradient(135deg, #E5B13A 0%, #c4952b 100%); color: #000; font-weight: 900; padding: 10px 18px; border-radius: 12px; box-shadow: 0 4px 18px rgba(229, 177, 58, 0.35); border: none; white-space: nowrap;">
-            <i data-lucide="folder-plus" style="width: 16px; height: 16px;"></i>
+          <button class="btn btn-primary" onclick="openAddMenuCategoryModal()" style="background: linear-gradient(135deg, #E5B13A 0%, #c4952b 100%); color: #000; font-weight: 900; padding: 10px 16px; border-radius: 12px; box-shadow: 0 4px 16px rgba(229, 177, 58, 0.35); border: none; white-space: nowrap; font-size: 13px;">
+            <i data-lucide="folder-plus" style="width: 15px; height: 15px;"></i>
             + Add Category
           </button>
-          <button class="btn btn-blue" onclick="openAddMenuItemModal()" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #fff; font-weight: 900; padding: 10px 18px; border-radius: 12px; box-shadow: 0 4px 18px rgba(59, 130, 246, 0.35); border: none; white-space: nowrap;">
-            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+          <button class="btn btn-blue" onclick="openAddMenuItemModal()" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #fff; font-weight: 900; padding: 10px 16px; border-radius: 12px; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35); border: none; white-space: nowrap; font-size: 13px;">
+            <i data-lucide="plus-circle" style="width: 15px; height: 15px;"></i>
             + Add Menu Item
           </button>
         </div>
       </div>
 
-      <!-- Menu Category Filters -->
-      <div id="menuCategoryFilterBar" style="display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 4px;"></div>
+      <!-- Sub-Category Pill Filters Bar -->
+      <div id="subCategoryHeaderNav" style="margin-bottom: 20px;"></div>
 
       <!-- Menu Grid -->
       <div id="menuGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;"></div>
@@ -1274,11 +1283,19 @@
       const headers = { 'Content-Type': 'application/json' };
       const token = localStorage.getItem('benzin_jwt_token');
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const restId = localStorage.getItem('benzin_restaurant_id') || 'RES_EED4E9D266DF';
-      const restCode = localStorage.getItem('benzin_restaurant_code') || '4821';
-      headers['x-restaurant-id'] = restId;
-      headers['x-restaurant-code'] = restCode;
+      const restId = localStorage.getItem('benzin_restaurant_id');
+      const restCode = localStorage.getItem('benzin_restaurant_code');
+      if (restId) headers['x-restaurant-id'] = restId;
+      if (restCode) headers['x-restaurant-code'] = restCode;
       return headers;
+    }
+
+    function clearInMemoryState() {
+      orders = [];
+      inventory = {};
+      menuItems = [];
+      menuCategories = [];
+      inventoryCategories = [];
     }
 
     // ── THEME TOGGLE ──
@@ -1334,7 +1351,7 @@
     async function verifyRestaurantVenue() {
       const codeInput = document.getElementById('loginVenueCode');
       const statusEl = document.getElementById('loginVenueStatus');
-      const rCode = codeInput ? codeInput.value.trim() : '4821';
+      const rCode = (codeInput && codeInput.value.trim()) || localStorage.getItem('benzin_restaurant_code') || '4821';
 
       if (!rCode) {
         if (statusEl) {
@@ -1454,6 +1471,7 @@
           }
 
           document.getElementById('benzinLoginOverlay').style.display = 'none';
+          clearInMemoryState();
           checkLoginStatus();
           await loadData();
           connectSSE();
@@ -1467,16 +1485,16 @@
     }
 
     async function handleManagerEmailLogin() {
-      const venueCode = document.getElementById('loginManagerVenueCode').value.trim();
-      const email = document.getElementById('loginEmailInput').value.trim();
-      const password = document.getElementById('loginPassInput').value.trim();
+      const emailEl = document.getElementById('loginManagerEmailInput') || document.getElementById('loginEmailInput');
+      const passEl = document.getElementById('loginManagerPassInput') || document.getElementById('loginPassInput');
+      const venueCodeEl = document.getElementById('loginManagerVenueCode');
 
-      if (!venueCode) {
-        alert('Please enter Restaurant Venue ID / Code');
-        return;
-      }
+      const email = emailEl ? emailEl.value.trim() : '';
+      const password = passEl ? passEl.value.trim() : '';
+      const venueCode = venueCodeEl ? venueCodeEl.value.trim() : '';
+
       if (!email || !password) {
-        alert('Please enter manager email and password/PIN');
+        alert('Please enter your owner email and password.');
         return;
       }
 
@@ -1485,7 +1503,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            restaurant_code: venueCode,
+            restaurant_code: venueCode || undefined,
             email: email,
             password: password
           })
@@ -1503,6 +1521,7 @@
           }
 
           document.getElementById('benzinLoginOverlay').style.display = 'none';
+          clearInMemoryState();
           checkLoginStatus();
           await loadData();
           connectSSE();
@@ -1554,6 +1573,7 @@
           }
 
           document.getElementById('benzinLoginOverlay').style.display = 'none';
+          clearInMemoryState();
           checkLoginStatus();
           await loadData();
           connectSSE();
@@ -2036,12 +2056,25 @@
       let filtered = itemsList;
 
       if (activeInventorySubTab && activeInventorySubTab !== 'all') {
+        const activeCatObj = (inventoryCategories || []).find(cat => (cat._id || cat.id) === activeInventorySubTab || cat.id === activeInventorySubTab);
+        const catTitle = (activeCatObj?.title || '').toLowerCase();
+        const catId = (activeInventorySubTab || '').toLowerCase();
+
         filtered = filtered.filter(item => {
           const c = (item.category || '').toLowerCase();
-          if (activeInventorySubTab === 'hookah' || activeInventorySubTab === 'shisha') return c.includes('shisha') || c.includes('hookah');
-          if (activeInventorySubTab === 'food' || activeInventorySubTab === 'kitchen') return c.includes('food') || c.includes('kitchen');
-          if (activeInventorySubTab === 'drinks' || activeInventorySubTab === 'beverage') return c.includes('drink') || c.includes('beverage');
-          return c === activeInventorySubTab;
+          const cId = (item.category_id || '').toLowerCase();
+
+          if (catId === 'hookah' || catId === 'shisha' || catTitle.includes('shisha') || catTitle.includes('hookah')) {
+            return c.includes('shisha') || c.includes('hookah') || cId.includes('shisha');
+          }
+          if (catId === 'food' || catId === 'kitchen' || catTitle.includes('food') || catTitle.includes('kitchen') || catTitle.includes('raw')) {
+            return c.includes('food') || c.includes('kitchen') || c.includes('raw') || cId.includes('food');
+          }
+          if (catId === 'drinks' || catId === 'beverage' || catId === 'liquor' || catTitle.includes('drink') || catTitle.includes('beverage') || catTitle.includes('liquor')) {
+            return c.includes('drink') || c.includes('beverage') || c.includes('liquor') || c.includes('tea') || c.includes('coffee') || cId.includes('drink');
+          }
+
+          return c === catId || cId === catId || (catTitle && c === catTitle);
         });
       }
 
@@ -2325,6 +2358,7 @@
     }
 
     function renderMenuPage() {
+      renderMenuCategoryFilterBar();
       renderMenuCatalog();
     }
 
@@ -2344,25 +2378,34 @@
       const allCatsList = getAllMenuCategoriesList();
 
       if (activeSuperCategory !== 'all') {
+        const validSubCatIds = allCatsList
+          .filter(c => String(c.parent_id || '').toLowerCase() === String(activeSuperCategory).toLowerCase())
+          .map(c => String(c.id || c._id).toLowerCase());
+
+        const superList = getSuperCategoriesList();
+        const activeSuperObj = superList.find(s => String(s.id).toLowerCase() === String(activeSuperCategory).toLowerCase());
+        const superTitle = (activeSuperObj?.title || '').toLowerCase();
+
         filtered = filtered.filter(item => {
-          const rawCat = (item.category || item.category_id || '').toLowerCase();
-          const matchedCat = allCatsList.find(c => (c.id || c._id || '').toLowerCase() === rawCat || (c.title || '').toLowerCase() === rawCat);
-          const superType = matchedCat ? (matchedCat.menu_type || 'hookah').toLowerCase() :
-                            rawCat.includes('hookah') || rawCat.includes('shisha') ? 'hookah' :
-                            rawCat.includes('drink') || rawCat.includes('beverage') || rawCat.includes('tea') ? 'drinks' :
-                            rawCat.includes('food') || rawCat.includes('main') || rawCat.includes('appetizer') ? 'food' : 'other';
-          return superType === activeSuperCategory.toLowerCase();
+          const itemCatId = String(item.category_id || '').toLowerCase();
+          const itemLegacyCat = String(item.category || '').toLowerCase();
+
+          if (validSubCatIds.length > 0 && validSubCatIds.includes(itemCatId)) {
+            return true;
+          }
+
+          if (superTitle.includes('food') && (itemLegacyCat === 'food' || itemCatId === 'food')) return true;
+          if ((superTitle.includes('drink') || superTitle.includes('beverage')) && (itemLegacyCat === 'drinks' || itemCatId === 'drinks')) return true;
+          if (superTitle.includes('hookah') && (itemLegacyCat === 'hookah' || itemCatId === 'hookah')) return true;
+
+          return validSubCatIds.includes(itemCatId);
         });
       }
 
       if (activeSubCategory !== 'all') {
         filtered = filtered.filter(item => {
-          const rawCat = (item.category || item.category_id || '').toLowerCase();
-          const matchedCat = allCatsList.find(c => (c.id || c._id || '').toLowerCase() === rawCat || (c.title || '').toLowerCase() === rawCat);
-          const catId = (matchedCat?.id || matchedCat?._id || rawCat).toLowerCase();
-          const catTitle = (matchedCat?.title || rawCat).toLowerCase();
-          const target = activeSubCategory.toLowerCase();
-          return catId === target || catTitle === target || rawCat === target || rawCat.includes(target);
+          const itemCatId = String(item.category_id || item.category || '').toLowerCase();
+          return itemCatId === String(activeSubCategory).toLowerCase();
         });
       }
 
@@ -2386,12 +2429,12 @@
       const allMenuCats = getAllMenuCategoriesList();
 
       filtered.forEach(item => {
-        const rawCat = (item.category || item.category_id || 'Menu Items').trim();
-        const catKey = rawCat.toLowerCase();
+        const itemCatId = String(item.category_id || item.category || 'Menu Items');
+        const catKey = itemCatId.toLowerCase();
 
-        const matchedDbCat = allMenuCats.find(c => (c.id || c._id || '').toLowerCase() === catKey || (c.title || '').toLowerCase() === catKey);
+        const matchedDbCat = allMenuCats.find(c => String(c.id || c._id || '').toLowerCase() === catKey);
 
-        const subTitle = matchedDbCat ? matchedDbCat.title : (rawCat.charAt(0).toUpperCase() + rawCat.slice(1));
+        const subTitle = matchedDbCat ? matchedDbCat.title : (item.category || itemCatId);
         const subIcon = matchedDbCat ? (matchedDbCat.icon || '📋') : '🍽️';
 
         if (!subCategoryMap[catKey]) {
@@ -3093,14 +3136,12 @@
       renderMenuCategoryFilterBar();
     }
 
-    let activeSuperCategory = 'hookah';
-    let activeSubCategory = 'hookah';
+    let activeSuperCategory = '';
+    let activeSubCategory = 'all';
 
     function selectSuperCategoryFilter(superId) {
       activeSuperCategory = superId;
-      const allCats = getAllMenuCategoriesList();
-      const subs = allCats.filter(c => (c.menu_type || 'hookah').toLowerCase() === superId.toLowerCase());
-      activeSubCategory = subs.length > 0 ? (subs[0].id || subs[0]._id || subs[0].title).toLowerCase() : 'all';
+      activeSubCategory = 'all';
       renderMenuCategoryFilterBar();
       renderMenuPage();
     }
@@ -3111,125 +3152,196 @@
       renderMenuPage();
     }
 
+    function scrollSuperCategories(direction) {
+      const container = document.getElementById('superCategoryHeaderNav');
+      if (container) {
+        container.scrollBy({ left: direction * 140, behavior: 'smooth' });
+      }
+    }
+
     function getAllMenuCategoriesList() {
       const list = [];
-      const seen = new Set();
-      const deletedIds = JSON.parse(localStorage.getItem('benzin_deleted_menu_cat_ids') || '[]');
-
-      const defaults = [
-        { id: 'hookah', title: 'Hookah Flavors', icon: '💨', menu_type: 'hookah', isDefault: true },
-        { id: 'food', title: 'Food & Mains', icon: '🍔', menu_type: 'food', isDefault: true },
-        { id: 'beverages', title: 'Drinks & Beverages', icon: '🥤', menu_type: 'drinks', isDefault: true },
-        { id: 'desserts', title: 'Desserts & Sweets', icon: '🍰', menu_type: 'food', isDefault: true }
-      ];
-
       (menuCategories || []).forEach(c => {
-        const id = c.id || c._id;
+        const id = c._id || c.id;
+        if (id && c.active !== false && c.parent_id !== null) {
+          list.push({
+            id,
+            _id: id,
+            parent_id: c.parent_id,
+            title: c.name || c.title || 'Sub Category',
+            icon: c.icon || '📋',
+            subtitle: c.description || c.subtitle || '',
+            sort_order: c.sort_order ?? 0,
+            active: c.active !== false,
+            raw: c
+          });
+        }
+      });
+      return list.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    }
+
+    function getSuperCategoriesList() {
+      const list = [];
+      (menuCategories || []).forEach(cat => {
+        const id = cat._id || cat.id;
+        if (id && cat.active !== false && cat.parent_id === null) {
+          list.push({
+            id,
+            _id: id,
+            parent_id: null,
+            title: cat.name || cat.title || 'Super Category',
+            icon: cat.icon || '👑',
+            sort_order: cat.sort_order ?? 0,
+            active: cat.active !== false,
+            raw: cat
+          });
+        }
+      });
+      return list.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    }
+
+    function renderInventoryCategoryTabs() {
+      const container = document.getElementById('inventoryCategoryTabs');
+      if (!container) return;
+
+      const catMap = new Map();
+      (inventoryCategories || []).forEach(cat => {
+        const id = cat._id || cat.id;
+        if (id && cat.active !== false) {
+          catMap.set(id, { id, title: cat.title || 'Category', icon: cat.icon || '📦' });
+        }
+      });
+
+      const keys = Array.from(catMap.keys());
+      if (keys.length > 0) {
+        if (!activeInventorySubTab || activeInventorySubTab === 'all' || !catMap.has(activeInventorySubTab)) {
+          activeInventorySubTab = keys[0];
+        }
+      }
+
+      let html = '';
+      catMap.forEach((catObj, key) => {
+        const isActive = activeInventorySubTab === key || activeInventorySubTab === catObj.id;
+        const activeBg = 'linear-gradient(135deg, #E5B13A 0%, #c4952b 100%)';
+
+        html += `
+          <button class="sub-tab ${isActive ? 'active' : ''}" onclick="switchInventorySubTab('${catObj.id}')" style="margin-right: 8px; padding: 8px 16px; border-radius: 14px; font-weight: 800; border: 1.5px solid ${isActive ? 'transparent' : 'var(--line)'}; ${isActive ? `background: ${activeBg}; color: #000; box-shadow: 0 4px 16px rgba(229,177,58,0.35);` : 'background: var(--card); color: var(--cream);'} transition: all 0.2s ease;">
+            ${catObj.icon} ${catObj.title}
+          </button>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function getAllInventoryCategoriesList() {
+      const list = [];
+      const seen = new Set();
+
+      (inventoryCategories || []).forEach(c => {
+        const id = c._id || c.id;
         const key = (id || c.title || '').toLowerCase();
-        if (key && !seen.has(key) && !deletedIds.includes(key) && c.active !== false) {
+        if (id && c.active !== false && !seen.has(key)) {
           seen.add(key);
-          list.push({ id: id || key, title: c.title || 'Category', icon: c.icon || '📋', menu_type: c.menu_type || 'hookah', subtitle: c.subtitle || '', isDb: true, raw: c });
-        }
-      });
-
-      defaults.forEach(d => {
-        if (!seen.has(d.id) && !deletedIds.includes(d.id)) {
-          seen.add(d.id);
-          list.push(d);
-        }
-      });
-
-      (menuItems || []).forEach(item => {
-        const c = (item.category || item.category_id || '').trim();
-        const key = c.toLowerCase();
-        if (key && !seen.has(key) && !deletedIds.includes(key)) {
-          seen.add(key);
-          const type = key.includes('hookah') || key.includes('shisha') ? 'hookah' :
-                       key.includes('drink') || key.includes('beverage') || key.includes('tea') ? 'drinks' : 'food';
-          list.push({ id: key, title: c.charAt(0).toUpperCase() + c.slice(1), icon: '🍽️', menu_type: type, isDb: false });
+          list.push({ id, _id: id, title: c.title || 'Category', icon: c.icon || '📦', isDb: true, raw: c });
         }
       });
 
       return list;
     }
 
-    function getSuperCategoriesList() {
-      const map = new Map();
-      map.set('hookah', { id: 'hookah', title: 'Hookah & Shisha', icon: '💨', isPreset: true });
-      map.set('food', { id: 'food', title: 'Food & Dining', icon: '🍔', isPreset: true });
-      map.set('drinks', { id: 'drinks', title: 'Beverages & Drinks', icon: '🍹', isPreset: true });
+    function renderExistingInvCategoriesList() {
+      const listEl = document.getElementById('existingInvCatList');
+      if (!listEl) return;
 
-      (menuCategories || []).forEach(cat => {
-        if (cat.is_super || cat.is_super_category) {
-          const id = (cat.id || cat._id || cat.title).toLowerCase();
-          map.set(id, { id, title: cat.title, icon: cat.icon || '👑', isDb: true, raw: cat });
-        } else if (cat.menu_type && !map.has(cat.menu_type.toLowerCase())) {
-          const type = cat.menu_type.toLowerCase();
-          map.set(type, { id: type, title: type.charAt(0).toUpperCase() + type.slice(1), icon: '📋', isDb: false });
-        }
-      });
+      const allCats = getAllInventoryCategoriesList();
+      const stockItems = Object.values(inventory || {});
 
-      return Array.from(map.values());
+      if (allCats.length === 0) {
+        listEl.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--muted); font-size: 13px;">No inventory categories found for this venue. Click "+ Add Category" to create one.</div>';
+        return;
+      }
+
+      listEl.innerHTML = allCats.map(cat => {
+        const id = cat.id || cat._id;
+        const title = cat.title || 'Category';
+        const icon = cat.icon || '📦';
+        const catKey = (id || title).toLowerCase();
+
+        const count = stockItems.filter(item => {
+          const c = (item.category || '').toLowerCase();
+          return c === catKey || c === title.toLowerCase() || (item.category_id || '') === id;
+        }).length;
+
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px;">
+            <div>
+              <span style="font-size: 13px; font-weight: 700; color: var(--cream);">${icon} ${title}</span>
+              <span style="font-size: 11px; font-weight: 700; color: ${count > 0 ? 'var(--gold)' : 'var(--muted)'}; margin-left: 8px;">(${count} stock item${count === 1 ? '' : 's'})</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="openEditInvCategoryModal('${id}')" class="btn" style="padding: 4px 10px; font-size: 11px; font-weight: 700;">✏️ Edit</button>
+              <button onclick="deleteInvCategory('${id}')" class="btn btn-danger" style="padding: 4px 10px; font-size: 11px; font-weight: 700; ${count > 0 ? 'opacity: 0.5;' : ''}" title="${count > 0 ? 'Cannot delete category with items' : 'Delete category'}">🗑️ Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     function renderMenuCategoryFilterBar() {
-      const container = document.getElementById('menuCategoryFilterBar');
-      if (!container) return;
+      const superContainer = document.getElementById('superCategoryHeaderNav');
+      const subContainer = document.getElementById('subCategoryHeaderNav');
 
       const superList = getSuperCategoriesList();
-      if ((activeSuperCategory === 'all' || !activeSuperCategory) && superList.length > 0) {
+      const allCatsList = getAllMenuCategoriesList();
+
+      if (superList.length > 0 && (!activeSuperCategory || activeSuperCategory === 'hookah' || !superList.some(s => String(s.id).toLowerCase() === String(activeSuperCategory).toLowerCase()))) {
         activeSuperCategory = superList[0].id;
       }
 
-      let superHtml = `
-        <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;">
-      `;
-
-      superList.forEach(superObj => {
-        const isActive = activeSuperCategory === superObj.id;
-        const activeBg = 'linear-gradient(135deg, #E5B13A 0%, #c4952b 100%)';
-        superHtml += `
-          <button class="sub-tab ${isActive ? 'active' : ''}" onclick="selectSuperCategoryFilter('${superObj.id}')" style="padding: 10px 22px; border-radius: 14px; font-weight: 900; font-size: 13px; border: 1.5px solid ${isActive ? 'transparent' : 'var(--line)'}; ${isActive ? `background: ${activeBg}; color: #000; box-shadow: 0 4px 16px rgba(229,177,58,0.35);` : 'background: var(--card); color: var(--cream);'} transition: all 0.2s ease; cursor: pointer; white-space: nowrap;">
-            ${superObj.icon} ${superObj.title.toUpperCase()}
-          </button>
-        `;
-      });
-      superHtml += `</div>`;
-
-      // Level 2: Sub-Categories Bar (Filtered by active Super Category, NO "All" button)
-      const subCatMap = new Map();
-      const allCats = getAllMenuCategoriesList();
-
-      allCats.forEach(cat => {
-        const type = (cat.menu_type || 'hookah').toLowerCase();
-        if (type === activeSuperCategory.toLowerCase()) {
-          const id = (cat.id || cat._id || cat.title).toLowerCase();
-          subCatMap.set(id, { id, title: cat.title, icon: cat.icon || '📋' });
-        }
-      });
-
-      const subKeys = Array.from(subCatMap.keys());
-      if ((activeSubCategory === 'all' || !subCatMap.has(activeSubCategory)) && subKeys.length > 0) {
-        activeSubCategory = subKeys[0];
+      // Render Super Category Pill Slider on SAME LINE as Menu Catalog title
+      if (superContainer) {
+        let superHtml = '';
+        superList.forEach(superObj => {
+          const isActive = (activeSuperCategory || '').toLowerCase() === String(superObj.id).toLowerCase() || (superObj.raw && String(superObj.raw.menu_type || '').toLowerCase() === (activeSuperCategory || '').toLowerCase());
+          const activeBg = 'linear-gradient(135deg, #E5B13A 0%, #c4952b 100%)';
+          superHtml += `
+            <button class="sub-tab ${isActive ? 'active' : ''}" onclick="selectSuperCategoryFilter('${superObj.id}')" style="padding: 7px 16px; border-radius: 12px; font-weight: 900; font-size: 13px; border: 1.5px solid ${isActive ? 'transparent' : 'var(--line)'}; ${isActive ? `background: ${activeBg}; color: #000; box-shadow: 0 4px 14px rgba(229,177,58,0.35);` : 'background: var(--card); color: var(--cream);'} transition: all 0.2s ease; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
+              ${superObj.icon} ${superObj.title}
+            </button>
+          `;
+        });
+        superContainer.innerHTML = superHtml;
       }
 
-      let subHtml = `
-        <div style="display: flex; gap: 8px; overflow-x: auto; padding-top: 4px; padding-bottom: 4px;">
-      `;
+      // Render Sub-Category Pills Bar below super categories
+      if (subContainer) {
+        const subCatMap = new Map();
+        subCatMap.set('all', { id: 'all', title: 'All', icon: '📋' });
 
-      subCatMap.forEach((subObj, key) => {
-        const isActive = activeSubCategory === key;
-        const activeBg = 'linear-gradient(135deg, #E5B13A 0%, #c4952b 100%)';
-        subHtml += `
-          <button class="sub-tab ${isActive ? 'active' : ''}" onclick="selectSubCategoryFilter('${subObj.id}')" style="padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 13px; border: 1.5px solid ${isActive ? 'transparent' : 'var(--line)'}; ${isActive ? `background: ${activeBg}; color: #000; box-shadow: 0 4px 16px rgba(229,177,58,0.35);` : 'background: var(--card2); color: var(--cream);'} transition: all 0.2s ease; cursor: pointer; white-space: nowrap;">
-            ${subObj.icon} ${subObj.title}
-          </button>
+        allCatsList.forEach(cat => {
+          if (cat.parent_id === activeSuperCategory || activeSuperCategory === 'all') {
+            const id = cat.id || cat._id;
+            subCatMap.set(id, { id, title: cat.title, icon: cat.icon || '📋' });
+          }
+        });
+
+        let subHtml = `
+          <div style="display: flex; gap: 8px; overflow-x: auto; padding-top: 4px; padding-bottom: 4px;">
         `;
-      });
-      subHtml += `</div></div>`;
 
-      container.innerHTML = superHtml + subHtml;
+        subCatMap.forEach((subObj, key) => {
+          const isActive = String(activeSubCategory || 'all').toLowerCase() === String(subObj.id).toLowerCase();
+          const activeBg = 'linear-gradient(135deg, #E5B13A 0%, #c4952b 100%)';
+          subHtml += `
+            <button class="sub-tab ${isActive ? 'active' : ''}" onclick="selectSubCategoryFilter('${subObj.id}')" style="padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; border: 1px solid ${isActive ? 'transparent' : 'var(--line)'}; ${isActive ? `background: ${activeBg}; color: #000; box-shadow: 0 2px 10px rgba(229,177,58,0.25);` : 'background: var(--card2); color: var(--muted);'} transition: all 0.2s ease; cursor: pointer; white-space: nowrap;">
+              ${subObj.icon} ${subObj.title}
+            </button>
+          `;
+        });
+        subHtml += `</div>`;
+        subContainer.innerHTML = subHtml;
+      }
     }
 
     function switchCategoryModalMode(mode) {
@@ -3268,6 +3380,25 @@
       select.innerHTML = html;
     }
 
+    function populateMenuCategoryDropdown(selectedVal = 'hookah') {
+      const select = document.getElementById('menuItemCategory');
+      if (!select) return;
+
+      const allCats = getAllMenuCategoriesList();
+      let html = '';
+      allCats.forEach(cat => {
+        const val = cat.id || cat._id || cat.title;
+        const isSel = (selectedVal.toLowerCase() === val.toLowerCase() || selectedVal.toLowerCase() === (cat.title || '').toLowerCase()) ? 'selected' : '';
+        html += `<option value="${val}" ${isSel}>${cat.icon || '📋'} ${cat.title}</option>`;
+      });
+
+      if (!html) {
+        html = '<option value="hookah">💨 Hookah & Shisha</option><option value="food">🍔 Food & Dining</option><option value="drinks">🍹 Beverages & Drinks</option>';
+      }
+
+      select.innerHTML = html;
+    }
+
     function openAddSuperCategoryModal() {
       document.getElementById('menuCatEditId').value = '';
       document.getElementById('menuCatModalTitle').innerText = 'Manage Super Categories';
@@ -3288,7 +3419,7 @@
         const title = s.title;
         const icon = s.icon || '👑';
 
-        const subCount = getAllMenuCategoriesList().filter(c => (c.menu_type || '').toLowerCase() === id.toLowerCase()).length;
+        const subCount = getAllMenuCategoriesList().filter(c => c.parent_id === id).length;
 
         return `
           <div style="display: flex; justify-content: space-between; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 6px;">
@@ -3299,6 +3430,41 @@
             <div style="display: flex; gap: 6px;">
               <button onclick="openEditSuperCategoryModal('${id}')" class="btn" style="padding: 4px 10px; font-size: 11px; font-weight: 700;">✏️ Edit</button>
               <button onclick="deleteSuperCategory('${id}')" class="btn btn-danger" style="padding: 4px 10px; font-size: 11px; font-weight: 700; ${subCount > 0 ? 'opacity: 0.5;' : ''}" title="${subCount > 0 ? 'Cannot delete super category with sub-categories' : 'Delete super category'}">🗑️ Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderExistingMenuCategoriesList() {
+      const listEl = document.getElementById('existingMenuCatList');
+      if (!listEl) return;
+
+      const allCats = getAllMenuCategoriesList();
+      const items = Array.isArray(menuItems) ? menuItems : [];
+
+      if (allCats.length === 0) {
+        listEl.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--muted); font-size: 13px;">No sub-categories found. Create one above!</div>';
+        return;
+      }
+
+      listEl.innerHTML = allCats.map(cat => {
+        const id = cat.id || cat._id;
+        const title = cat.title || 'Category';
+        const icon = cat.icon || '📋';
+        const catKey = (id || title).toLowerCase();
+
+        const itemCount = items.filter(item => item.category_id === id || item.category === id).length;
+
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 6px;">
+            <div>
+              <span style="font-size: 14px; font-weight: 800; color: var(--cream);">${icon} ${title}</span>
+              <span style="font-size: 11px; font-weight: 700; color: ${itemCount > 0 ? 'var(--gold)' : 'var(--muted)'}; margin-left: 8px;">(${itemCount} item${itemCount === 1 ? '' : 's'})</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="openEditMenuCategoryModal('${id}')" class="btn" style="padding: 4px 10px; font-size: 11px; font-weight: 700;">✏️ Edit</button>
+              <button onclick="deleteMenuCategory('${id}')" class="btn btn-danger" style="padding: 4px 10px; font-size: 11px; font-weight: 700; ${itemCount > 0 ? 'opacity: 0.5;' : ''}" title="${itemCount > 0 ? 'Cannot delete category with items' : 'Delete category'}">🗑️ Delete</button>
             </div>
           </div>
         `;
@@ -3318,24 +3484,36 @@
     }
 
     async function deleteSuperCategory(superId) {
-      const subCount = getAllMenuCategoriesList().filter(c => (c.menu_type || '').toLowerCase() === superId.toLowerCase()).length;
+      const subCount = getAllMenuCategoriesList().filter(c => c.parent_id === superId).length;
+      let confirmMsg = `Are you sure you want to delete Super Category "${superId.toUpperCase()}"?`;
       if (subCount > 0) {
-        alert(`⚠️ Cannot Delete Super Category:\n\nThe section "${superId.toUpperCase()}" contains ${subCount} active sub-category(ies).\n\nPlease delete or reassign those sub-categories first.`);
-        return;
+        confirmMsg = `⚠️ Delete Super Category "${superId.toUpperCase()}":\n\nThis section contains ${subCount} sub-category(ies).\n\nDo you want to delete this super category?`;
       }
 
-      if (!confirm(`Are you sure you want to delete Super Category "${superId.toUpperCase()}"?`)) return;
+      if (!confirm(confirmMsg)) return;
 
-      const deletedSupers = JSON.parse(localStorage.getItem('benzin_deleted_super_cat_ids') || '[]');
-      if (!deletedSupers.includes(superId.toLowerCase())) {
-        deletedSupers.push(superId.toLowerCase());
-        localStorage.setItem('benzin_deleted_super_cat_ids', JSON.stringify(deletedSupers));
+      const supers = getSuperCategoriesList();
+      const targetSuper = supers.find(x => x.id.toLowerCase() === superId.toLowerCase());
+      const catId = targetSuper?.raw?._id || targetSuper?.raw?.id || superId;
+
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/v2/menu/categories/${catId}`, {
+          method: 'DELETE',
+          headers,
+        });
+        const data = await res.json();
+        if (data.success) {
+          await fetchMenuCategories();
+          renderMenuCategoryFilterBar();
+          renderExistingSuperCategoriesList();
+          renderMenuPage();
+        } else {
+          alert('Could not delete super category: ' + (data.error || data.message || 'Error'));
+        }
+      } catch (err) {
+        alert('Network error deleting super category: ' + err.message);
       }
-
-      await fetchMenuCategories();
-      renderMenuCategoryFilterBar();
-      renderExistingSuperCategoriesList();
-      renderMenuPage();
     }
 
     function openAddMenuCategoryModal() {
@@ -3368,6 +3546,7 @@
       document.getElementById('menuCatIcon').value = cat.icon || '💨';
       document.getElementById('menuCatType').value = cat.menu_type || 'hookah';
       document.getElementById('menuCatColor').value = cat.color || '#FF5A1F';
+      switchCategoryModalMode('sub');
       renderExistingMenuCategoriesList();
       document.getElementById('menuCatModal').style.display = 'flex';
     }
@@ -3382,7 +3561,7 @@
       const title = document.getElementById('menuCatTitle').value.trim();
       const subtitle = document.getElementById('menuCatSubtitle').value.trim();
       const icon = document.getElementById('menuCatIcon').value.trim() || (isSuper ? '👑' : '📋');
-      const menu_type = isSuper ? title.toLowerCase().replace(/[^a-z0-9]/g, '_') : (document.getElementById('menuCatType').value || 'hookah');
+      const menu_type = isSuper ? (id || title.toLowerCase().replace(/[^a-z0-9]/g, '_')) : (document.getElementById('menuCatType').value || 'hookah');
       const color = document.getElementById('menuCatColor').value;
 
       if (!title) {
@@ -3419,6 +3598,7 @@
             renderExistingMenuCategoriesList();
           }
           renderMenuCategoryFilterBar();
+          closeMenuCategoryModal();
           await loadMenuItems();
         } else {
           alert('Could not save menu category: ' + (data.error || data.message || 'Error'));
@@ -3464,18 +3644,21 @@
     }
 
     // ── INVENTORY CATEGORIES ──
+    // ── INVENTORY CATEGORIES ──
     async function fetchInventoryCategories() {
       try {
         const headers = getAuthHeaders();
         const res = await fetch(`${API_URL}/api/orders/inventory/categories`, { headers });
         const data = await res.json();
         if (data.success && Array.isArray(data.categories)) {
-          inventoryCategories = data.categories;
+          inventoryCategories = data.categories.filter(c => c.active !== false);
         }
       } catch (err) {
         console.error('Error fetching inventory categories:', err);
       }
       renderInventoryCategoryTabs();
+      renderExistingInvCategoriesList();
+      populateInventoryCategoryDropdowns();
     }
 
     function renderInventoryCategoryTabs() {
@@ -3487,23 +3670,14 @@
 
       (inventoryCategories || []).forEach(cat => {
         const id = cat._id || cat.id;
-        if (id) {
+        if (id && cat.active !== false) {
           catMap.set(id, { id, title: cat.title || 'Category', icon: cat.icon || '📦' });
         }
       });
 
-      const stockItems = Object.values(inventory || {});
-      stockItems.forEach(item => {
-        const c = (item.category || '').trim();
-        if (c && !catMap.has(c.toLowerCase()) && !catMap.has(c)) {
-          const title = c.charAt(0).toUpperCase() + c.slice(1);
-          const icon = c.toLowerCase().includes('shisha') || c.toLowerCase().includes('hookah') ? '💨' :
-                       c.toLowerCase().includes('coal') || c.toLowerCase().includes('head') ? '🔥' :
-                       c.toLowerCase().includes('liquor') || c.toLowerCase().includes('drink') ? '🍾' :
-                       c.toLowerCase().includes('kitchen') || c.toLowerCase().includes('food') || c.toLowerCase().includes('raw') ? '🍅' : '📦';
-          catMap.set(c, { id: c, title, icon });
-        }
-      });
+      if (!activeInventorySubTab || !catMap.has(activeInventorySubTab)) {
+        activeInventorySubTab = 'all';
+      }
 
       let html = '';
       catMap.forEach((catObj, key) => {
@@ -3524,39 +3698,12 @@
       const list = [];
       const seen = new Set();
 
-      const defaults = [
-        { id: 'shisha', title: 'Shisha Flavors', icon: '💨', isDefault: true },
-        { id: 'coals', title: 'Coals & Heads', icon: '🔥', isDefault: true },
-        { id: 'liquor', title: 'Liquors & Drinks', icon: '🍾', isDefault: true },
-        { id: 'raw', title: 'Raw Ingredients', icon: '🍅', isDefault: true },
-        { id: 'beverages', title: 'Beverages & Bar', icon: '🥤', isDefault: true },
-        { id: 'food', title: 'Kitchen & Food', icon: '🍔', isDefault: true },
-        { id: 'supplies', title: 'General Supplies', icon: '📦', isDefault: true }
-      ];
-
       (inventoryCategories || []).forEach(c => {
         const id = c._id || c.id;
         const key = (id || c.title || '').toLowerCase();
-        if (key && !seen.has(key)) {
+        if (id && c.active !== false && !seen.has(key)) {
           seen.add(key);
-          list.push({ id: id || key, title: c.title || 'Category', icon: c.icon || '📦', isDb: true, raw: c });
-        }
-      });
-
-      defaults.forEach(d => {
-        if (!seen.has(d.id)) {
-          seen.add(d.id);
-          list.push(d);
-        }
-      });
-
-      const stockItems = Object.values(inventory || {});
-      stockItems.forEach(item => {
-        const c = (item.category || '').trim();
-        const key = c.toLowerCase();
-        if (key && !seen.has(key)) {
-          seen.add(key);
-          list.push({ id: key, title: c.charAt(0).toUpperCase() + c.slice(1), icon: '📦', isDb: false });
+          list.push({ id, _id: id, title: c.title || 'Category', icon: c.icon || '📦', isDb: true, raw: c });
         }
       });
 
@@ -3570,6 +3717,11 @@
       const allCats = getAllInventoryCategoriesList();
       const stockItems = Object.values(inventory || {});
 
+      if (allCats.length === 0) {
+        listEl.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--muted); font-size: 13px;">No inventory categories found for this venue. Click "+ Add Category" to create one.</div>';
+        return;
+      }
+
       listEl.innerHTML = allCats.map(cat => {
         const id = cat.id || cat._id;
         const title = cat.title || 'Category';
@@ -3578,7 +3730,7 @@
 
         const count = stockItems.filter(item => {
           const c = (item.category || '').toLowerCase();
-          return c === catKey || c === title.toLowerCase();
+          return c === catKey || c === title.toLowerCase() || (item.category_id || '').toLowerCase() === id.toLowerCase();
         }).length;
 
         return `
@@ -3668,7 +3820,6 @@
           document.getElementById('invCatEditId').value = '';
           document.getElementById('invCatTitle').value = '';
           await fetchInventoryCategories();
-          renderExistingInvCategoriesList();
           renderInventoryPage();
         } else {
           alert('Could not save inventory category: ' + (data.message || 'Error'));
@@ -3679,14 +3830,15 @@
     }
 
     async function deleteInvCategory(catId) {
-      const cat = (inventoryCategories || []).find(c => (c._id || c.id) === catId);
+      const cat = (inventoryCategories || []).find(c => (c._id || c.id) === catId || (c.title || '').toLowerCase() === catId.toLowerCase());
       const catTitle = (cat?.title || '').toLowerCase();
+      const targetId = cat?._id || cat?.id || catId;
 
       // Safety check: verify if any inventory stock items exist in this category
       const stockItems = Object.values(inventory || {});
       const matchingStock = stockItems.filter(item => {
         const c = (item.category || '').toLowerCase();
-        return c === catId.toLowerCase() || (catTitle && c === catTitle);
+        return c === targetId.toLowerCase() || (catTitle && c === catTitle) || (item.category_id || '').toLowerCase() === targetId.toLowerCase();
       });
 
       if (matchingStock.length > 0) {
@@ -3700,12 +3852,12 @@
         const res = await fetch(`${API_URL}/api/orders/inventory/categories/delete`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ id: catId })
+          body: JSON.stringify({ id: targetId })
         });
         const data = await res.json();
         if (data.success) {
+          inventoryCategories = (inventoryCategories || []).filter(c => (c._id || c.id) !== targetId && (c._id || c.id) !== catId);
           await fetchInventoryCategories();
-          renderExistingInvCategoriesList();
           renderInventoryPage();
         } else {
           alert('Could not delete inventory category: ' + (data.message || 'Error'));
@@ -3725,21 +3877,24 @@
           nameEl.innerText = storedVenueName;
         }
 
-        const restCode = localStorage.getItem('benzin_restaurant_code') || '4821';
-        fetch(`${API_URL}/api/auth/staff-roster`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ restaurant_code: restCode })
-        }).then(r => r.json()).then(data => {
-          if (data.success && data.restaurant) {
-            localStorage.setItem('benzin_restaurant_name', data.restaurant.name);
-            if (nameEl) nameEl.innerText = data.restaurant.name;
-          }
-        }).catch(_ => {});
+        const restCode = localStorage.getItem('benzin_restaurant_code');
+        if (restCode) {
+          fetch(`${API_URL}/api/auth/staff-roster`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ restaurant_code: restCode })
+          }).then(r => r.json()).then(data => {
+            if (data.success && data.restaurant) {
+              localStorage.setItem('benzin_restaurant_name', data.restaurant.name);
+              if (nameEl) nameEl.innerText = data.restaurant.name;
+            }
+          }).catch(_ => {});
+        }
 
         await Promise.all([
           fetchMenuCategories(),
-          fetchInventoryCategories()
+          fetchInventoryCategories(),
+          loadMenuItems()
         ]);
 
         const [ordersRes, invRes] = await Promise.all([
@@ -3810,8 +3965,38 @@
       };
     }
 
+    function initTenantFromUrl() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code') || params.get('restaurant_code');
+        const slug = params.get('slug') || params.get('restaurant_slug') || params.get('restaurant');
+        const rid = params.get('restaurant_id') || params.get('rid') || params.get('id');
+
+        if (code) {
+          localStorage.setItem('benzin_restaurant_code', code);
+          const codeInput = document.getElementById('loginVenueCode');
+          if (codeInput) codeInput.value = code;
+        }
+        if (slug) {
+          localStorage.setItem('benzin_selected_slug', slug);
+        }
+        if (rid) {
+          localStorage.setItem('benzin_restaurant_id', rid);
+        }
+      } catch (e) {}
+    }
+
     // ── INITIALIZATION BOOTSTRAP ──
     document.addEventListener('DOMContentLoaded', async () => {
+      initTenantFromUrl();
+      const savedCode = localStorage.getItem('benzin_restaurant_code');
+      const codeInput = document.getElementById('loginVenueCode');
+      if (codeInput && savedCode) codeInput.value = savedCode;
+
+      if (savedCode && savedCode !== '4821') {
+        await verifyRestaurantVenue();
+      }
+
       const savedTheme = localStorage.getItem('benzin_theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
       const label = document.getElementById('themeLabel');

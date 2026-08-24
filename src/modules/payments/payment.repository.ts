@@ -33,9 +33,10 @@ export class PaymentRepository {
   }
 
   static async createSession(session: any): Promise<PaymentSession> {
+    if (!session.restaurant_id) throw new Error('Payment session missing restaurant_id');
     const entity: PaymentSession = {
       _id: session._id || session.id || `pay-${Date.now()}`,
-      restaurant_id: session.restaurant_id || 'RES_EED4E9D266DF',
+      restaurant_id: session.restaurant_id,
       order_id: String(session.order_id),
       amount_cents: session.amount_cents,
       currency: session.currency || 'USD',
