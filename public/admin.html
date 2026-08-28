@@ -966,13 +966,6 @@
         </div>
       </div>
 
-      <!-- Row 2: Super Category Slider Pills Bar -->
-      <div style="display: flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--line); padding: 6px 12px; border-radius: 12px; margin-bottom: 14px; width: 100%; box-sizing: border-box;">
-        <button onclick="scrollSuperCategories(-1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 8px; font-weight: 900;" title="Scroll Left">◀</button>
-        <div id="superCategoryHeaderNav" style="display: flex; gap: 6px; align-items: center; overflow-x: auto; scroll-behavior: smooth; flex-wrap: nowrap; white-space: nowrap; scrollbar-width: none; -ms-overflow-style: none; flex: 1;"></div>
-        <button onclick="scrollSuperCategories(1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 8px; font-weight: 900;" title="Scroll Right">▶</button>
-      </div>
-
       <!-- Sub-Category Pill Filters Bar -->
       <div id="subCategoryHeaderNav" style="margin-bottom: 20px;"></div>
 
@@ -3584,33 +3577,18 @@
       const superList = getSuperCategoriesList();
       const allCatsList = getAllMenuCategoriesList();
 
-      if (superList.length > 0 && (!activeSuperCategory || activeSuperCategory === 'hookah' || !superList.some(s => String(s.id).toLowerCase() === String(activeSuperCategory).toLowerCase()))) {
+      if (superList.length > 0 && (!activeSuperCategory || !superList.some(s => String(s.id).toLowerCase() === String(activeSuperCategory).toLowerCase()))) {
         activeSuperCategory = superList[0].id;
       }
 
-      // Render Super Category Pill Slider on SAME LINE as Menu Catalog title
-      if (superContainer) {
-        let superHtml = '';
-        superList.forEach(superObj => {
-          const isActive = (activeSuperCategory || '').toLowerCase() === String(superObj.id).toLowerCase() || (superObj.raw && String(superObj.raw.menu_type || '').toLowerCase() === (activeSuperCategory || '').toLowerCase());
-          const activeBg = 'linear-gradient(135deg, #E5B13A 0%, #c4952b 100%)';
-          superHtml += `
-            <button class="sub-tab ${isActive ? 'active' : ''}" onclick="selectSuperCategoryFilter('${superObj.id}')" style="padding: 7px 16px; border-radius: 12px; font-weight: 900; font-size: 13px; border: 1.5px solid ${isActive ? 'transparent' : 'var(--line)'}; ${isActive ? `background: ${activeBg}; color: #000; box-shadow: 0 4px 14px rgba(229,177,58,0.35);` : 'background: var(--card); color: var(--cream);'} transition: all 0.2s ease; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
-              ${superObj.icon} ${superObj.title}
-            </button>
-          `;
-        });
-        superContainer.innerHTML = superHtml;
-      }
-
-      // Render Sub-Category Pills Bar below super categories
+      // Render Sub-Category Pills Bar displaying all sub-categories across all super categories
       if (subContainer) {
         const subCatMap = new Map();
-        subCatMap.set('all', { id: 'all', title: 'All', icon: '📋' });
+        subCatMap.set('all', { id: 'all', title: 'All Items', icon: '📋' });
 
         allCatsList.forEach(cat => {
-          if (cat.parent_id === activeSuperCategory || activeSuperCategory === 'all') {
-            const id = cat.id || cat._id;
+          const id = cat.id || cat._id;
+          if (id && !subCatMap.has(id)) {
             subCatMap.set(id, { id, title: cat.title, icon: cat.icon || '📋' });
           }
         });
@@ -3951,43 +3929,8 @@
       populateInventoryCategoryDropdowns();
     }
 
-    function hydrateFromCache() {
-      try {
-        const cachedInv = localStorage.getItem('benzin_cached_inventory');
-        if (cachedInv) {
-          inventory = JSON.parse(cachedInv);
-          renderInventoryPage();
-        }
-        const cachedMenu = localStorage.getItem('benzin_cached_menu_items');
-        if (cachedMenu) {
-          menuItems = JSON.parse(cachedMenu);
-          renderMenuPage();
-        }
-        const cachedOrders = localStorage.getItem('benzin_cached_orders');
-        if (cachedOrders) {
-          orders = JSON.parse(cachedOrders);
-          renderOrders();
-        }
-        const cachedMenuCats = localStorage.getItem('benzin_cached_menu_cats');
-        if (cachedMenuCats) {
-          menuCategories = JSON.parse(cachedMenuCats);
-          renderMenuCategoryFilterBar();
-        }
-        const cachedInvCats = localStorage.getItem('benzin_cached_inv_cats');
-        if (cachedInvCats) {
-          inventoryCategories = JSON.parse(cachedInvCats);
-          renderInventoryCategoryTabs();
-        }
-      } catch (e) {
-        console.log('Cache hydration error:', e);
-      }
-    }
-
-    // ── REAL-TIME SSE STREAM & PARALLEL DATA FETCH ──
+    // ── REAL-TIME SSE STREAM & PARALLEL DATA FETCH DIRECT FROM CLOUD RUN & MONGODB ──
     async function loadData() {
-      // 1. Instantly hydrate cached data from localStorage for 0ms delay
-      hydrateFromCache();
-
       try {
         const headers = getAuthHeaders();
         const storedVenueName = localStorage.getItem('benzin_restaurant_name');
@@ -4010,7 +3953,7 @@
           }).catch(_ => {});
         }
 
-        // Run ALL 5 API endpoints in parallel concurrently for maximum speed
+        // Run ALL 5 API endpoints concurrently in parallel directly from Cloud Run & MongoDB Atlas
         const results = await Promise.allSettled([
           fetchMenuCategories(),
           fetchInventoryCategories(),
@@ -4021,13 +3964,11 @@
 
         if (results[3].status === 'fulfilled' && results[3].value.success) {
           orders = results[3].value.orders || [];
-          localStorage.setItem('benzin_cached_orders', JSON.stringify(orders));
           renderOrders();
         }
 
         if (results[4].status === 'fulfilled' && results[4].value.success) {
           inventory = results[4].value.inventory || results[4].value.rawMaterials || {};
-          localStorage.setItem('benzin_cached_inventory', JSON.stringify(inventory));
           renderInventoryPage();
         }
       } catch (err) {
