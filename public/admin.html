@@ -941,21 +941,14 @@
 
     <!-- PAGE 4: MENU CATALOG MANAGEMENT -->
     <div id="menuPageLayout" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
-        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; min-width: 0;">
-          <h2 style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px; white-space: nowrap;">
-            Menu Catalog
-          </h2>
-          <!-- Super Category Slider Controls & Container -->
-          <div style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 14px; max-width: 440px;">
-            <button onclick="scrollSuperCategories(-1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 6px; font-weight: 900;" title="Scroll Left">◀</button>
-            <div id="superCategoryHeaderNav" style="display: flex; gap: 6px; align-items: center; overflow-x: auto; scroll-behavior: smooth; flex-wrap: nowrap; white-space: nowrap; scrollbar-width: none; -ms-overflow-style: none; flex: 1;"></div>
-            <button onclick="scrollSuperCategories(1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 6px; font-weight: 900;" title="Scroll Right">▶</button>
-          </div>
-        </div>
+      <!-- Row 1: Title & Toolbar (Search + Action Buttons) -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+        <h2 style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px; white-space: nowrap;">
+          Menu Catalog
+        </h2>
 
         <!-- Integrated Compact Search & Action Toolbar -->
-        <div style="display: flex; gap: 8px; align-items: center; flex: 1; min-width: 280px; justify-content: flex-end; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px; align-items: center; flex: 1; max-width: 520px; justify-content: flex-end; flex-wrap: wrap;">
           <div style="position: relative; flex: 1; min-width: 160px;">
             <input type="text" id="menuSearchInput" placeholder="🔍 Search menu items..." oninput="renderMenuCatalog()" style="width: 100%; box-sizing: border-box; padding: 8px 12px 8px 34px; background: var(--card); border: 1.5px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
             <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; opacity: 0.6;">🔍</span>
@@ -971,6 +964,13 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Row 2: Super Category Slider Pills Bar -->
+      <div style="display: flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--line); padding: 6px 12px; border-radius: 12px; margin-bottom: 14px; width: 100%; box-sizing: border-box;">
+        <button onclick="scrollSuperCategories(-1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 8px; font-weight: 900;" title="Scroll Left">◀</button>
+        <div id="superCategoryHeaderNav" style="display: flex; gap: 6px; align-items: center; overflow-x: auto; scroll-behavior: smooth; flex-wrap: nowrap; white-space: nowrap; scrollbar-width: none; -ms-overflow-style: none; flex: 1;"></div>
+        <button onclick="scrollSuperCategories(1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 8px; font-weight: 900;" title="Scroll Right">▶</button>
       </div>
 
       <!-- Sub-Category Pill Filters Bar -->
