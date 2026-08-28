@@ -954,14 +954,22 @@
           </div>
         </div>
 
-          <button class="btn btn-primary" onclick="openAddMenuCategoryModal()" style="background: linear-gradient(135deg, #E5B13A 0%, #c4952b 100%); color: #000; font-weight: 900; padding: 10px 16px; border-radius: 12px; box-shadow: 0 4px 16px rgba(229, 177, 58, 0.35); border: none; white-space: nowrap; font-size: 13px;">
-            <i data-lucide="folder-plus" style="width: 15px; height: 15px;"></i>
-            + Add Category
-          </button>
-          <button class="btn btn-blue" onclick="openAddMenuItemModal()" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #fff; font-weight: 900; padding: 10px 16px; border-radius: 12px; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35); border: none; white-space: nowrap; font-size: 13px;">
-            <i data-lucide="plus-circle" style="width: 15px; height: 15px;"></i>
-            + Add Menu Item
-          </button>
+        <!-- Integrated Compact Search & Action Toolbar -->
+        <div style="display: flex; gap: 8px; align-items: center; flex: 1; min-width: 280px; justify-content: flex-end; flex-wrap: wrap;">
+          <div style="position: relative; flex: 1; min-width: 160px;">
+            <input type="text" id="menuSearchInput" placeholder="🔍 Search menu items..." oninput="renderMenuCatalog()" style="width: 100%; box-sizing: border-box; padding: 8px 12px 8px 34px; background: var(--card); border: 1.5px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+            <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; opacity: 0.6;">🔍</span>
+          </div>
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;">
+            <button class="btn touch-target" onclick="openAddMenuCategoryModal()" style="background: var(--card2); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Add Category">
+              <i data-lucide="folder-plus" style="width: 14px; height: 14px;"></i>
+              <span>+ Category</span>
+            </button>
+            <button class="btn btn-primary touch-target" onclick="openAddMenuItemModal()" style="font-weight: 800; padding: 6px 12px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Add Menu Item">
+              <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
+              <span>+ Add Item</span>
+            </button>
+          </div>
         </div>
       </div>
 
