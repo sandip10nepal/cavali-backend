@@ -2578,6 +2578,7 @@
         const data = await res.json();
         if (data.success) {
           menuItems = data.menuItems || data.items || [];
+          localStorage.setItem('benzin_cached_menu_items', JSON.stringify(menuItems));
           renderMenuPage();
         }
       } catch (err) {
@@ -3416,6 +3417,7 @@
         const data = await res.json();
         if (data.success && Array.isArray(data.categories)) {
           menuCategories = data.categories;
+          localStorage.setItem('benzin_cached_menu_cats', JSON.stringify(menuCategories));
         }
       } catch (err) {
         console.error('Error fetching menu categories:', err);
@@ -3939,6 +3941,7 @@
         const data = await res.json();
         if (data.success && Array.isArray(data.categories)) {
           inventoryCategories = data.categories.filter(c => c.active !== false);
+          localStorage.setItem('benzin_cached_inv_cats', JSON.stringify(inventoryCategories));
         }
       } catch (err) {
         console.error('Error fetching inventory categories:', err);
@@ -3946,6 +3949,90 @@
       renderInventoryCategoryTabs();
       renderExistingInvCategoriesList();
       populateInventoryCategoryDropdowns();
+    }
+
+    function hydrateFromCache() {
+      try {
+        const cachedInv = localStorage.getItem('benzin_cached_inventory');
+        if (cachedInv) {
+          inventory = JSON.parse(cachedInv);
+          renderInventoryPage();
+        }
+        const cachedMenu = localStorage.getItem('benzin_cached_menu_items');
+        if (cachedMenu) {
+          menuItems = JSON.parse(cachedMenu);
+          renderMenuPage();
+        }
+        const cachedOrders = localStorage.getItem('benzin_cached_orders');
+        if (cachedOrders) {
+          orders = JSON.parse(cachedOrders);
+          renderOrders();
+        }
+        const cachedMenuCats = localStorage.getItem('benzin_cached_menu_cats');
+        if (cachedMenuCats) {
+          menuCategories = JSON.parse(cachedMenuCats);
+          renderMenuCategoryFilterBar();
+        }
+        const cachedInvCats = localStorage.getItem('benzin_cached_inv_cats');
+        if (cachedInvCats) {
+          inventoryCategories = JSON.parse(cachedInvCats);
+          renderInventoryCategoryTabs();
+        }
+      } catch (e) {
+        console.log('Cache hydration error:', e);
+      }
+    }
+
+    // ── REAL-TIME SSE STREAM & PARALLEL DATA FETCH ──
+    async function loadData() {
+      // 1. Instantly hydrate cached data from localStorage for 0ms delay
+      hydrateFromCache();
+
+      try {
+        const headers = getAuthHeaders();
+        const storedVenueName = localStorage.getItem('benzin_restaurant_name');
+        const nameEl = document.getElementById('currentRestaurantName');
+        if (storedVenueName && nameEl) {
+          nameEl.innerText = storedVenueName;
+        }
+
+        const restCode = localStorage.getItem('benzin_restaurant_code');
+        if (restCode) {
+          fetch(`${API_URL}/api/auth/staff-roster`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ restaurant_code: restCode })
+          }).then(r => r.json()).then(data => {
+            if (data.success && data.restaurant) {
+              localStorage.setItem('benzin_restaurant_name', data.restaurant.name);
+              if (nameEl) nameEl.innerText = data.restaurant.name;
+            }
+          }).catch(_ => {});
+        }
+
+        // Run ALL 5 API endpoints in parallel concurrently for maximum speed
+        const results = await Promise.allSettled([
+          fetchMenuCategories(),
+          fetchInventoryCategories(),
+          loadMenuItems(),
+          fetch(`${API_URL}/api/orders`, { headers }).then(r => r.json()),
+          fetch(`${API_URL}/api/orders/inventory`, { headers }).then(r => r.json())
+        ]);
+
+        if (results[3].status === 'fulfilled' && results[3].value.success) {
+          orders = results[3].value.orders || [];
+          localStorage.setItem('benzin_cached_orders', JSON.stringify(orders));
+          renderOrders();
+        }
+
+        if (results[4].status === 'fulfilled' && results[4].value.success) {
+          inventory = results[4].value.inventory || results[4].value.rawMaterials || {};
+          localStorage.setItem('benzin_cached_inventory', JSON.stringify(inventory));
+          renderInventoryPage();
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+      }
     }
 
     function renderInventoryCategoryTabs() {
