@@ -492,13 +492,13 @@
         position: sticky !important;
         top: 0 !important;
         z-index: 1000 !important;
-        padding: 10px 14px !important;
+        padding: 12px 16px !important;
         background: var(--card) !important;
         border-bottom: 1px solid var(--line) !important;
         display: flex !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 10px !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
         width: 100% !important;
         max-width: 100vw !important;
         box-sizing: border-box !important;
@@ -511,69 +511,26 @@
         width: 100% !important;
       }
 
+      /* Hide all raw navigation tab buttons from header bar on mobile */
+      header .nav-tabs {
+        display: none !important;
+      }
+
+      /* Hide right controls container from header bar on mobile */
+      header > div:last-child {
+        display: none !important;
+      }
+
+      /* Show ONLY the Menu button in header on mobile */
       #adminMobileMenuBtn {
         display: inline-flex !important;
       }
 
-      /* Mobile Navigation Tabs & Menu Drawer */
-      .nav-tabs {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        scrollbar-width: none !important;
-        gap: 6px !important;
-        width: 100% !important;
-        padding: 6px 0 !important;
-        margin: 0 !important;
+      /* Prevent mobile browser auto-zooming on focus by guaranteeing min 16px font-size for inputs */
+      input, select, textarea {
+        font-size: 16px !important;
       }
-
-      .nav-tabs::-webkit-scrollbar {
-        display: none !important;
-      }
-
-      .nav-tab {
-        flex: 0 0 auto !important;
-        white-space: nowrap !important;
-        padding: 8px 13px !important;
-        font-size: 13px !important;
-        font-weight: 800 !important;
-        border-radius: 10px !important;
-        min-height: 40px !important;
-      }
-
-      header.mobile-nav-expanded .nav-tabs {
-        flex-direction: column !important;
-        background: var(--card) !important;
-        border: 1.5px solid var(--line) !important;
-        border-radius: 14px !important;
-        padding: 10px !important;
-        margin-top: 6px !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
-      }
-
-      header.mobile-nav-expanded .nav-tab {
-        width: 100% !important;
-        justify-content: flex-start !important;
-        padding: 12px 16px !important;
-        font-size: 14px !important;
-      }
-
-      /* Compact right control buttons row on phone screens */
-      header > div:last-child {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        justify-content: space-between !important;
-        gap: 8px !important;
-        width: 100% !important;
-        padding-top: 4px !important;
-      }
-
-      header > div:last-child > * {
-        flex: 1 !important;
-        min-width: 120px !important;
-        justify-content: center !important;
-      }
+    }
 
       main {
         padding: 12px 10px !important;
