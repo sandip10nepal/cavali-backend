@@ -244,6 +244,10 @@ export async function resolveTenantRestaurantId(req: Request): Promise<string | 
     }
   }
 
-  return null;
+  // 5. Primary Default Fallback (Cavali Lounge '4821') to prevent unauthenticated/disconnected load
+  const defaultRest = (await MultiTenantDbService.getRestaurantByCode('4821')) || (await MultiTenantDbService.getRestaurantBySlug('cavali'));
+  if (defaultRest) return defaultRest._id;
+
+  return 'RES_001';
 }
 
