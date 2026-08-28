@@ -14,10 +14,13 @@
     /* ═══════════════════════════════════════════════════════════════════════════ */
     /*                 BENZIN V2 - DESIGN SYSTEM & THEME TOKENS                    */
     /* ═══════════════════════════════════════════════════════════════════════════ */
-    :root {
+    /* ═══════════════════════════════════════════════════════════════════════════ */
+    /*                 BENZIN V2 - DESIGN SYSTEM & THEME TOKENS                    */
+    /* ═══════════════════════════════════════════════════════════════════════════ */
+    :root, [data-theme="light"] {
       --night: #F4F6F9;
       --card: #FFFFFF;
-      --card2: #F8FAFC;
+      --card2: #F1F5F9;
       --ember: #0066FF;
       --gold: #0284C7;
       --teal: #10B981;
@@ -26,86 +29,88 @@
       --line: #E2E8F0;
       --danger: #EF4444;
       --success: #10B981;
+      --overlay-bg: rgba(15, 23, 42, 0.65);
       --font-outfit: 'Outfit', sans-serif;
       --font-serif: 'Playfair Display', serif;
     }
 
-    [data-theme="light"] {
-      --night: #F4F6F9;
-      --card: #FFFFFF;
-      --card2: #F8FAFC;
-      --ember: #0066FF;
-      --gold: #0284C7;
-      --teal: #10B981;
-      --cream: #0F172A;
-      --muted: #475569;
-      --line: #E2E8F0;
-      --danger: #EF4444;
-      --success: #10B981;
+    [data-theme="dark"] {
+      --night: #0B0F19;
+      --card: #1E293B;
+      --card2: #334155;
+      --ember: #38BDF8;
+      --gold: #38BDF8;
+      --teal: #34D399;
+      --cream: #F8FAFC;
+      --muted: #94A3B8;
+      --line: #334155;
+      --danger: #F87171;
+      --success: #34D399;
+      --overlay-bg: rgba(15, 23, 42, 0.88);
     }
 
-    [data-theme="light"] body {
+    body {
       background-color: var(--night);
       color: var(--cream);
+      font-family: var(--font-outfit);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
     }
 
-    [data-theme="light"] header {
-      background: rgba(255, 255, 255, 0.95);
-      border-bottom: 1px solid var(--line);
+    header {
+      background: var(--card) !important;
+      color: var(--cream) !important;
+      border-bottom: 1px solid var(--line) !important;
       box-shadow: 0 4px 20px rgba(0,0,0,0.04);
     }
 
-    [data-theme="light"] .nav-tabs {
-      background-color: rgba(226, 221, 213, 0.6);
-      border-color: var(--line);
+    .nav-tab {
+      color: var(--muted) !important;
     }
 
-    [data-theme="light"] .nav-tab {
-      color: var(--muted);
-    }
-
-    [data-theme="light"] .nav-tab.active {
-      background-color: var(--ember);
-      color: #FFFFFF;
+    .nav-tab.active {
+      background-color: var(--ember) !important;
+      color: #FFFFFF !important;
     }
 
     .sub-tab {
       background: var(--card2) !important;
-      color: #FFFFFF !important;
+      color: var(--cream) !important;
       border: 1.5px solid var(--line) !important;
+      font-weight: 700 !important;
     }
+
     .sub-tab.active {
-      background: linear-gradient(135deg, #E5B13A 0%, #c4952b 100%) !important;
-      color: #000000 !important;
+      background: var(--ember) !important;
+      color: #FFFFFF !important;
       border-color: transparent !important;
     }
 
-    [data-theme="light"] .sub-tab {
-      background: #FFFFFF !important;
-      color: #111827 !important;
-      border: 1.5px solid #D1D5DB !important;
-    }
-
-    [data-theme="light"] .sub-tab.active {
-      background: linear-gradient(135deg, #E5B13A 0%, #c4952b 100%) !important;
-      color: #000000 !important;
-      border-color: transparent !important;
-    }
-
-    [data-theme="light"] .ticket-card,
-    [data-theme="light"] .inventory-box,
-    [data-theme="light"] .menu-card {
-      background-color: #FFFFFF;
+    .ticket-card,
+    .inventory-box,
+    .menu-card,
+    .stat-card,
+    .login-card {
+      background-color: var(--card) !important;
+      color: var(--cream) !important;
+      border: 1px solid var(--line) !important;
       box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-      border-color: var(--line);
     }
 
-    [data-theme="light"] input,
-    [data-theme="light"] select,
-    [data-theme="light"] textarea {
+    input,
+    select,
+    textarea {
       background-color: var(--card2) !important;
-      color: #1C1411 !important;
-      border-color: var(--line) !important;
+      color: var(--cream) !important;
+      border: 1.5px solid var(--line) !important;
+      box-sizing: border-box !important;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: var(--muted) !important;
+      opacity: 0.7;
     }
 
     * {
@@ -609,11 +614,37 @@
         box-sizing: border-box !important;
       }
 
-      .modal, .dialog, .popup {
-        width: 95% !important;
+      div[id*="Modal"], div[id*="Overlay"] {
+        background: var(--overlay-bg) !important;
+        padding: 12px !important;
+      }
+
+      div[id*="Modal"] > div, div[id*="Overlay"] > div {
         max-width: 95vw !important;
-        margin: 10px auto !important;
-        padding: 16px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+        box-sizing: border-box !important;
+        padding: 18px 16px !important;
+        border-radius: 16px !important;
+        background-color: var(--card) !important;
+        color: var(--cream) !important;
+        border: 1.5px solid var(--line) !important;
+      }
+
+      @media (max-width: 480px) {
+        div[style*="grid-template-columns: 1fr 1fr"],
+        div[style*="grid-template-columns: 1fr 1fr 1fr"],
+        div[style*="grid-template-columns: 2fr 1fr"] {
+          grid-template-columns: 1fr !important;
+        }
+        .login-venue-row {
+          flex-direction: column !important;
+        }
+        .login-venue-row input,
+        .login-venue-row button {
+          width: 100% !important;
+          flex: 1 1 100% !important;
+        }
       }
     }
   </style>
@@ -624,8 +655,8 @@
   <audio id="orderChime" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-120.wav" preload="auto"></audio>
 
   <!-- ════════════════ BENZIN STAFF LOGIN & CLOCK OVERLAY ════════════════ -->
-  <div id="benzinLoginOverlay" style="display: none; position: fixed; inset: 0; background: rgba(244, 246, 249, 0.95); backdrop-filter: blur(24px); z-index: 99999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="width: 100%; max-width: 460px; background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 24px; padding: 32px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.08);">
+  <div id="benzinLoginOverlay" style="display: none; position: fixed; inset: 0; background: var(--overlay-bg); backdrop-filter: blur(24px); z-index: 99999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="width: 100%; max-width: 440px; box-sizing: border-box; background: var(--card); border: 1.5px solid var(--line); border-radius: 24px; padding: clamp(18px, 5vw, 32px); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); color: var(--cream);">
       
       <div style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 16px;">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style="filter: drop-shadow(0 0 10px rgba(59,130,246,0.6));">
@@ -658,9 +689,9 @@
       <div id="loginFormPin">
         <div style="margin-bottom: 16px; text-align: left;">
           <label style="display: block; font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Venue ID *</label>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="loginVenueCode" placeholder="Enter Venue ID" value="" style="flex: 1; padding: 12px; background: var(--card2); border: 1.5px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">
-            <button class="btn btn-primary" style="padding: 12px 16px; font-weight: 800; font-size: 13px;" onclick="verifyRestaurantVenue()">Verify Venue</button>
+          <div class="login-venue-row" style="display: flex; gap: 8px; flex-wrap: wrap; width: 100%;">
+            <input type="text" id="loginVenueCode" placeholder="Enter Venue ID" value="" style="flex: 1 1 130px; min-width: 110px; width: 100%; box-sizing: border-box; padding: 12px; background: var(--card2); border: 1.5px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">
+            <button class="btn btn-primary touch-target" style="padding: 12px 14px; font-weight: 800; font-size: 13px; flex: 1 1 auto; justify-content: center; min-height: 44px; white-space: nowrap;" onclick="verifyRestaurantVenue()">Verify Venue</button>
           </div>
           <div id="loginVenueStatus" style="margin-top: 6px; font-size: 12px; font-weight: 700;"></div>
         </div>
