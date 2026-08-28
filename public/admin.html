@@ -733,9 +733,9 @@
       </a>
       
       <!-- ☰ Mobile Navigation Menu Toggle Button -->
-      <button class="btn touch-target" id="adminMobileMenuBtn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="admin-mobile-navigation" onclick="toggleMobileAdminMenu()" style="display: none; padding: 8px 14px; background: var(--card2); border: 1.5px solid var(--line); border-radius: 12px; color: var(--cream); font-weight: 800; font-size: 13.5px; gap: 6px; align-items: center; cursor: pointer;">
+      <button class="btn touch-target" id="adminMobileMenuBtn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="admin-mobile-navigation" onclick="toggleMobileAdminMenu()" style="display: none; padding: 6px 12px; background: var(--card2); border: 1.5px solid var(--line); border-radius: 10px; color: var(--cream); font-weight: 800; font-size: 13px; gap: 6px; align-items: center; cursor: pointer;">
         <i data-lucide="menu" style="width: 18px; height: 18px; color: var(--ember);"></i>
-        <span>Menu ☰</span>
+        <span>Menu</span>
       </button>
     </div>
 
@@ -892,11 +892,11 @@
     </div>
 
     <!-- PAGE 2: ARCHIVE TICKETS -->
-    <div class="kds-layout" id="archivePageLayout" style="display: none;">
+    <div id="archivePageLayout" style="display: none;">
       <section class="tickets-section">
-        <h2>
+        <h2 style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
           <div>
-            <span>Fulfilled Orders History &amp; Archive</span>
+            <span>Completed &amp; Cancelled Order Archive</span>
           </div>
           <button class="btn btn-danger" style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px;" onclick="clearArchive()">
             <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
@@ -909,23 +909,27 @@
 
     <!-- PAGE 3: INVENTORY STOCK -->
     <div class="inventory-page-layout" id="inventoryPageLayout" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px;">
-        <div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <div style="min-width: 160px;">
           <h2 style="font-size: 20px; font-weight: 800; color: var(--cream); margin: 0;">Inventory Stock Levels</h2>
         </div>
-        <div style="display: flex; gap: 12px; align-items: center; flex: 1; max-width: 500px;">
-          <div style="position: relative; flex: 1;">
-            <input type="text" id="inventorySearchInput" placeholder="🔍 Search inventory stock..." oninput="renderInventoryPage()" style="width: 100%; box-sizing: border-box; padding: 10px 14px 10px 36px; background: var(--card); border: 1.5px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 13px;">
-            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: 0.6;">🔍</span>
+        
+        <!-- Integrated Compact Search & Action Toolbar -->
+        <div style="display: flex; gap: 8px; align-items: center; flex: 1; min-width: 280px; justify-content: flex-end; flex-wrap: wrap;">
+          <div style="position: relative; flex: 1; min-width: 160px;">
+            <input type="text" id="inventorySearchInput" placeholder="🔍 Search stock..." oninput="renderInventoryPage()" style="width: 100%; box-sizing: border-box; padding: 8px 12px 8px 34px; background: var(--card); border: 1.5px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+            <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; opacity: 0.6;">🔍</span>
           </div>
-          <button class="btn btn-primary" onclick="openAddInvCategoryModal()" style="background: linear-gradient(135deg, #E5B13A 0%, #c4952b 100%); color: #000; font-weight: 900; padding: 10px 18px; border-radius: 12px; box-shadow: 0 4px 18px rgba(229, 177, 58, 0.35); border: none; white-space: nowrap;">
-            <i data-lucide="folder-plus" style="width: 16px; height: 16px;"></i>
-            + Add Inventory Category
-          </button>
-          <button class="btn btn-blue" onclick="openAddInventoryModal()" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #fff; font-weight: 900; padding: 10px 18px; border-radius: 12px; box-shadow: 0 4px 18px rgba(59, 130, 246, 0.35); border: none; white-space: nowrap;">
-            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
-            + Add Stock Item
-          </button>
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;">
+            <button class="btn touch-target" onclick="openAddInvCategoryModal()" style="background: var(--card2); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Add Inventory Category">
+              <i data-lucide="folder-plus" style="width: 14px; height: 14px;"></i>
+              <span>+ Category</span>
+            </button>
+            <button class="btn btn-primary touch-target" onclick="openAddInventoryModal()" style="font-weight: 800; padding: 6px 12px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Add Stock Item">
+              <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
+              <span>+ Add Item</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -937,24 +941,19 @@
 
     <!-- PAGE 4: MENU CATALOG MANAGEMENT -->
     <div id="menuPageLayout" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 16px;">
-        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; flex: 1; min-width: 0;">
-          <h2 style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; font-size: 24px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px; white-space: nowrap;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex: 1; min-width: 0;">
+          <h2 style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px; white-space: nowrap;">
             Menu Catalog
           </h2>
-          <!-- Super Category Slider Controls & Container (NO BORDER!) -->
-          <div style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 16px; max-width: 480px;">
+          <!-- Super Category Slider Controls & Container -->
+          <div style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 14px; max-width: 440px;">
             <button onclick="scrollSuperCategories(-1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 6px; font-weight: 900;" title="Scroll Left">◀</button>
             <div id="superCategoryHeaderNav" style="display: flex; gap: 6px; align-items: center; overflow-x: auto; scroll-behavior: smooth; flex-wrap: nowrap; white-space: nowrap; scrollbar-width: none; -ms-overflow-style: none; flex: 1;"></div>
             <button onclick="scrollSuperCategories(1)" style="background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; padding: 4px 6px; font-weight: 900;" title="Scroll Right">▶</button>
           </div>
         </div>
 
-        <div style="display: flex; gap: 10px; align-items: center; flex: 1; max-width: 550px; justify-content: flex-end;">
-          <div style="position: relative; flex: 1; min-width: 180px;">
-            <input type="text" id="menuSearchInput" placeholder="🔍 Search menu items..." oninput="renderMenuCatalog()" style="width: 100%; box-sizing: border-box; padding: 10px 14px 10px 36px; background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; color: var(--cream); font-size: 13px;">
-            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: 0.6;">🔍</span>
-          </div>
           <button class="btn btn-primary" onclick="openAddMenuCategoryModal()" style="background: linear-gradient(135deg, #E5B13A 0%, #c4952b 100%); color: #000; font-weight: 900; padding: 10px 16px; border-radius: 12px; box-shadow: 0 4px 16px rgba(229, 177, 58, 0.35); border: none; white-space: nowrap; font-size: 13px;">
             <i data-lucide="folder-plus" style="width: 15px; height: 15px;"></i>
             + Add Category
