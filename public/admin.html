@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Benzin Admin Command Suite & Dashboard</title>
 
   <!-- Google Fonts -->
@@ -845,6 +845,80 @@
       </button>
     </div>
   </header>
+
+  <!-- ════════════════ BENZIN MOBILE NAVIGATION DRAWER OVERLAY ════════════════ -->
+  <div id="mobileNavDrawerOverlay" style="display: none; position: fixed; inset: 0; background: var(--overlay-bg); backdrop-filter: blur(16px); z-index: 99990; padding: 16px; align-items: flex-start; justify-content: center; overflow-y: auto;">
+    <div style="width: 100%; max-width: 480px; background: var(--card); border: 1.5px solid var(--line); border-radius: 20px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); color: var(--cream); margin-top: 10px;">
+      
+      <!-- Drawer Header & User Profile Info -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="handleHeaderProfileClick(); toggleMobileAdminMenu(false);" title="Tap to view staff profile">
+          <i data-lucide="user" style="width: 22px; height: 22px; color: var(--gold);"></i>
+          <div>
+            <div id="mobileDrawerStaffName" style="font-size: 15px; font-weight: 800; color: var(--cream);">Manager</div>
+            <div id="mobileDrawerStaffRole" style="font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700;">OWNER</div>
+          </div>
+        </div>
+        <button class="btn touch-target" onclick="toggleMobileAdminMenu(false)" style="padding: 6px 14px; font-size: 13px; font-weight: 800;">Close ✕</button>
+      </div>
+
+      <!-- Shift Timeclock Banner -->
+      <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Active Shift Timer</div>
+          <div id="mobileDrawerShiftTimerText" style="font-size: 18px; font-weight: 800; font-family: monospace; color: var(--cream);">00:00:00</div>
+        </div>
+        <button class="btn btn-primary touch-target" onclick="toggleShiftClock(); toggleMobileAdminMenu(false);" style="padding: 8px 14px; font-weight: 800; font-size: 13px;">
+          Toggle Shift
+        </button>
+      </div>
+
+      <!-- Main Dashboard Navigation Items -->
+      <div style="font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Dashboard Navigation</div>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+        <button class="nav-tab active" id="drawerNavTab-kds" onclick="switchTab('kds'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
+          <i data-lucide="layout-grid" style="width: 18px; height: 18px; margin-right: 10px;"></i>
+          <span>Live Tickets</span>
+        </button>
+        <button class="nav-tab" id="drawerNavTab-archive" onclick="switchTab('archive'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
+          <i data-lucide="archive" style="width: 18px; height: 18px; margin-right: 10px;"></i>
+          <span>Archive Tickets</span>
+        </button>
+        <button class="nav-tab" id="drawerNavTab-inventory" onclick="switchTab('inventory'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
+          <i data-lucide="package" style="width: 18px; height: 18px; margin-right: 10px;"></i>
+          <span>Inventory Stock</span>
+        </button>
+        <button class="nav-tab" id="drawerNavTab-menu" onclick="switchTab('menu'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
+          <i data-lucide="book-open" style="width: 18px; height: 18px; margin-right: 10px;"></i>
+          <span>Menu Catalog</span>
+        </button>
+        <button class="nav-tab" id="drawerNavTab-sales" onclick="switchTab('sales'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
+          <i data-lucide="bar-chart-3" style="width: 18px; height: 18px; margin-right: 10px;"></i>
+          <span>Sales &amp; Tax Ledger</span>
+        </button>
+        <button class="nav-tab" id="drawerNavTab-staff" onclick="switchTab('staff'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
+          <i data-lucide="users" style="width: 18px; height: 18px; margin-right: 10px;"></i>
+          <span>Staff &amp; Payroll</span>
+        </button>
+      </div>
+
+      <!-- Controls & Actions -->
+      <div style="font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Settings &amp; Session</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn touch-target" onclick="toggleTheme()" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 700; border-radius: 10px;">
+          <span id="drawerThemeIcon">☀️</span> <span id="drawerThemeLabel" style="margin-left: 8px;">Light Mode</span>
+        </button>
+        <button class="btn touch-target" onclick="openStaffSwitchModal(); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 700; border-radius: 10px;">
+          <i data-lucide="refresh-cw" style="width: 18px; height: 18px; margin-right: 10px; color: var(--gold);"></i>
+          <span>Switch Staff Account</span>
+        </button>
+        <button class="btn touch-target" onclick="benzinLogout(); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 700; border-radius: 10px; color: var(--danger); border-color: rgba(239,68,68,0.3);">
+          <i data-lucide="log-out" style="width: 18px; height: 18px; margin-right: 10px;"></i>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ════════════════ MAIN CONTENT CONTAINER ════════════════ -->
   <main>
@@ -1910,24 +1984,43 @@
     }
 
     function toggleMobileAdminMenu(forceState) {
-      const header = document.querySelector('header');
+      const overlay = document.getElementById('mobileNavDrawerOverlay');
       const btn = document.getElementById('adminMobileMenuBtn');
-      if (!header) return;
+      if (!overlay) return;
       
-      const shouldExpand = typeof forceState === 'boolean' ? forceState : !header.classList.contains('mobile-nav-expanded');
+      const isVisible = overlay.style.display === 'flex';
+      const shouldShow = typeof forceState === 'boolean' ? forceState : !isVisible;
       
-      if (shouldExpand) {
-        header.classList.add('mobile-nav-expanded');
+      if (shouldShow) {
+        // Sync active drawer states before showing
+        const name = localStorage.getItem('benzin_user_name') || 'Manager';
+        const role = localStorage.getItem('benzin_user_role') || 'OWNER';
+        const nameEl = document.getElementById('mobileDrawerStaffName');
+        if (nameEl) nameEl.innerText = name;
+        const roleEl = document.getElementById('mobileDrawerStaffRole');
+        if (roleEl) roleEl.innerText = role.toUpperCase();
+        
+        const timerText = document.getElementById('headerShiftTimerText');
+        const drawerTimerText = document.getElementById('mobileDrawerShiftTimerText');
+        if (timerText && drawerTimerText) drawerTimerText.innerText = timerText.innerText;
+
+        const themeLabel = document.getElementById('themeLabel');
+        const themeIcon = document.getElementById('themeIcon');
+        const drawerLabel = document.getElementById('drawerThemeLabel');
+        const drawerIcon = document.getElementById('drawerThemeIcon');
+        if (themeLabel && drawerLabel) drawerLabel.innerText = themeLabel.innerText;
+        if (themeIcon && drawerIcon) drawerIcon.innerText = themeIcon.innerText;
+
+        overlay.style.display = 'flex';
         if (btn) {
           btn.setAttribute('aria-expanded', 'true');
           btn.setAttribute('aria-label', 'Close navigation menu');
         }
       } else {
-        header.classList.remove('mobile-nav-expanded');
+        overlay.style.display = 'none';
         if (btn) {
           btn.setAttribute('aria-expanded', 'false');
           btn.setAttribute('aria-label', 'Open navigation menu');
-          btn.focus();
         }
       }
     }
