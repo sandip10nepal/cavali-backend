@@ -100,35 +100,32 @@ app.get('*', (req, res, next) => {
 import { errorMiddleware } from './middleware/error.middleware';
 import { ensureDatabaseIndexes } from './database/indexes';
 
-async function startServer() {
-  // Initialize multi-tenant database (sole authoritative database)
+// Register centralized error middleware
+app.use(errorMiddleware);
+
+// Listen on PORT immediately for Cloud Run container startup health check
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`\n${'═'.repeat(60)}`);
+  console.log(`  Restaurant SaaS Platform running on http://localhost:${PORT}`);
+  console.log(`${'═'.repeat(60)}`);
+  console.log(`  Legacy API:     /api/orders, /api/menu, /api/employees`);
+  console.log(`  Auth API:       /api/auth/login, /api/auth/device`);
+  console.log(`  Restaurants:    /api/restaurants`);
+  console.log(`  Menu v2:        /api/v2/menu/categories, /api/v2/menu/items`);
+  console.log(`  Admin:          http://localhost:${PORT}/admin`);
+  console.log(`  Payment Device: http://localhost:${PORT}/payment-device`);
+  console.log(`  Payment mode:   ${SquareService.isDemoMode ? '⚠️  DEMO MODE' : `✅ ${SquareService.environment.toUpperCase()}`}`);
+  console.log(`${'═'.repeat(60)}\n`);
+});
+
+// Initialize database asynchronously in background
+(async () => {
   try {
     await MultiTenantDbService.initialize();
     await ensureDatabaseIndexes();
-    console.log('🏢 Multi-tenant SaaS platform initialized');
+    console.log('🏢 Multi-tenant SaaS platform database ready');
     preloadMenuCache().catch(e => console.warn('Preload cache error:', e));
   } catch (err) {
-    console.warn('⚠️  Multi-tenant DB initialization failed:', err);
+    console.warn('⚠️  Multi-tenant DB initialization note:', err);
   }
-
-  // Register centralized error middleware
-  app.use(errorMiddleware);
-
-  app.listen(Number(PORT), '0.0.0.0', () => {
-    console.log(`\n${'═'.repeat(60)}`);
-    console.log(`  Restaurant SaaS Platform running on http://localhost:${PORT}`);
-    console.log(`${'═'.repeat(60)}`);
-    console.log(`  Legacy API:     /api/orders, /api/menu, /api/employees`);
-    console.log(`  Auth API:       /api/auth/login, /api/auth/device`);
-    console.log(`  Restaurants:    /api/restaurants`);
-    console.log(`  Menu v2:        /api/v2/menu/categories, /api/v2/menu/items`);
-    console.log(`  Admin:          http://localhost:${PORT}/admin`);
-    console.log(`  Payment Device: http://localhost:${PORT}/payment-device`);
-    console.log(`  Payment mode:   ${SquareService.isDemoMode ? '⚠️  DEMO MODE' : `✅ ${SquareService.environment.toUpperCase()}`}`);
-    console.log(`${'═'.repeat(60)}\n`);
-  });
-}
-
-startServer().catch(err => {
-  console.error('Failed to start backend server:', err);
-});
+})();
