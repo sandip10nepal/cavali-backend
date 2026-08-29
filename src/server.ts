@@ -85,8 +85,11 @@ app.get('/ready', (req, res) => {
 // Serve static assets
 app.use(express.static(publicPath));
 
-// SPA Wildcard fallback for Expo Web App dynamic NFC routes (e.g. /4821/5 or /cavali/12)
-app.get('(.*)', (req, res, next) => {
+// SPA Catch-All fallback middleware for Expo Web App dynamic NFC routes (e.g. /4821/5 or /cavali/12)
+app.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return next();
+  }
   if (req.path.startsWith('/api/') || req.path === '/health' || req.path === '/ready') {
     return next();
   }
