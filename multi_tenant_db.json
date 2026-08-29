@@ -2830,7 +2830,7 @@
       "pin_hash": "f1fcb4fdd2cb767cb9e3809a244f3bfb:afb1b280cfe9d2dcbbc8d6635a187b52bd54921c8e2a7cdbdcd9e4278913a8b494b00e6b04252f0cd7c04c7eb1edce6bc90a10b26b4bdc259cd5011a53c1c863",
       "active": true,
       "created_at": "2026-08-10T04:17:21.609Z",
-      "updated_at": "2026-08-23T20:24:18.810Z",
+      "updated_at": "2026-08-28T17:44:03.558Z",
       "failed_login_attempts": 0,
       "locked_until": null
     },
@@ -8307,6 +8307,66 @@
       "last_activity": "Registered",
       "paired_at": "2026-08-22T16:25:09.605Z",
       "created_at": "2026-08-22T16:25:09.605Z"
+    },
+    {
+      "_id": "DEV_C1345AA34B37",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "device_name": "iPad Table Device",
+      "device_type": "customer_table",
+      "table_id": "TBL_163081C2360D",
+      "device_token": "dev_18dbd937101d62aa868be522798b0833728ceedc05cfad7d",
+      "status": "ACTIVE",
+      "app_version": "2.0.0",
+      "os_version": "iOS / iPadOS",
+      "last_seen_at": "2026-08-24T03:58:49.334Z",
+      "last_activity": "Registered",
+      "paired_at": "2026-08-24T03:58:49.334Z",
+      "created_at": "2026-08-24T03:58:49.334Z"
+    },
+    {
+      "_id": "DEV_59E8E837E397",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "device_name": "iPad Table Device",
+      "device_type": "customer_table",
+      "table_id": "TBL_163081C2360D",
+      "device_token": "dev_1a9dc1c3f4365463ebebc20f2bbadd02877822872b0c1430",
+      "status": "ACTIVE",
+      "app_version": "2.0.0",
+      "os_version": "iOS / iPadOS",
+      "last_seen_at": "2026-08-24T17:04:21.997Z",
+      "last_activity": "Registered",
+      "paired_at": "2026-08-24T17:04:21.997Z",
+      "created_at": "2026-08-24T17:04:21.997Z"
+    },
+    {
+      "_id": "DEV_1B64632FF552",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "device_name": "iPad Table Device",
+      "device_type": "customer_table",
+      "table_id": "TBL_163081C2360D",
+      "device_token": "dev_629b76a55aeec51f199d9ef79512f4bde823a469bbb0ce5a",
+      "status": "ACTIVE",
+      "app_version": "2.0.0",
+      "os_version": "iOS / iPadOS",
+      "last_seen_at": "2026-08-24T17:07:42.652Z",
+      "last_activity": "Registered",
+      "paired_at": "2026-08-24T17:07:42.652Z",
+      "created_at": "2026-08-24T17:07:42.652Z"
+    },
+    {
+      "_id": "DEV_65C40C36737A",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "device_name": "iPad Table Device",
+      "device_type": "customer_table",
+      "table_id": "TBL_163081C2360D",
+      "device_token": "dev_3c312ba0a2e11d30e968281719544337a1c0df18c0b5d31a",
+      "status": "ACTIVE",
+      "app_version": "2.0.0",
+      "os_version": "iOS / iPadOS",
+      "last_seen_at": "2026-08-24T17:29:05.575Z",
+      "last_activity": "Registered",
+      "paired_at": "2026-08-24T17:29:05.575Z",
+      "created_at": "2026-08-24T17:29:05.575Z"
     }
   ],
   "tables": [
@@ -35270,6 +35330,89 @@
   ],
   "payment_sessions": [],
   "audit_logs": [
+    {
+      "_id": "AUD_MTD8QS2L_182857",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "actor_id": "USR_504897B0CC2C",
+      "actor_name": "Owner",
+      "action": "employee_added",
+      "resource_type": "user",
+      "resource_id": "USR_504897B0CC2C",
+      "metadata": {
+        "action": "manager_email_login",
+        "email": "owner@cavali.com",
+        "role": "owner"
+      },
+      "timestamp": "2026-08-28T17:44:04.509Z"
+    },
+    {
+      "_id": "AUD_MT7IG44W_23358F",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "actor_id": "USR_504897B0CC2C",
+      "actor_name": "Owner",
+      "action": "device_configured",
+      "resource_type": "device",
+      "resource_id": "DEV_65C40C36737A",
+      "metadata": {
+        "table_number": 1,
+        "device_id": "DEV_65C40C36737A",
+        "device_name": "iPad Table Device",
+        "authorized_by": "Owner",
+        "role": "owner"
+      },
+      "timestamp": "2026-08-24T17:29:06.032Z"
+    },
+    {
+      "_id": "AUD_MT7HOM0D_729507",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "actor_id": "USR_504897B0CC2C",
+      "actor_name": "Owner",
+      "action": "device_configured",
+      "resource_type": "device",
+      "resource_id": "DEV_1B64632FF552",
+      "metadata": {
+        "table_number": 1,
+        "device_id": "DEV_1B64632FF552",
+        "device_name": "iPad Table Device",
+        "authorized_by": "Owner",
+        "role": "owner"
+      },
+      "timestamp": "2026-08-24T17:07:42.829Z"
+    },
+    {
+      "_id": "AUD_MT7HKB8Q_F8C441",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "actor_id": "USR_504897B0CC2C",
+      "actor_name": "Owner",
+      "action": "device_configured",
+      "resource_type": "device",
+      "resource_id": "DEV_59E8E837E397",
+      "metadata": {
+        "table_number": 1,
+        "device_id": "DEV_59E8E837E397",
+        "device_name": "iPad Table Device",
+        "authorized_by": "Owner",
+        "role": "owner"
+      },
+      "timestamp": "2026-08-24T17:04:22.250Z"
+    },
+    {
+      "_id": "AUD_MT6PI46B_3F35F4",
+      "restaurant_id": "RES_EED4E9D266DF",
+      "actor_id": "USR_504897B0CC2C",
+      "actor_name": "Owner",
+      "action": "device_configured",
+      "resource_type": "device",
+      "resource_id": "DEV_C1345AA34B37",
+      "metadata": {
+        "table_number": 1,
+        "device_id": "DEV_C1345AA34B37",
+        "device_name": "iPad Table Device",
+        "authorized_by": "Owner",
+        "role": "owner"
+      },
+      "timestamp": "2026-08-24T03:58:50.531Z"
+    },
     {
       "_id": "AUD_MT6JQOJV_353A63",
       "restaurant_id": "RES_EED4E9D266DF",
