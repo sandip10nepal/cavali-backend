@@ -55,20 +55,6 @@ app.get('/payment', (req, res) => {
   res.sendFile('payment-device.html', { root: publicPath });
 });
 
-app.use(express.static(publicPath));
-
-// SPA Wildcard fallback for Expo Web App dynamic NFC routes (e.g. /4821/5 or /cavali/12)
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api/') || req.path === '/health' || req.path === '/ready') {
-    return next();
-  }
-  const indexPath = path.join(publicPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    return res.sendFile('index.html', { root: publicPath });
-  }
-  next();
-});
-
 // Liveness probe
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -94,6 +80,21 @@ app.get('/ready', (req, res) => {
       error: 'Database service is initializing...',
     });
   }
+});
+
+// Serve static assets
+app.use(express.static(publicPath));
+
+// SPA Wildcard fallback for Expo Web App dynamic NFC routes (e.g. /4821/5 or /cavali/12)
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  const indexPath = path.join(publicPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile('index.html', { root: publicPath });
+  }
+  next();
 });
 
 import { errorMiddleware } from './middleware/error.middleware';
