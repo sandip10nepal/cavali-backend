@@ -728,7 +728,7 @@
         </svg>
         <div>
           <h1>BENZIN</h1>
-          <p id="currentRestaurantName">Cavali Hookah Lounge</p>
+          <p id="currentRestaurantName">Cavalli</p>
         </div>
       </a>
       
@@ -965,6 +965,9 @@
           </div>
         </div>
       </div>
+
+      <!-- Super-Category Tabs Bar (Hookah, Food, Drinks) -->
+      <div id="superCategoryHeaderNav" style="display: flex; gap: 10px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px;"></div>
 
       <!-- Sub-Category Pill Filters Bar -->
       <div id="subCategoryHeaderNav" style="margin-bottom: 20px;"></div>
@@ -2037,23 +2040,34 @@
       const map = new Map();
       itemList.forEach(item => {
         if (!item) return;
-        const nameStr = typeof item === 'string' ? item : (item.name || item.flavor?.name || item.title || 'Item');
-        const normKey = nameStr.trim().toLowerCase();
+        let nameStr = typeof item === 'string' ? item : (item.name || item.item?.name || item.flavor?.name || item.title || 'Item');
+        const modsList = Array.isArray(item.modifiers) ? item.modifiers : (Array.isArray(item.selectedModifiers) ? item.selectedModifiers : (Array.isArray(item.item?.modifiers) ? item.item.modifiers : []));
+        const modStr = modsList.map(m => m.optionName || m.name || m.label).filter(Boolean).join(' · ');
+        const rawNote = item.notes || item.note || item.item?.note || item.item?.notes || '';
+        let noteStr = [rawNote, modStr && !rawNote.includes(modStr) ? modStr : ''].filter(Boolean).join(' · ');
+        
+        // If name is generic Soft Drinks, enrich it with the selected flavor if available
+        if ((nameStr.toLowerCase().includes('soft drink') || nameStr.toLowerCase().includes('soda')) && noteStr) {
+          const cleanNote = noteStr.replace(/^Choice:\s*/i, '').trim();
+          if (cleanNote) {
+            nameStr = `${nameStr} (${cleanNote})`;
+          }
+        }
+
+        const normKey = `${nameStr}:::${noteStr}`.trim().toLowerCase();
         const existing = map.get(normKey);
         const itemQty = Number(item.qty || item.quantity) || 1;
 
         if (existing) {
           existing.qty += itemQty;
-          if (item.notes && !existing.notes.includes(item.notes)) {
-            existing.notes = existing.notes ? `${existing.notes}; ${item.notes}` : item.notes;
-          }
         } else {
           map.set(normKey, {
             name: nameStr,
-            price: item.price !== undefined ? Number(item.price) : 0,
+            price: item.price !== undefined ? Number(item.price) : (item.item?.price !== undefined ? Number(item.item.price) : 0),
             qty: itemQty,
-            notes: item.notes || item.note || '',
-            emoji: item.emoji || ''
+            notes: noteStr,
+            modifiers: modsList,
+            emoji: item.emoji || item.item?.emoji || ''
           });
         }
       });
@@ -2124,9 +2138,99 @@
       const displayId = String(orderId).slice(-6).toUpperCase();
       const timeStr = order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
 
-      const foodItems = consolidateItems(order.food || []);
-      const drinkItems = consolidateItems(order.drinks || []);
-      const hookahItems = consolidateItems(order.hookahs || []);
+      // ── SPECIAL RENDERING FOR SERVER CALL ASSISTANCE REQUESTS ──
+      if (order.kind === 'server_request' || order.requestType) {
+        const reqLabels = {
+          server: 'Server Assistance Needed 🛎️',
+          coals: 'Hookah Coal Refill 🔥',
+          water: 'Ice Water Refresh 💧',
+          utensils: 'Plates & Utensils 🍽️',
+          check: 'Bill / Check Requested 💳',
+        };
+        const reqTitle = order.notes || order.note || reqLabels[order.requestType] || 'Server Assistance Needed 🛎️';
+        return `
+          <div class="ticket-card server-call-ticket ${isFulfilledOrder ? 'fulfilled' : ''}" style="border: 2px solid ${isFulfilledOrder ? 'var(--border)' : '#e11d48'}; box-shadow: ${isFulfilledOrder ? 'none' : '0 0 24px rgba(225,29,72,0.28)'};">
+            <div class="ticket-header" style="background: ${isFulfilledOrder ? 'transparent' : 'rgba(225,29,72,0.12)'}; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px;">
+              <div>
+                <div class="ticket-title" style="color: ${isFulfilledOrder ? 'var(--muted)' : '#f43f5e'}; font-size: 19px; font-weight: 900; letter-spacing: 0.5px;">
+                  🛎️ Table ${order.table || '?'} <span style="font-size:12px; color:var(--muted);">#${displayId}</span>
+                </div>
+                <div class="ticket-meta">👤 Table ${order.table || '?'} • 🕒 ${timeStr}</div>
+              </div>
+              <span class="ticket-badge" style="background: ${isFulfilledOrder ? 'var(--muted)' : '#e11d48'}; color: #fff; font-weight: 900; padding: 4px 10px; border-radius: 6px; font-size: 11px;">
+                ${isFulfilledOrder ? 'DISMISSED' : 'CALL SERVER'}
+              </span>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); border: 1.5px solid ${isFulfilledOrder ? 'rgba(255,255,255,0.08)' : 'rgba(225,29,72,0.3)'}; border-radius: 12px; padding: 18px 14px; text-align: center; margin-bottom: 14px;">
+              <div style="font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 6px;">${reqTitle}</div>
+              <div style="font-size: 13px; color: var(--gold); font-weight: 700;">Customer at Table ${order.table || '?'} is waiting for staff</div>
+            </div>
+            <div class="ticket-actions">
+              ${!isFulfilledOrder ? `
+                <button class="btn btn-primary" onclick="fulfillOrder('${orderId}')" style="background:#10b981; border-color:#10b981; font-weight:900; flex:1; padding:12px; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                  <i data-lucide="check-circle" style="width:18px;height:18px;"></i> Complete / Dismiss
+                </button>
+              ` : `
+                <div style="color:var(--muted); font-size:12px; text-align:center; width:100%; padding:6px 0; font-weight:700;">✓ Request Completed</div>
+              `}
+            </div>
+          </div>
+        `;
+      }
+
+      // Consolidate hookahs, food, and drinks from both specialized arrays and generic items array
+      let rawHookahs = Array.isArray(order.hookahs) ? [...order.hookahs] : [];
+      let rawFood = Array.isArray(order.food) ? [...order.food] : [];
+      let rawDrinks = Array.isArray(order.drinks) ? [...order.drinks] : [];
+
+      if (Array.isArray(order.items) && order.items.length > 0) {
+        order.items.forEach(it => {
+          const cat = (it.category || '').toLowerCase();
+          const name = (it.name || '').toLowerCase();
+          const isHookah = cat === 'hookah' || name.includes('hookah') || it.emoji === '💨' || it.emoji === '🧪';
+          const isDrink = cat === 'drinks' || cat === 'beverage' || name.includes('drink') || name.includes('water') || name.includes('cola') || name.includes('soda') || name.includes('red bull') || it.emoji === '🥤' || it.emoji === '🍹' || it.emoji === '🍸';
+          
+          if (isHookah) {
+            const alreadyInHookahs = rawHookahs.some(h => (h.flavor?.name || h.name) === it.name);
+            if (!alreadyInHookahs) {
+              rawHookahs.push({
+                flavor: { name: it.name, id: it.id },
+                name: it.name,
+                qty: it.qty || it.quantity || 1,
+                price: it.price || 0,
+                modifiers: it.modifiers,
+                notes: it.notes || it.note || (it.modifiers ? it.modifiers.map(m => m.optionName || m.name).join(' · ') : '')
+              });
+            }
+          } else if (isDrink) {
+            const alreadyInDrinks = rawDrinks.some(d => (d.item?.name || d.name) === it.name);
+            if (!alreadyInDrinks) {
+              rawDrinks.push({
+                item: { name: it.name, price: it.price, emoji: it.emoji },
+                name: it.name,
+                qty: it.qty || it.quantity || 1,
+                modifiers: it.modifiers,
+                note: it.notes || it.note
+              });
+            }
+          } else {
+            const alreadyInFood = rawFood.some(f => (f.item?.name || f.name) === it.name);
+            if (!alreadyInFood) {
+              rawFood.push({
+                item: { name: it.name, price: it.price, emoji: it.emoji },
+                name: it.name,
+                qty: it.qty || it.quantity || 1,
+                modifiers: it.modifiers,
+                note: it.notes || it.note
+              });
+            }
+          }
+        });
+      }
+
+      const foodItems = consolidateItems(rawFood);
+      const drinkItems = consolidateItems(rawDrinks);
+      const hookahItems = consolidateItems(rawHookahs);
 
       const fulDeps = order.fulfilledDepartments || [];
       const foodDone = fulDeps.includes('food');
@@ -2174,8 +2278,24 @@
         itemsHtml += `<div class="ticket-item-group-title">💨 HOOKAH</div>`;
         hookahItems.forEach(item => {
           const qtyTag = item.qty > 1 ? `<span style="color:var(--gold); font-weight:900;">x${item.qty}</span>` : '';
-          itemsHtml += `<div class="ticket-item-line"><span>💨 ${item.name} ${qtyTag}</span></div>`;
-          if (item.notes) itemsHtml += `<div class="ticket-item-note">Note: ${item.notes}</div>`;
+          const noteText = (item.notes || '') + ' ' + (item.note || '');
+          const modsList = Array.isArray(item.modifiers) ? item.modifiers : [];
+          const modText = modsList.map(m => m.optionName || m.name || '').join(' ');
+          const fullText = (noteText + ' ' + modText + ' ' + item.name).toLowerCase();
+
+          const hasIceBase = fullText.includes('ice base') || modsList.some(m => (m.optionName || m.name || m.id || '').toLowerCase().includes('ice_base') || (m.optionName || m.name || '').toLowerCase().includes('ice base'));
+          const hasIceHose = fullText.includes('ice hose') || modsList.some(m => (m.optionName || m.name || m.id || '').toLowerCase().includes('ice_hose') || (m.optionName || m.name || '').toLowerCase().includes('ice hose'));
+
+          let enhancementPills = '';
+          if (hasIceBase) {
+            enhancementPills += `<span style="display:inline-flex; align-items:center; gap:3px; background:rgba(0,153,255,0.22); color:#38BDF8; border:1.5px solid #0099FF; border-radius:6px; padding:2px 7px; font-size:11px; font-weight:900; margin-left:6px; vertical-align:middle; text-shadow:0 0 8px rgba(0,153,255,0.4);">🧊 ICE BASE</span>`;
+          }
+          if (hasIceHose) {
+            enhancementPills += `<span style="display:inline-flex; align-items:center; gap:3px; background:rgba(20,184,166,0.22); color:#2DD4BF; border:1.5px solid #14B8A6; border-radius:6px; padding:2px 7px; font-size:11px; font-weight:900; margin-left:6px; vertical-align:middle; text-shadow:0 0 8px rgba(20,184,166,0.4);">❄️ ICE HOSE</span>`;
+          }
+
+          itemsHtml += `<div class="ticket-item-line" style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-bottom:4px;"><span>💨 <strong>${item.name}</strong> ${qtyTag}</span> ${enhancementPills}</div>`;
+          if (item.notes) itemsHtml += `<div class="ticket-item-note" style="color:#FBBF24; font-weight:700; margin-bottom:6px;">📝 Note: ${item.notes}</div>`;
         });
       }
 
@@ -2293,7 +2413,7 @@
       if (!printArea) return;
       printArea.innerHTML = `
         <div style="font-family: monospace; width: 3in; padding: 10px; background: #fff; color: #000;">
-          <h2 style="text-align: center; margin-bottom: 5px;">CAVALI LOUNGE</h2>
+          <h2 style="text-align: center; margin-bottom: 5px;">CAVALLI</h2>
           <div style="text-align: center; font-size: 11px; margin-bottom: 10px;">Order #${String(orderId).slice(-6).toUpperCase()}</div>
           <hr style="border-top: 1px dashed #000; margin: 5px 0;">
           <div><strong>Table:</strong> ${order.table || '?'}</div>
@@ -2805,43 +2925,123 @@
 
             const itemId = item.id || item._id;
             const dbImgUrl = item.image_url || item.imageUrl || item.image || item.img;
+            const isHouseMix = item.category_id === 'CAT_HOOKAH_HOUSE_MIXES' || item.subcategory === 'House Mixes' || item.card_type === 'house_mix_compact';
+            const isCustomMix = item.id === 'MI_custom_hookah_mix' || item.category_id === 'CAT_HOOKAH_CUSTOM' || item.is_custom_mix;
 
-            const mediaDisplay = dbImgUrl ?
-              `<img src="${dbImgUrl}" alt="${item.name}" loading="lazy" style="width: 52px; height: 52px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--gold); flex-shrink: 0;" onerror="this.onerror=null; this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-block';">
-               <span style="font-size: 32px; width: 52px; text-align: center; flex-shrink: 0; display: none;">${item.emoji || '🍽️'}</span>` :
-              `<span style="font-size: 32px; width: 52px; text-align: center; flex-shrink: 0;">${item.emoji || '🍽️'}</span>`;
+            let badgeHtml = '';
+            if (item.badge) {
+              badgeHtml = `<span style="background: rgba(229,177,58,0.2); color: var(--gold); border: 1px solid var(--gold); border-radius: 12px; padding: 2px 8px; font-size: 10px; font-weight: 900; letter-spacing: 0.5px;">${item.badge}</span>`;
+            } else if (isHouseMix && (item.name.toLowerCase().includes('cavalli crush') || item.name.toLowerCase().includes('shah jahan'))) {
+              badgeHtml = `<span style="background: rgba(34,197,94,0.2); color: var(--success); border: 1px solid var(--success); border-radius: 12px; padding: 2px 8px; font-size: 10px; font-weight: 900; letter-spacing: 0.5px;">NEW FLAVOR</span>`;
+            }
 
-            html += `
-              <div class="menu-card" style="background: var(--card); border: 1.5px solid ${isAvail ? 'var(--line)' : 'var(--danger)'}; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 14px rgba(0,0,0,0.3); opacity: ${isAvail ? '1' : '0.65'};">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
-                    ${mediaDisplay}
-                    <div style="flex: 1; min-width: 0;">
-                      <div style="font-weight: 900; color: var(--cream); font-size: 16px; line-height: 1.2; word-break: break-word;">${item.name}</div>
+            if (isHouseMix) {
+              // Compact small card for House Mixes (No large image, text-focused, sleek)
+              html += `
+                <div class="menu-card" style="background: var(--card); border: 1.5px solid ${isAvail ? 'rgba(229,177,58,0.3)' : 'var(--danger)'}; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.25); opacity: ${isAvail ? '1' : '0.65'}; min-height: 120px;">
+                  <div>
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 900; color: var(--gold); font-size: 15px; line-height: 1.2;">💨 ${item.name}</div>
+                      </div>
+                      <div style="font-size: 16px; font-weight: 900; color: var(--gold); white-space: nowrap;">$${(Number(item.price) || 0).toFixed(2)}</div>
                     </div>
-                    <div style="font-size: 18px; font-weight: 900; color: var(--gold); white-space: nowrap; align-self: flex-start;">$${(Number(item.price) || 0).toFixed(2)}</div>
+                    ${descTag}
+                    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top:4px; margin-bottom:4px;">
+                      ${badgeHtml}
+                      <span style="background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--line); border-radius: 12px; padding: 2px 6px; font-size: 9px; font-weight: 700;">HOUSE BLEND</span>
+                      ${statusBadge}
+                    </div>
                   </div>
-                  ${descTag}
-                  <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:6px;">
-                    <span style="background: rgba(229,177,58,0.1); color: var(--gold); border: 1px solid var(--gold); border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase;">${(item.category || 'menu').toUpperCase()}</span>
-                    ${statusBadge}
-                  </div>
-                  ${recipeBadge}
-                </div>
 
-                <div style="display: flex; gap: 6px; margin-top: 16px; flex-wrap: wrap;">
-                  <button class="btn" style="flex: 1; justify-content: center; padding: 6px 10px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}')">
-                    <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Edit
-                  </button>
-                  <button class="btn" style="padding: 6px 10px; font-size: 11px; font-weight: 800; background: ${isAvail ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'}; border-color: ${isAvail ? 'var(--danger)' : 'var(--success)'}; color: ${isAvail ? 'var(--danger)' : 'var(--success)'};" onclick="toggleMenuItemStatus('${itemId}', ${!isAvail})" title="${isAvail ? 'Disable item' : 'Enable item'}">
-                    ${isAvail ? '🚫 Disable' : '🟢 Enable'}
-                  </button>
-                  <button class="btn btn-danger" style="padding: 6px 10px; font-size: 11px;" onclick="deleteMenuItem('${itemId}')" title="Delete menu item">
-                    <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
-                  </button>
+                  <div style="display: flex; gap: 4px; margin-top: 10px;">
+                    <button class="btn" style="flex: 1; justify-content: center; padding: 4px 8px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}')">
+                      <i data-lucide="edit-2" style="width: 11px; height: 11px;"></i> Edit
+                    </button>
+                    <button class="btn" style="padding: 4px 8px; font-size: 11px; font-weight: 800; background: ${isAvail ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'}; border-color: ${isAvail ? 'var(--danger)' : 'var(--success)'}; color: ${isAvail ? 'var(--danger)' : 'var(--success)'};" onclick="toggleMenuItemStatus('${itemId}', ${!isAvail})">
+                      ${isAvail ? '🚫' : '🟢'}
+                    </button>
+                    <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteMenuItem('${itemId}')">
+                      <i data-lucide="trash-2" style="width: 11px; height: 11px;"></i>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            `;
+              `;
+            } else if (isCustomMix) {
+              // Standard size card for Custom Hookah Mix Lab
+              html += `
+                <div class="menu-card" style="background: linear-gradient(145deg, var(--card) 0%, rgba(229,177,58,0.08) 100%); border: 2px solid var(--gold); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 16px rgba(229,177,58,0.15); opacity: ${isAvail ? '1' : '0.65'};">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                      <span style="font-size: 36px; width: 52px; height: 52px; display:flex; align-items:center; justify-content:center; background: rgba(229,177,58,0.15); border-radius: 12px; border: 1.5px solid var(--gold); flex-shrink: 0;">🧪</span>
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 900; color: var(--cream); font-size: 16px; line-height: 1.2;">${item.name}</div>
+                        <div style="font-size: 11px; color: var(--gold); font-weight: 700; margin-top: 2px;">FLAVOR LABORATORY</div>
+                      </div>
+                      <div style="font-size: 18px; font-weight: 900; color: var(--gold); white-space: nowrap; align-self: flex-start;">$${(Number(item.price) || 25).toFixed(2)}</div>
+                    </div>
+                    ${descTag}
+                    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:6px;">
+                      <span style="background: rgba(0,153,255,0.15); color: #0099FF; border: 1px solid #0099FF; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 800;">🧊 Ice Base (+$2)</span>
+                      <span style="background: rgba(20,184,166,0.15); color: #14B8A6; border: 1px solid #14B8A6; border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 800;">❄️ Ice Hose (+$6)</span>
+                      ${statusBadge}
+                    </div>
+                    ${recipeBadge}
+                  </div>
+
+                  <div style="display: flex; gap: 6px; margin-top: 16px; flex-wrap: wrap;">
+                    <button class="btn" style="flex: 1; justify-content: center; padding: 6px 10px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}')">
+                      <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Edit
+                    </button>
+                    <button class="btn" style="padding: 6px 10px; font-size: 11px; font-weight: 800; background: ${isAvail ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'}; border-color: ${isAvail ? 'var(--danger)' : 'var(--success)'}; color: ${isAvail ? 'var(--danger)' : 'var(--success)'};" onclick="toggleMenuItemStatus('${itemId}', ${!isAvail})">
+                      ${isAvail ? '🚫 Disable' : '🟢 Enable'}
+                    </button>
+                    <button class="btn btn-danger" style="padding: 6px 10px; font-size: 11px;" onclick="deleteMenuItem('${itemId}')">
+                      <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                    </button>
+                  </div>
+                </div>
+              `;
+            } else {
+              // Standard Card
+              const mediaDisplay = dbImgUrl ?
+                `<img src="${dbImgUrl}" alt="${item.name}" loading="lazy" style="width: 52px; height: 52px; border-radius: 12px; object-fit: cover; border: 1.5px solid var(--gold); flex-shrink: 0;" onerror="this.onerror=null; this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-block';">
+                 <span style="font-size: 32px; width: 52px; text-align: center; flex-shrink: 0; display: none;">${item.emoji || '🍽️'}</span>` :
+                `<span style="font-size: 32px; width: 52px; text-align: center; flex-shrink: 0;">${item.emoji || '🍽️'}</span>`;
+
+              html += `
+                <div class="menu-card" style="background: var(--card); border: 1.5px solid ${isAvail ? 'var(--line)' : 'var(--danger)'}; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 14px rgba(0,0,0,0.3); opacity: ${isAvail ? '1' : '0.65'};">
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                      ${mediaDisplay}
+                      <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 900; color: var(--cream); font-size: 16px; line-height: 1.2; word-break: break-word;">${item.name}</div>
+                      </div>
+                      <div style="font-size: 18px; font-weight: 900; color: var(--gold); white-space: nowrap; align-self: flex-start;">$${(Number(item.price) || 0).toFixed(2)}</div>
+                    </div>
+                    ${descTag}
+                    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:6px;">
+                      ${badgeHtml}
+                      <span style="background: rgba(229,177,58,0.1); color: var(--gold); border: 1px solid var(--gold); border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase;">${(item.category || 'menu').toUpperCase()}</span>
+                      ${statusBadge}
+                    </div>
+                    ${recipeBadge}
+                  </div>
+
+                  <div style="display: flex; gap: 6px; margin-top: 16px; flex-wrap: wrap;">
+                    <button class="btn" style="flex: 1; justify-content: center; padding: 6px 10px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}')">
+                      <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Edit
+                    </button>
+                    <button class="btn" style="padding: 6px 10px; font-size: 11px; font-weight: 800; background: ${isAvail ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'}; border-color: ${isAvail ? 'var(--danger)' : 'var(--success)'}; color: ${isAvail ? 'var(--danger)' : 'var(--success)'};" onclick="toggleMenuItemStatus('${itemId}', ${!isAvail})" title="${isAvail ? 'Disable item' : 'Enable item'}">
+                      ${isAvail ? '🚫 Disable' : '🟢 Enable'}
+                    </button>
+                    <button class="btn btn-danger" style="padding: 6px 10px; font-size: 11px;" onclick="deleteMenuItem('${itemId}')" title="Delete menu item">
+                      <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                    </button>
+                  </div>
+                </div>
+              `;
+            }
           });
         }
       });
@@ -3581,28 +3781,39 @@
         activeSuperCategory = superList[0].id;
       }
 
-      // Render Sub-Category Pills Bar displaying all sub-categories across all super categories
-      if (subContainer) {
-        const subCatMap = new Map();
-        subCatMap.set('all', { id: 'all', title: 'All Items', icon: '📋' });
-
-        allCatsList.forEach(cat => {
-          const id = cat.id || cat._id;
-          if (id && !subCatMap.has(id)) {
-            subCatMap.set(id, { id, title: cat.title, icon: cat.icon || '📋' });
-          }
+      // 1. Render Super Category Tabs Bar
+      if (superContainer) {
+        let superHtml = '';
+        superList.forEach(superObj => {
+          const isActive = String(activeSuperCategory).toLowerCase() === String(superObj.id).toLowerCase();
+          const activeBg = 'linear-gradient(135deg, #0066FF 0%, #0044CC 100%)';
+          superHtml += `
+            <button class="super-cat-tab ${isActive ? 'active' : ''}" onclick="selectSuperCategoryFilter('${superObj.id}')" style="padding: 10px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; border: 1.5px solid ${isActive ? '#0066FF' : 'var(--line)'}; ${isActive ? `background: ${activeBg}; color: #FFFFFF; box-shadow: 0 4px 14px rgba(0,102,255,0.3);` : 'background: var(--card); color: var(--muted);'} transition: all 0.2s ease; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 8px;">
+              <span>${superObj.icon || '📁'}</span>
+              <span>${(superObj.title || '').toUpperCase()}</span>
+            </button>
+          `;
         });
+        superContainer.innerHTML = superHtml;
+      }
+
+      // 2. Render Sub-Category Pills for the active Super Category only
+      if (subContainer) {
+        const childCats = allCatsList.filter(c => String(c.parent_id || '').toLowerCase() === String(activeSuperCategory).toLowerCase());
 
         let subHtml = `
           <div style="display: flex; gap: 8px; overflow-x: auto; padding-top: 4px; padding-bottom: 4px;">
+            <button class="sub-tab ${activeSubCategory === 'all' ? 'active' : ''}" onclick="selectSubCategoryFilter('all')" style="padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; border: 1px solid ${activeSubCategory === 'all' ? 'transparent' : 'var(--line)'}; ${activeSubCategory === 'all' ? 'background: linear-gradient(135deg, #E5B13A 0%, #c4952b 100%); color: #000; box-shadow: 0 2px 10px rgba(229,177,58,0.25);' : 'background: var(--card2); color: var(--muted);'} transition: all 0.2s ease; cursor: pointer; white-space: nowrap;">
+              📋 All ${childCats.length > 0 ? '' : 'Items'}
+            </button>
         `;
 
-        subCatMap.forEach((subObj, key) => {
-          const isActive = String(activeSubCategory || 'all').toLowerCase() === String(subObj.id).toLowerCase();
+        childCats.forEach(subObj => {
+          const isActive = String(activeSubCategory || '').toLowerCase() === String(subObj.id).toLowerCase();
           const activeBg = 'linear-gradient(135deg, #E5B13A 0%, #c4952b 100%)';
           subHtml += `
             <button class="sub-tab ${isActive ? 'active' : ''}" onclick="selectSubCategoryFilter('${subObj.id}')" style="padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 12px; border: 1px solid ${isActive ? 'transparent' : 'var(--line)'}; ${isActive ? `background: ${activeBg}; color: #000; box-shadow: 0 2px 10px rgba(229,177,58,0.25);` : 'background: var(--card2); color: var(--muted);'} transition: all 0.2s ease; cursor: pointer; white-space: nowrap;">
-              ${subObj.icon} ${subObj.title}
+              ${subObj.icon || '📋'} ${subObj.title}
             </button>
           `;
         });
@@ -4240,7 +4451,7 @@
 
       const token = localStorage.getItem('benzin_jwt_token') || '';
       const restId = localStorage.getItem('benzin_restaurant_id') || 'RES_EED4E9D266DF';
-      const slug = localStorage.getItem('benzin_selected_slug') || 'cavali';
+      const slug = localStorage.getItem('benzin_selected_slug') || 'cavalli';
 
       let sseUrl = `${API_URL}/api/orders/live?restaurant_id=${encodeURIComponent(restId)}&restaurant_slug=${encodeURIComponent(slug)}`;
       if (token) sseUrl += `&token=${encodeURIComponent(token)}`;
@@ -4262,7 +4473,7 @@
             return;
           }
 
-          if (data.id || data.type === 'order_created' || data.type === 'new_order' || data.type === 'order_updated') {
+          if (data.id || data.type === 'order_created' || data.type === 'new_order' || data.type === 'order_updated' || data.type === 'server_request' || data.kind === 'server_request') {
             const chime = document.getElementById('orderChime');
             if (chime) chime.play().catch(e => console.log('Autoplay audio blocked by browser policy.'));
           }

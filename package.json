@@ -6,6 +6,7 @@
   "scripts": {
     "test": "ts-node src/scripts/test-multi-tenant.ts",
     "test:tenant": "ts-node src/scripts/test-multi-tenant.ts",
+    "test:persistence": "ts-node src/scripts/test-db-persistence.ts",
     "seed": "ts-node src/scripts/seed-cavali.ts",
     "migrate": "ts-node src/scripts/migrate-to-atlas.ts",
     "build": "tsc",

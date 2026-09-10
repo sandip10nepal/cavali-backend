@@ -1015,7 +1015,7 @@ router.post('/device/pair', async (req, res) => {
 
     // Fallback for default demo PINs
     if (!authenticated) {
-      if ((restaurant.slug === 'cavali' && admin_pin === '1234') ||
+      if (((restaurant.slug === 'cavali' || restaurant.slug === 'cavalli') && admin_pin === '1234') ||
           (restaurant.slug === 'sakura' && admin_pin === '9999') ||
           admin_pin === '1234' || admin_pin === '9999') {
         authenticated = true;
@@ -1023,7 +1023,7 @@ router.post('/device/pair', async (req, res) => {
     }
 
     if (!authenticated) {
-      res.status(401).json({ success: false, error: 'Invalid admin PIN. Use 1234 for Cavali or 9999 for Sakura.' });
+      res.status(401).json({ success: false, error: 'Invalid admin PIN. Use 1234 for Cavalli or 9999 for Sakura.' });
       return;
     }
 

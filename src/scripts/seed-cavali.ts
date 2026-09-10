@@ -1,7 +1,7 @@
 /**
- * Migration Script: Seed Cavali as Restaurant #1
+ * Migration Script: Seed Cavalli as Restaurant #1
  *
- * This script populates the multi-tenant database with Cavali's existing
+ * This script populates the multi-tenant database with Cavalli's existing
  * data as the first restaurant tenant. Run once after database setup.
  *
  * Usage: npx ts-node src/scripts/seed-cavali.ts
@@ -103,7 +103,7 @@ const FOOD_ITEMS: SeedItem[] = [
   { id: 'samosa',    category_seed_id: 'appetizers', name: 'Samosa',              price: 8,  emoji: '🔺', desc: 'Crispy pastry triangles – vegetable, chicken, or beef. (3 pc)', image_url: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&auto=format&fit=crop&q=80' },
   { id: 'papri',     category_seed_id: 'appetizers', name: 'Papri Chaat',         price: 10, emoji: '🍿', desc: 'Crisp wafers layered with chickpeas, yogurt, mint, and tamarind chutneys.', image_url: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=600&auto=format&fit=crop&q=80' },
   { id: 'pani',      category_seed_id: 'appetizers', name: 'Pani Puri',           price: 12, emoji: '🫙', desc: 'Hollow puris filled with spiced potato, chickpeas, and tangy mint water. (6 pc)', image_url: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&auto=format&fit=crop&q=80' },
-  { id: 'spy_pot',   category_seed_id: 'appetizers', name: 'Spicy Potato',        price: 8,  emoji: '🥔', desc: 'Cubed potatoes tossed in chili and Cavali spices.', image_url: 'https://images.unsplash.com/photo-1518013031184-41d4bf22045e?w=600&auto=format&fit=crop&q=80' },
+  { id: 'spy_pot',   category_seed_id: 'appetizers', name: 'Spicy Potato',        price: 8,  emoji: '🥔', desc: 'Cubed potatoes tossed in chili and Cavalli spices.', image_url: 'https://images.unsplash.com/photo-1518013031184-41d4bf22045e?w=600&auto=format&fit=crop&q=80' },
   { id: 'tenders',   category_seed_id: 'appetizers', name: 'Tenders with Fries',  price: 12, emoji: '🍗', desc: 'Golden chicken tenders with seasoned fries and dipping sauce.', image_url: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=600&auto=format&fit=crop&q=80' },
   { id: 'pizza_b',   category_seed_id: 'appetizers', name: 'Pizza Bites',         price: 10, emoji: '🍕', desc: 'Mini cheese-and-marinara pizza pockets baked golden.', image_url: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80' },
   { id: 'fries',     category_seed_id: 'appetizers', name: 'Fries',               price: 7,  emoji: '🍟', desc: 'Potato fries with house seasoning.', image_url: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&auto=format&fit=crop&q=80' },
@@ -127,7 +127,7 @@ const FOOD_ITEMS: SeedItem[] = [
   // Vegetarian
   { id: 'v_papri',   category_seed_id: 'vegetarian', name: 'Papri Chaat',         price: 10, emoji: '🍿', desc: 'Crisp wafers layered with chickpeas, yogurt, mint, and tamarind chutneys.', image_url: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=600&auto=format&fit=crop&q=80' },
   { id: 'v_pani',    category_seed_id: 'vegetarian', name: 'Pani Puri',           price: 12, emoji: '🫙', desc: 'Hollow puris filled with spiced potato, chickpeas, and tangy mint water.', image_url: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&auto=format&fit=crop&q=80' },
-  { id: 'v_spypot',  category_seed_id: 'vegetarian', name: 'Spicy Potato',        price: 8,  emoji: '🥔', desc: 'Fried potatoes with chili and Cavali spices.', image_url: 'https://images.unsplash.com/photo-1518013031184-41d4bf22045e?w=600&auto=format&fit=crop&q=80' },
+  { id: 'v_spypot',  category_seed_id: 'vegetarian', name: 'Spicy Potato',        price: 8,  emoji: '🥔', desc: 'Fried potatoes with chili and Cavalli spices.', image_url: 'https://images.unsplash.com/photo-1518013031184-41d4bf22045e?w=600&auto=format&fit=crop&q=80' },
   { id: 'v_fal',     category_seed_id: 'vegetarian', name: 'Falafel',             price: 10, emoji: '🧆', desc: 'Crisp chickpea fritters served with tahini sauce and pickled vegetables.', image_url: 'https://images.unsplash.com/photo-1593001874117-c99c800e3eb7?w=600&auto=format&fit=crop&q=80' },
   { id: 'v_hum',     category_seed_id: 'vegetarian', name: 'Hummus',              price: 10, emoji: '🫘', desc: 'Creamy chickpea puree with tahini, olive oil, and warm pita.', image_url: 'https://images.unsplash.com/photo-1577906096429-f73c2c312435?w=600&auto=format&fit=crop&q=80' },
   { id: 'paneer_m',  category_seed_id: 'vegetarian', name: 'Paneer Momo',         price: 14, emoji: '🥟', desc: 'Steamed dumplings filled with seasoned paneer.', image_url: 'https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?w=600&auto=format&fit=crop&q=80' },
@@ -139,7 +139,7 @@ const FOOD_ITEMS: SeedItem[] = [
   { id: 'v_ldfr',    category_seed_id: 'vegetarian', name: 'Loaded Fries',        price: 12, emoji: '🍟', desc: 'Fries topped with cheese, jalapenos, green onion, and sour cream.', image_url: 'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=600&auto=format&fit=crop&q=80' },
   { id: 'v_ldna',    category_seed_id: 'vegetarian', name: 'Loaded Nachos',       price: 12, emoji: '🧀', desc: 'Tortilla chips piled with cheese, jalapenos, salsa, and sour cream.', image_url: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=600&auto=format&fit=crop&q=80' },
   // Burgers
-  { id: 'smash',     category_seed_id: 'burgers', name: 'Beef Smash',     price: 18, emoji: '🍔', desc: 'Double smashed beef patties with American cheese, pickles, and Cavali sauce.', image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80' },
+  { id: 'smash',     category_seed_id: 'burgers', name: 'Beef Smash',     price: 18, emoji: '🍔', desc: 'Double smashed beef patties with American cheese, pickles, and Cavalli sauce.', image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80' },
   { id: 'zinger',    category_seed_id: 'burgers', name: 'Chicken Zinger', price: 18, emoji: '🍔', desc: 'Crispy spiced chicken fillet with lettuce, mayo, and pickles.', image_url: 'https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?w=600&auto=format&fit=crop&q=80' },
   { id: 'club',      category_seed_id: 'burgers', name: 'Chicken Club',   price: 15, emoji: '🥪', desc: 'Grilled chicken, lettuce, tomato, and aioli on toasted bread.', image_url: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=600&auto=format&fit=crop&q=80' },
   { id: 'swiss_m',   category_seed_id: 'burgers', name: 'Swiss Mushroom', price: 18, emoji: '🍄', desc: 'Beef patty with sauteed mushrooms, Swiss cheese, and caramelized onions.', image_url: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&auto=format&fit=crop&q=80' },
@@ -197,7 +197,7 @@ const DRINK_ITEMS: SeedItem[] = [
 
 const HOOKAH_ITEMS: SeedItem[] = [
   // House Mix (Signature)
-  { id: 'habibi_nights',      category_seed_id: 'house_mix', name: 'Habibi Nights',  price: 18, emoji: '💜', desc: "Cavali's signature premium blend" },
+  { id: 'habibi_nights',      category_seed_id: 'house_mix', name: 'Habibi Nights',  price: 18, emoji: '💜', desc: "Cavalli's signature premium blend" },
   { id: 'kashmiri_c_hookah',  category_seed_id: 'house_mix', name: 'Kashmiri Chai',  price: 18, emoji: '🌸', desc: 'Sweet Rooh Afza base with cardamoms' },
   { id: 'anarkali',           category_seed_id: 'house_mix', name: 'Anarkali',       price: 18, emoji: '🌺', desc: 'Rooh Afza milk base — sweet & floral' },
   { id: 'sokha',              category_seed_id: 'house_mix', name: 'Sokha',          price: 18, emoji: '🫐', desc: 'Blueberry base — rich & berry-forward' },
@@ -242,21 +242,21 @@ const ICE_ADDONS_MODIFIER: any = {
 };
 
 async function seed() {
-  console.log('🌱 Starting Cavali seed migration...\n');
+  console.log('🌱 Starting Cavalli seed migration...\n');
 
   await MultiTenantDbService.initialize();
 
-  // Check if Cavali already exists
+  // Check if Cavalli already exists
   const existing = await MultiTenantDbService.getRestaurantBySlug('cavali');
   if (existing) {
-    console.log('⚠️  Cavali restaurant already exists. Skipping seed.');
+    console.log('⚠️  Cavalli restaurant already exists. Skipping seed.');
     process.exit(0);
   }
 
-  // 1. Create Cavali restaurant
+  // 1. Create Cavalli restaurant
   const restaurant = await MultiTenantDbService.createRestaurant({
     slug: 'cavali',
-    name: 'Cavali Hookah Lounge',
+    name: 'Cavalli',
     branding: CAVALI_BRANDING,
     settings: CAVALI_SETTINGS,
     active: true,
@@ -381,7 +381,7 @@ async function seed() {
     { action: 'seed_migration', items_created: itemCount }
   );
 
-  console.log(`\n🎉 Cavali seed migration complete!`);
+  console.log(`\n🎉 Cavalli seed migration complete!`);
   console.log(`   Restaurant ID: ${restaurant._id}`);
   console.log(`   Owner email:   owner@cavali.com`);
   console.log(`   Owner PIN:     1234`);

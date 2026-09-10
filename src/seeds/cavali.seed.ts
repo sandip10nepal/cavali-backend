@@ -1,21 +1,23 @@
 /**
  * Cavali Venue Development Seed Data
  *
- * This file contains the seed data for Cavali Hookah Lounge & Bar.
+ * This file contains the seed data for Cavalli.
  * It is DATA, not application logic. It is loaded via seed commands when
- * initializing a new Cavali instance.
+ * initializing a new Cavalli instance.
  */
 
-export const CAVALI_VENUE_SEED = {
-  organization: {
-    name: 'Cavali Hospitality Group',
-    slug: 'cavali-group',
+export const CAVALLI_VENUE_SEED = {
+  group: {
+    id: 'GRP_CAVALLI',
+    name: 'Cavalli Hospitality Group',
+    slug: 'cavalli-group',
   },
   restaurant: {
-    _id: 'RES_EED4E9D266DF',
-    slug: 'cavali',
+    id: 'RES_EED4E9D266DF',
+    slug: 'cavalli',
+    group_id: 'GRP_CAVALLI',
     restaurant_code: '4821',
-    name: 'Cavali Hookah Lounge',
+    name: 'Cavalli',
     branding: {
       primary_color: '#FF5A1F',
       secondary_color: '#E5B13A',

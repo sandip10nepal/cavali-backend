@@ -16,7 +16,8 @@
  */
 import { Router } from 'express';
 import { MultiTenantDbService } from '../services/multi-tenant-db.service';
-import { requireAuth, requirePermission } from '../middleware/tenant.middleware';
+import { requireAuth, requirePermission, optionalAuth, resolveTenantRestaurantId } from '../middleware/tenant.middleware';
+import { sseService } from '../services/sse.service';
 
 const router = Router();
 
@@ -24,10 +25,16 @@ const router = Router();
 /*                          CATEGORIES                                         */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-router.get('/categories', requireAuth, requirePermission('menu:read'), async (req, res) => {
+router.get('/categories', optionalAuth, async (req, res) => {
   try {
-    const categories = await MultiTenantDbService.listMenuCategories(req.tenant!.restaurant_id);
-    res.status(200).json({ success: true, categories });
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      res.status(400).json({ success: false, error: 'Restaurant ID or slug is required.' });
+      return;
+    }
+    const categories = await MultiTenantDbService.listMenuCategories(restaurantId);
+    const items = await MultiTenantDbService.listMenuItems(restaurantId);
+    res.status(200).json({ success: true, categories, items });
   } catch (err: any) {
     console.error('[Menu] List categories error:', err);
     res.status(500).json({ success: false, error: 'Internal server error.' });
@@ -69,6 +76,7 @@ router.post('/categories', requireAuth, requirePermission('menu:create'), async 
       { name: catName, parent_id: category.parent_id }
     );
 
+    sseService.broadcast({ type: 'menu_update', action: 'category_add', category }, req.tenant!.restaurant_id);
     res.status(201).json({ success: true, category });
   } catch (err: any) {
     console.error('[Menu] Create category error:', err);
@@ -87,6 +95,7 @@ router.patch('/categories/:id', requireAuth, requirePermission('menu:update'), a
       return;
     }
 
+    sseService.broadcast({ type: 'menu_update', action: 'category_update', categoryId: id }, req.tenant!.restaurant_id);
     res.status(200).json({ success: true, message: 'Category updated.' });
   } catch (err: any) {
     console.error('[Menu] Update category error:', err);
@@ -124,6 +133,7 @@ router.delete('/categories/:id', requireAuth, requirePermission('menu:delete'), 
       { category_id: id }
     );
 
+    sseService.broadcast({ type: 'menu_update', action: 'category_delete', categoryId: id }, restaurantId);
     res.status(200).json({ success: true, message: 'Category deleted.' });
   } catch (err: any) {
     console.error('[Menu] Delete category error:', err);
@@ -135,10 +145,15 @@ router.delete('/categories/:id', requireAuth, requirePermission('menu:delete'), 
 /*                            ITEMS                                            */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-router.get('/items', requireAuth, requirePermission('menu:read'), async (req, res) => {
+router.get('/items', optionalAuth, async (req, res) => {
   try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      res.status(400).json({ success: false, error: 'Restaurant ID or slug is required.' });
+      return;
+    }
     const categoryId = req.query.category_id as string | undefined;
-    const items = await MultiTenantDbService.listMenuItems(req.tenant!.restaurant_id, categoryId);
+    const items = await MultiTenantDbService.listMenuItems(restaurantId, categoryId);
     res.status(200).json({ success: true, items });
   } catch (err: any) {
     console.error('[Menu] List items error:', err);
@@ -177,6 +192,7 @@ router.post('/items', requireAuth, requirePermission('menu:create'), async (req,
       { name, price, category_id }
     );
 
+    sseService.broadcast({ type: 'menu_update', action: 'add', menuItem: item }, req.tenant!.restaurant_id);
     res.status(201).json({ success: true, item });
   } catch (err: any) {
     console.error('[Menu] Create item error:', err);
@@ -211,6 +227,7 @@ router.patch('/items/:id', requireAuth, requirePermission('menu:update'), async 
       return;
     }
 
+    sseService.broadcast({ type: 'menu_update', action: 'update', menuItemId: id }, req.tenant!.restaurant_id);
     res.status(200).json({ success: true, message: 'Item updated.' });
   } catch (err: any) {
     console.error('[Menu] Update item error:', err);
@@ -237,6 +254,7 @@ router.delete('/items/:id', requireAuth, requirePermission('menu:delete'), async
       {}
     );
 
+    sseService.broadcast({ type: 'menu_update', action: 'delete', menuItemId: id }, req.tenant!.restaurant_id);
     res.status(200).json({ success: true, message: 'Item deleted.' });
   } catch (err: any) {
     console.error('[Menu] Delete item error:', err);
@@ -260,6 +278,7 @@ router.patch('/items/:id/availability', requireAuth, requirePermission('menu:ava
       return;
     }
 
+    sseService.broadcast({ type: 'menu_update', action: 'availability', menuItemId: id, available }, req.tenant!.restaurant_id);
     res.status(200).json({ success: true, message: `Item ${available ? 'enabled' : 'marked as sold out'}.` });
   } catch (err: any) {
     console.error('[Menu] Availability error:', err);

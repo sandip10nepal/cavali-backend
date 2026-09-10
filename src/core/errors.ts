@@ -54,3 +54,9 @@ export class LockedError extends AppError {
     super(message, 423);
   }
 }
+
+export class DatabaseUnavailableError extends AppError {
+  constructor(message = 'The database is temporarily unavailable.') {
+    super(message, 503, 'DATABASE_UNAVAILABLE');
+  }
+}

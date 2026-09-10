@@ -109,6 +109,7 @@ function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
     name.includes('shisha') ||
     name.includes('anarkali') ||
     name.includes('sokha') ||
+    name.includes('cavalli crush') ||
     name.includes('cavali crush') ||
     name.includes('shah jahan') ||
     name.includes('white king') ||
@@ -392,6 +393,8 @@ function mapOrderForClient(o: any): any {
     totalPaid: o.totalPaid || (o.payment_status === 'paid' ? (o.grand_total || o.total) : 0),
     totalDue: o.totalDue !== undefined ? o.totalDue : (o.payment_status === 'paid' ? 0 : (o.grand_total || o.total || 0)),
     kind: o.kind || 'order',
+    requestType: o.requestType || o.request_type || null,
+    note: o.notes || o.note || '',
     fulfilledDepartments: o.fulfilledDepartments || [],
   };
 }
@@ -506,8 +509,101 @@ router.post('/', async (req, res) => {
     const tipAmount = Number(orderPayload.tipAmount) || 0;
     const grandTotal = parseFloat((totalVal + taxAmount + tipAmount - discountAmount).toFixed(2));
 
+    // Enrich generic soft drink items with specific flavor names
+    let sanitizedDrinks = Array.isArray(orderPayload.drinks) ? orderPayload.drinks : [];
+    sanitizedDrinks = sanitizedDrinks.map((d: any) => {
+      const itemObj = d.item || {};
+      const mods = d.modifiers || itemObj.modifiers || [];
+      const modNames = Array.isArray(mods) ? mods.map((m: any) => m.optionName || m.name).filter(Boolean) : [];
+      let name = d.name || itemObj.name || 'Drink';
+      const noteStr = d.note || d.notes || itemObj.note || itemObj.notes || '';
+      if ((name.toLowerCase().includes('soft drink') || name.toLowerCase().includes('soda')) && modNames.length > 0) {
+        name = modNames.join(', ');
+      }
+      const noteParts = [noteStr, modNames.length > 0 && !noteStr.includes(modNames[0]) ? `Choice: ${modNames.join(', ')}` : ''].filter(Boolean);
+      const finalNote = noteParts.join(' · ');
+      return {
+        ...d,
+        name,
+        item: { ...itemObj, name },
+        note: finalNote,
+        notes: finalNote,
+      };
+    });
+
+    let sanitizedItems = Array.isArray(orderPayload.items) ? orderPayload.items : [];
+    sanitizedItems = sanitizedItems.map((it: any) => {
+      const mods = it.modifiers || [];
+      const modNames = Array.isArray(mods) ? mods.map((m: any) => m.optionName || m.name).filter(Boolean) : [];
+      let name = it.name || 'Item';
+      const noteStr = it.notes || it.note || '';
+      if ((name.toLowerCase().includes('soft drink') || name.toLowerCase().includes('soda')) && modNames.length > 0) {
+        name = modNames.join(', ');
+      }
+      const noteParts = [noteStr, ...modNames.filter(mn => !noteStr.includes(mn))].filter(Boolean);
+      const finalNote = noteParts.join(' · ');
+      return {
+        ...it,
+        name,
+        modifiers: mods,
+        notes: finalNote,
+        note: finalNote,
+      };
+    });
+
+    // Enrich and preserve hookahs with exact flavor and enhancements (Ice Base, Ice Hose)
+    let sanitizedHookahs = Array.isArray(orderPayload.hookahs) ? orderPayload.hookahs : [];
+    const hookahFromItems = sanitizedItems.filter((it: any) => {
+      const cat = (it.category || '').toLowerCase();
+      const name = (it.name || '').toLowerCase();
+      return cat === 'hookah' || name.includes('hookah') || it.emoji === '💨' || it.emoji === '🧪';
+    });
+
+    if (sanitizedHookahs.length === 0 && hookahFromItems.length > 0) {
+      sanitizedHookahs = hookahFromItems.map((it: any) => {
+        const mods = it.modifiers || [];
+        const modNames = Array.isArray(mods) ? mods.map((m: any) => m.optionName || m.name).filter(Boolean) : [];
+        const noteStr = it.notes || it.note || '';
+        const noteParts = [noteStr, ...modNames.filter(mn => !noteStr.includes(mn))].filter(Boolean);
+        const finalNote = noteParts.join(' · ');
+        return {
+          flavor: { name: it.name, id: it.id },
+          name: it.name,
+          qty: it.qty || it.quantity || 1,
+          price: it.price || 0,
+          modifiers: mods,
+          notes: finalNote,
+          note: finalNote,
+        };
+      });
+    } else {
+      sanitizedHookahs = sanitizedHookahs.map((h: any) => {
+        const matchingItem = sanitizedItems.find((it: any) => 
+          (it.name && h.flavor?.name && it.name.toLowerCase() === h.flavor.name.toLowerCase()) ||
+          (it.id && h.flavor?.id && it.id === h.flavor.id) ||
+          (it.name && h.name && it.name.toLowerCase() === h.name.toLowerCase())
+        );
+        const mods = h.modifiers || matchingItem?.modifiers || [];
+        const modNames = Array.isArray(mods) ? mods.map((m: any) => m.optionName || m.name).filter(Boolean) : [];
+        const existingNote = h.notes || h.note || matchingItem?.notes || matchingItem?.note || '';
+        const missingMods = modNames.filter(mn => !existingNote.includes(mn));
+        const combinedNotes = [existingNote, ...missingMods].filter(Boolean).join(' · ');
+        return {
+          ...h,
+          name: h.name || h.flavor?.name || 'Hookah',
+          flavor: h.flavor || { name: h.name || 'Hookah' },
+          modifiers: mods,
+          notes: combinedNotes,
+          note: combinedNotes,
+        };
+      });
+    }
+
     const orderPayloadToSave = {
       ...orderPayload,
+      hookahs: sanitizedHookahs,
+      drinks: sanitizedDrinks,
+      items: sanitizedItems,
       _id: `cav-${Date.now()}`,
       restaurant_id: restaurantId,
       status: 'pending',
@@ -593,26 +689,45 @@ router.post('/server-call', async (req, res) => {
     });
 
     const serverRequestOrder: any = {
+      _id: serviceReq._id,
       id: serviceReq._id,
+      restaurant_id: restId,
+      restaurantId: restId,
       kind: 'server_request',
       table: tableNum,
+      table_id: tableNum,
       requestType: requestType || 'server',
       note: label,
+      notes: label,
       customerName: `Table ${tableNum}`,
+      customer_name: `Table ${tableNum}`,
       createdAt: serviceReq.created_at,
       status: 'pending',
+      subtotal: 0,
       total: 0,
       grandTotal: 0,
+      grand_total: 0,
       totalDue: 0,
+      totalPaid: 0,
       paymentStatus: 'paid',
+      payment_status: 'paid',
       items: [],
       hookahs: [],
       food: [],
       drinks: [],
+      fulfilledDepartments: [],
     };
 
-    // Broadcast in real-time to KDS and Server stations
-    sseService.broadcast(serverRequestOrder, restId);
+    // 1. Save to OrderRepository so it appears in GET /api/orders & admin.html KDS
+    await OrderRepository.create(serverRequestOrder);
+
+    // 2. Broadcast in real-time to KDS and Server stations
+    sseService.broadcast({
+      type: 'server_request',
+      id: serviceReq._id,
+      order: serverRequestOrder,
+      ...serverRequestOrder
+    }, restId);
 
     res.status(200).json({ success: true, request: serverRequestOrder });
   } catch (error: any) {
@@ -646,6 +761,22 @@ const handleFulfillOrder = async (req: any, res: Response) => {
 
   if (order.status === 'fulfilled') {
     return res.status(400).json({ success: false, message: 'Order already fulfilled' });
+  }
+
+  // If this is a server assistance request, mark it complete directly
+  if (order.kind === 'server_request') {
+    try {
+      await ServiceRequestRepository.updateStatus(targetId, 'completed');
+    } catch (e) {
+      console.warn('Could not update ServiceRequest status:', e);
+    }
+    const updatedClientOrder = await updateUnifiedOrder(targetId, { status: 'fulfilled', completed_at: new Date() }, restId);
+    sseService.broadcast({ type: 'order_fulfilled', orderId: targetId, order: updatedClientOrder }, restId);
+    return res.status(200).json({
+      success: true,
+      message: 'Server request completed and dismissed',
+      order: updatedClientOrder
+    });
   }
 
   const fulfilledDeps: string[] = Array.isArray(order.fulfilledDepartments) ? [...order.fulfilledDepartments] : [];
@@ -729,7 +860,7 @@ router.get('/sales/summary', async (req, res) => {
 
     const paymentLogs: any[] = [];
 
-    allOrders.forEach((o: any) => {
+    allOrders.filter((o: any) => o.kind !== 'server_request').forEach((o: any) => {
       const createdIso = o.createdAt || o.created_at || new Date().toISOString();
       const createdMs = new Date(createdIso).getTime();
 

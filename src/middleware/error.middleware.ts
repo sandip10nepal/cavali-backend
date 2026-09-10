@@ -11,12 +11,10 @@ export function errorMiddleware(err: any, req: Request, res: Response, next: Nex
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
       success: false,
-      error: {
-        code: err.code,
-        message: err.message,
-        details: err.details,
-        requestId,
-      },
+      error: err.code,
+      message: err.message,
+      details: err.details,
+      requestId,
     });
     return;
   }

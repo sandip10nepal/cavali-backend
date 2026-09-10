@@ -543,7 +543,7 @@ router.post('/', optionalAuth, async (req, res) => {
 
     const restaurantId = await resolveRestaurantId(req);
     const validRole: UserRole = role as UserRole;
-    const employeeEmail = email ? String(email).trim().toLowerCase() : `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}_${Date.now().toString(36)}@cavali.com`;
+    const employeeEmail = email ? String(email).trim().toLowerCase() : `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}_${Date.now().toString(36)}@cavalli.com`;
 
     // 1. Create in MultiTenantDbService
     let createdUser: any = null;

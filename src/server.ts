@@ -21,8 +21,8 @@ const app = express();
 const PORT = env.PORT;
 
 app.use(cors());
-app.use(express.json({ limit: '25mb' }));
-app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*                    API ROUTES                                               */
@@ -41,9 +41,32 @@ app.use('/api/devices', devicesRouter);
 app.use('/api/v2/menu', menuV2Router);
 
 // Serve Admin Dashboard
-const publicPath = path.join(__dirname, '../public');
+const publicPath = path.resolve(process.cwd(), 'public');
+const adminDistPath = path.resolve(publicPath, 'admin_dist');
+const adminAssetsPath = path.resolve(adminDistPath, 'assets');
 
-app.get('/admin', (req, res) => {
+// Static asset mounts FIRST
+app.use('/admin_dist', express.static(adminDistPath));
+app.use(express.static(publicPath));
+
+// Serve Admin Dashboard (Cavalli Admin & Staff Management Portal)
+app.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+
+  const isAdminHost = req.hostname && req.hostname.toLowerCase().startsWith('admin.');
+  const isAdminPath = req.path === '/admin' || req.path.startsWith('/admin/') || req.path === '/staff' || req.path === '/admin.html';
+
+  if (isAdminHost || isAdminPath) {
+    return res.sendFile('admin.html', { root: publicPath });
+  }
+  next();
+});
+
+// Serve Standalone Dark Staff Clock-in Portal
+app.get('/staff', (req, res) => {
+  res.sendFile('admin.html', { root: publicPath });
+});
+app.get('/admin.html', (req, res) => {
   res.sendFile('admin.html', { root: publicPath });
 });
 
@@ -55,29 +78,54 @@ app.get('/payment', (req, res) => {
   res.sendFile('payment-device.html', { root: publicPath });
 });
 
-// Liveness probe
+// Liveness probe (indicates Node process is functioning)
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     payment_mode: SquareService.isDemoMode ? 'DEMO' : SquareService.environment.toUpperCase(),
+    database_mode: env.DATABASE_MODE,
     multi_tenant: MultiTenantDbService.isInitialized(),
     mongo_connected: MultiTenantDbService.isMongoConnected(),
   });
 });
 
-// Readiness probe
-app.get('/ready', (req, res) => {
-  if (MultiTenantDbService.isInitialized()) {
-    res.status(200).json({
+// Readiness probe (indicates whether service can safely receive traffic and access required authoritative database)
+app.get('/ready', async (req, res) => {
+  try {
+    if (!MultiTenantDbService.isInitialized()) {
+      return res.status(503).json({
+        status: 'not_ready',
+        error: 'Database service is initializing...',
+      });
+    }
+
+    if (env.isMongoMode) {
+      const isAlive = await MultiTenantDbService.pingDatabase();
+      if (!isAlive) {
+        return res.status(503).json({
+          status: 'not_ready',
+          database: 'mongodb',
+          error: 'MongoDB Atlas ping failed or connection is unavailable',
+        });
+      }
+      return res.status(200).json({
+        status: 'ready',
+        database: 'mongodb_atlas_authoritative',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Local mode (development only)
+    return res.status(200).json({
       status: 'ready',
-      database: MultiTenantDbService.isMongoConnected() ? 'mongodb_atlas_authoritative' : 'local_cached_fallback',
+      database: 'local_json_dev_mode',
       timestamp: new Date().toISOString(),
     });
-  } else {
-    res.status(503).json({
+  } catch (err: any) {
+    return res.status(503).json({
       status: 'not_ready',
-      error: 'Database service is initializing...',
+      error: err.message || 'Readiness check failed',
     });
   }
 });
@@ -121,14 +169,23 @@ app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`${'═'.repeat(60)}\n`);
 });
 
-// Initialize database asynchronously in background
-(async () => {
-  try {
-    await MultiTenantDbService.initialize();
-    await ensureDatabaseIndexes();
-    console.log('🏢 Multi-tenant SaaS platform database ready');
-    preloadMenuCache().catch(e => console.warn('Preload cache error:', e));
-  } catch (err) {
-    console.warn('⚠️  Multi-tenant DB initialization note:', err);
+// Initialize database asynchronously in background with self-healing retry loop
+(async function initDbLoop() {
+  const maxAttempts = 20;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await MultiTenantDbService.initialize();
+      await ensureDatabaseIndexes();
+      console.log('🏢 Multi-tenant SaaS platform database ready');
+      preloadMenuCache().catch(e => console.warn('Preload cache error:', e));
+      return;
+    } catch (err: any) {
+      console.error(`[Database] Attempt ${attempt}/${maxAttempts} failed:`, err.message || err);
+      if (attempt < maxAttempts) {
+        await new Promise(r => setTimeout(r, 2000));
+      } else {
+        console.error('🚨 FATAL: Exhausted database initialization retries.');
+      }
+    }
   }
 })();
