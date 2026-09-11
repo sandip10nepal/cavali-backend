@@ -3,6 +3,7 @@
  */
 
 import { ServiceRequestRepository, ServiceRequestEntity, ServiceRequestType, ServiceRequestStatus } from './serviceRequest.repository';
+import { MultiTenantDbService } from '../../services/multi-tenant-db.service';
 import { sseService } from '../../services/sse.service';
 import { NotFoundError, ValidationError, ConflictError } from '../../core/errors';
 import { eventBus } from '../../events/event-bus';
@@ -128,6 +129,32 @@ export class ServiceRequestService {
     }
 
     const updatedEntity = await ServiceRequestRepository.findById(requestId, restaurantId);
+
+    // Sync fulfillment to orders collection if mirrored as an order
+    const isFinished = normStatus === 'COMPLETED' || normStatus === 'CANCELLED';
+    if (isFinished) {
+      try {
+        const db = MultiTenantDbService.getDb();
+        if (db) {
+          await db.collection('orders').updateOne(
+            { _id: requestId as any },
+            { $set: { status: 'fulfilled', completed_at: new Date() } }
+          );
+        }
+        const ordersList = MultiTenantDbService.getCollection('orders');
+        if (Array.isArray(ordersList)) {
+          const ord = ordersList.find((o: any) => o._id === requestId || o.id === requestId);
+          if (ord) {
+            ord.status = 'fulfilled' as any;
+            ord.completed_at = new Date().toISOString();
+            MultiTenantDbService.saveCollection('orders', ordersList);
+          }
+        }
+        sseService.broadcast({ type: 'order_fulfilled', orderId: requestId, order: { _id: requestId, status: 'fulfilled' } }, restaurantId);
+      } catch (syncErr) {
+        console.warn('[ServiceRequestService] Could not sync fulfilled status to orders collection:', syncErr);
+      }
+    }
 
     // Broadcast status change via SSE
     const isCoal = existing.request_type === 'COAL_REFILL' || existing.request_type === 'coals';

@@ -2395,6 +2395,7 @@
         const data = await res.json();
         if (data.success) {
           await loadData();
+          await loadServiceRequests();
         } else {
           alert('Could not fulfill order: ' + (data.message || data.error || 'Error'));
         }
@@ -2431,6 +2432,7 @@
         const data = await res.json();
         if (data.success) {
           await loadServiceRequests();
+          await loadData();
         } else {
           alert('Could not update request: ' + (data.message || 'Error'));
         }

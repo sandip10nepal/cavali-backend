@@ -814,15 +814,22 @@ const handleFulfillOrder = async (req: any, res: Response) => {
 
   const restaurantId = await resolveTenantRestaurantId(req);
 
-  // If orderId is a service request ID (e.g. req-...), handle via ServiceRequestRepository
+  // If orderId is a service request ID (e.g. req-...), handle via ServiceRequestRepository & sync orders collection
   if (String(orderId).startsWith('req-')) {
     try {
       await ServiceRequestRepository.updateStatus(orderId, 'COMPLETED', restaurantId || undefined);
+      let updatedClientOrder = null;
+      try {
+        updatedClientOrder = await updateUnifiedOrder(orderId, { status: 'fulfilled', completed_at: new Date() }, restaurantId || undefined);
+      } catch (orderUpdateErr) {
+        // May not exist in orders collection
+      }
       if (restaurantId) {
         sseService.broadcast({ type: 'coal_refill_updated', station: 'hookah_maker', requestId: orderId, status: 'COMPLETED' }, restaurantId);
         sseService.broadcast({ type: 'server_call_updated', requestId: orderId, status: 'COMPLETED' }, restaurantId);
+        sseService.broadcast({ type: 'order_fulfilled', orderId, order: updatedClientOrder || { _id: orderId, status: 'fulfilled' } }, restaurantId);
       }
-      return res.status(200).json({ success: true, message: 'Service request completed' });
+      return res.status(200).json({ success: true, message: 'Service request completed', order: updatedClientOrder });
     } catch (e: any) {
       return res.status(500).json({ success: false, message: e.message || 'Could not complete request' });
     }
