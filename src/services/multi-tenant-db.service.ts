@@ -53,6 +53,7 @@ export const COLLECTIONS = {
   credits: 'credits',
   timecards: 'timecards',
   leads: 'leads',
+  service_requests: 'service_requests',
 } as const;
 
 interface LocalSchema {
@@ -73,6 +74,7 @@ interface LocalSchema {
   credits: Credit[];
   timecards: Timecard[];
   leads: any[];
+  service_requests: any[];
 }
 
 export class MultiTenantDbService {
@@ -224,6 +226,7 @@ export class MultiTenantDbService {
         if (!parsed.inventory_transactions) parsed.inventory_transactions = [];
         if (!parsed.inventory_categories) parsed.inventory_categories = [];
         if (!parsed.leads) parsed.leads = [];
+        if (!parsed.service_requests) parsed.service_requests = [];
         return parsed;
       }
     } catch (e) {
@@ -233,7 +236,7 @@ export class MultiTenantDbService {
       restaurants: [], users: [], devices: [], device_activation_codes: [], tables: [],
       menu_categories: [], menu_items: [], orders: [], inventory_items: [], inventory_categories: [],
       inventory_transactions: [], payment_sessions: [], audit_logs: [],
-      customer_sessions: [], credits: [], timecards: [], leads: [],
+      customer_sessions: [], credits: [], timecards: [], leads: [], service_requests: [],
     };
     this.saveLocalDb(empty);
     return empty;
@@ -251,7 +254,7 @@ export class MultiTenantDbService {
     }
   }
 
-  private static getCollection<K extends keyof LocalSchema>(key: K): LocalSchema[K] {
+  public static getCollection<K extends keyof LocalSchema>(key: K): LocalSchema[K] {
     if (env.isMongoMode) {
       throw new DatabaseUnavailableError(`Cannot access local collection "${String(key)}" in MongoDB mode`);
     }
@@ -260,7 +263,7 @@ export class MultiTenantDbService {
     return this.localDb[key];
   }
 
-  private static saveCollection<K extends keyof LocalSchema>(key: K, data: LocalSchema[K]) {
+  public static saveCollection<K extends keyof LocalSchema>(key: K, data: LocalSchema[K]) {
     if (env.isMongoMode) {
       return; // In MongoDB mode, mutations are persisted directly to MongoDB
     }
@@ -722,6 +725,7 @@ export class MultiTenantDbService {
           image_url: item.image_url || null,
           imageUrl: item.image_url || null,
           sort_order: item.sort_order ?? 0,
+          category_sort_order: cat?.sort_order ?? 9999,
           active: item.active !== false,
           available: item.available !== false,
           recipe: item.recipe || [],
@@ -729,7 +733,15 @@ export class MultiTenantDbService {
           modifierGroups: sanitizedModGroups,
           variants: item.variants || [],
         };
-      }).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
+      }).sort((a, b) => {
+        const catOrderA = (a as any).category_sort_order ?? 9999;
+        const catOrderB = (b as any).category_sort_order ?? 9999;
+        if (catOrderA !== catOrderB) return catOrderA - catOrderB;
+        const itemOrderA = a.sort_order ?? 0;
+        const itemOrderB = b.sort_order ?? 0;
+        if (itemOrderA !== itemOrderB) return itemOrderA - itemOrderB;
+        return (a.name || '').localeCompare(b.name || '');
+      }),
       tables: tables.map(t => ({
         id: t._id,
         table_number: String(t.number || t.label || '1'),
@@ -1842,6 +1854,20 @@ export class MultiTenantDbService {
       }
     ];
 
+    const categories = await this.listMenuCategories(targetId);
+    const catMap = new Map<string, number>();
+    categories.forEach(c => catMap.set(c._id, c.sort_order ?? 9999));
+
+    const sortFn = (a: any, b: any) => {
+      const catOrderA = catMap.get(a.category_id) ?? 9999;
+      const catOrderB = catMap.get(b.category_id) ?? 9999;
+      if (catOrderA !== catOrderB) return catOrderA - catOrderB;
+      const itemOrderA = a.sort_order ?? 0;
+      const itemOrderB = b.sort_order ?? 0;
+      if (itemOrderA !== itemOrderB) return itemOrderA - itemOrderB;
+      return (a.name || '').localeCompare(b.name || '');
+    };
+
     if (env.isMongoMode) {
       const db = await this.ensureReady();
       const query: any = { restaurant_id: targetId, active: { $ne: false } };
@@ -1873,7 +1899,7 @@ export class MultiTenantDbService {
           active: i.active !== false,
           available: i.available !== false,
         } as unknown as MenuItemModel;
-      }).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      }).sort(sortFn);
     }
 
     let items = (this.getCollection('menu_items') as MenuItemModel[]).filter(i => i.restaurant_id === targetId && i.active !== false);
@@ -1894,7 +1920,7 @@ export class MultiTenantDbService {
         active: i.active !== false,
         available: i.available !== false,
       };
-    }).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    }).sort(sortFn);
   }
 
   static async getMenuItem(id: string, restaurantId: string): Promise<MenuItemModel | null> {

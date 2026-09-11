@@ -27,9 +27,10 @@ export class OrderRepository {
 
     const subtotal = Number(orderData.subtotal || orderData.total || 0);
     const taxAmount = Number(orderData.tax_amount || orderData.taxAmount || 0);
-    const tipAmount = Number(orderData.tip_amount || orderData.tipAmount || 0);
+    const gratuityAmount = Number(orderData.gratuity_amount || orderData.gratuityAmount || orderData.tip_amount || orderData.tipAmount || 0);
+    const tipAmount = Number(orderData.tip_amount || orderData.tipAmount || gratuityAmount || 0);
     const discountAmount = Number(orderData.discount_amount || orderData.discountAmount || 0);
-    const grandTotal = Number(orderData.grand_total || orderData.grandTotal || (subtotal + taxAmount + tipAmount - discountAmount));
+    const grandTotal = Number(orderData.grand_total || orderData.grandTotal || (subtotal + taxAmount + gratuityAmount - discountAmount));
 
     const payload = {
       _id: orderData._id || orderData.id || `cav-${Date.now()}`,
@@ -42,6 +43,8 @@ export class OrderRepository {
       items: rawItems,
       subtotal,
       tax_amount: taxAmount,
+      gratuity_amount: gratuityAmount,
+      gratuityAmount,
       tip_amount: tipAmount,
       discount_amount: discountAmount,
       grand_total: grandTotal,

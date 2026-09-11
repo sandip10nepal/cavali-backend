@@ -13,6 +13,7 @@ import authRouter from './routes/auth';
 import restaurantsRouter from './routes/restaurants';
 import devicesRouter from './routes/devices';
 import menuV2Router from './routes/menu-v2';
+import serviceRequestsRouter from './routes/service-requests';
 import { MultiTenantDbService } from './services/multi-tenant-db.service';
 
 import { env } from './config/env';
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 /*                    API ROUTES                                               */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 app.use('/api/orders', ordersRouter);
+app.use('/api/service-requests', serviceRequestsRouter);
 app.use('/api/payment-sessions', paymentsRouter);
 app.use('/api/employees', employeesRouter);
 app.use('/api/menu', menuRouter);
@@ -189,3 +191,5 @@ app.listen(Number(PORT), '0.0.0.0', () => {
     }
   }
 })();
+
+export { app };

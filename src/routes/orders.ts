@@ -376,11 +376,13 @@ function mapOrderForClient(o: any): any {
     table: o.table_id || o.table || '1',
     status: o.status,
     paymentStatus: o.payment_status || o.paymentStatus || (o.status === 'paid' ? 'paid' : 'unpaid'),
-    total: o.subtotal || o.grand_total || o.total || 0,
-    grandTotal: o.grand_total || o.total || 0,
-    taxAmount: o.tax_amount || o.taxAmount || o.tax || 0,
-    tipAmount: o.tip_amount || o.tipAmount || o.tip || 0,
-    discountAmount: o.discount_amount || o.discountAmount || o.discount || 0,
+    subtotal: o.subtotal !== undefined ? Number(o.subtotal) : Number(o.total || 0),
+    total: o.subtotal !== undefined ? Number(o.subtotal) : Number(o.total || 0),
+    grandTotal: Number(o.grand_total || o.grandTotal || o.total || 0),
+    taxAmount: Number(o.tax_amount || o.taxAmount || o.tax || 0),
+    gratuityAmount: Number(o.gratuity_amount || o.gratuityAmount || o.tip_amount || o.tipAmount || 0),
+    tipAmount: Number(o.tip_amount || o.tipAmount || o.tip || 0),
+    discountAmount: Number(o.discount_amount || o.discountAmount || o.discount || 0),
     createdAt: o.created_at || o.createdAt,
     updatedAt: o.updated_at || o.updatedAt,
     customerName: o.customer_name || o.customerName || 'Guest',
@@ -500,14 +502,37 @@ router.post('/', async (req, res) => {
       }
     }
 
-    const totalVal = Number(orderPayload.total) || 0;
+    // ── Backend Source of Truth: Subtotal, Tax (8.25%), Gratuity (18%), Total ──
+    let rawItemSubtotal = 0;
+    const allPassedItems: any[] = [];
+    if (Array.isArray(orderPayload.items) && orderPayload.items.length > 0) {
+      allPassedItems.push(...orderPayload.items);
+    } else {
+      if (Array.isArray(orderPayload.hookahs)) allPassedItems.push(...orderPayload.hookahs);
+      if (Array.isArray(orderPayload.food)) allPassedItems.push(...orderPayload.food);
+      if (Array.isArray(orderPayload.drinks)) allPassedItems.push(...orderPayload.drinks);
+    }
+
+    if (allPassedItems.length > 0) {
+      rawItemSubtotal = allPassedItems.reduce((acc, it) => {
+        const p = Number(it.price !== undefined ? it.price : (it.item && it.item.price !== undefined ? it.item.price : 0)) || 0;
+        const q = Number(it.qty || it.quantity || 1) || 1;
+        const mods = Array.isArray(it.modifiers) ? it.modifiers : (it.selectedModifiers || []);
+        const modTotal = Array.isArray(mods) ? mods.reduce((mAcc: number, m: any) => mAcc + (Number(m.price || m.price_adjustment || 0) || 0), 0) : 0;
+        return acc + (p + modTotal) * q;
+      }, 0);
+    }
+
+    const calculatedSubtotal = parseFloat((rawItemSubtotal > 0 ? rawItemSubtotal : Number(orderPayload.subtotal || orderPayload.total || 0)).toFixed(2));
 
     const isTaxExempt = Boolean(orderPayload.taxExempt);
     const taxRate = isTaxExempt ? 0 : 0.0825;
-    const taxAmount = isTaxExempt ? 0 : parseFloat((totalVal * taxRate).toFixed(2));
-    const discountAmount = Number(orderPayload.discountAmount) || 0;
-    const tipAmount = Number(orderPayload.tipAmount) || 0;
-    const grandTotal = parseFloat((totalVal + taxAmount + tipAmount - discountAmount).toFixed(2));
+    const taxAmount = isTaxExempt ? 0 : parseFloat((calculatedSubtotal * 0.0825).toFixed(2));
+    const gratuityAmount = parseFloat((calculatedSubtotal * 0.18).toFixed(2));
+    const discountAmount = Number(orderPayload.discountAmount || orderPayload.discount_amount || 0);
+    // tip_amount equals gratuityAmount for POS compatibility, NOT an additional charge on top of 18% gratuity
+    const tipAmount = gratuityAmount;
+    const grandTotal = parseFloat((calculatedSubtotal + taxAmount + gratuityAmount - discountAmount).toFixed(2));
 
     // Enrich generic soft drink items with specific flavor names
     let sanitizedDrinks = Array.isArray(orderPayload.drinks) ? orderPayload.drinks : [];
@@ -609,13 +634,20 @@ router.post('/', async (req, res) => {
       status: 'pending',
       paymentStatus: orderPayload.paymentStatus || 'unpaid',
       paymentMethod: orderPayload.paymentMethod || 'CASH',
+      subtotal: calculatedSubtotal,
+      total: calculatedSubtotal,
       taxRate,
       taxAmount,
+      tax_amount: taxAmount,
       taxExempt: isTaxExempt,
+      gratuityAmount,
+      gratuity_amount: gratuityAmount,
       tipAmount,
+      tip_amount: tipAmount,
       discountAmount,
-      total: totalVal,
+      discount_amount: discountAmount,
       grandTotal,
+      grand_total: grandTotal,
       totalDue: orderPayload.totalDue !== undefined ? Number(orderPayload.totalDue) : grandTotal,
       totalPaid: Number(orderPayload.totalPaid) || 0,
       createdAt: new Date().toISOString(),
@@ -680,14 +712,49 @@ router.post('/server-call', async (req, res) => {
     if (!restId) {
       return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
     }
+
+    const isCoalRefill = requestType === 'COAL_REFILL' || requestType === 'coals';
+
+    // Duplicate spam protection for active coal refills
+    if (isCoalRefill) {
+      const active = await ServiceRequestRepository.findActiveCoalRefill(restId, `TBL_${tableNum}`);
+      if (active) {
+        return res.status(409).json({
+          success: false,
+          code: 'DUPLICATE_ACTIVE_REQUEST',
+          message: 'A coal refill request is already pending or in progress for this table.',
+          details: { activeRequest: active }
+        });
+      }
+    }
     
     const serviceReq = await ServiceRequestRepository.create({
       restaurant_id: restId,
       table_id: `TBL_${tableNum}`,
-      request_type: (requestType as any) || 'server',
-      note: label,
+      table_number: tableNum,
+      request_type: isCoalRefill ? 'COAL_REFILL' : ((requestType as any) || 'server'),
+      note: isCoalRefill ? 'Hookah Coal Refill 🔥' : label,
+      status: 'PENDING',
     });
 
+    // ── COAL REFILL: Isolated to Hookah Station Only ─────────────────────────
+    if (isCoalRefill) {
+      sseService.broadcast({
+        type: 'coal_refill_request',
+        station: 'hookah_maker',
+        request: serviceReq,
+      }, restId);
+      sseService.broadcast({
+        type: 'server_call',
+        station: 'hookah_maker',
+        request: serviceReq,
+      }, restId);
+
+      // DO NOT call OrderRepository.create() for coal refills.
+      return res.status(200).json({ success: true, request: serviceReq });
+    }
+
+    // ── Legacy Server Requests (server, water, check) ────────────────────────
     const serverRequestOrder: any = {
       _id: serviceReq._id,
       id: serviceReq._id,
@@ -718,7 +785,7 @@ router.post('/server-call', async (req, res) => {
       fulfilledDepartments: [],
     };
 
-    // 1. Save to OrderRepository so it appears in GET /api/orders & admin.html KDS
+    // 1. Save to OrderRepository so legacy server calls appear in GET /api/orders
     await OrderRepository.create(serverRequestOrder);
 
     // 2. Broadcast in real-time to KDS and Server stations
@@ -746,6 +813,21 @@ const handleFulfillOrder = async (req: any, res: Response) => {
   }
 
   const restaurantId = await resolveTenantRestaurantId(req);
+
+  // If orderId is a service request ID (e.g. req-...), handle via ServiceRequestRepository
+  if (String(orderId).startsWith('req-')) {
+    try {
+      await ServiceRequestRepository.updateStatus(orderId, 'COMPLETED', restaurantId || undefined);
+      if (restaurantId) {
+        sseService.broadcast({ type: 'coal_refill_updated', station: 'hookah_maker', requestId: orderId, status: 'COMPLETED' }, restaurantId);
+        sseService.broadcast({ type: 'server_call_updated', requestId: orderId, status: 'COMPLETED' }, restaurantId);
+      }
+      return res.status(200).json({ success: true, message: 'Service request completed' });
+    } catch (e: any) {
+      return res.status(500).json({ success: false, message: e.message || 'Could not complete request' });
+    }
+  }
+
   const found = await findUnifiedOrder(orderId, restaurantId);
 
   if (!found) {
