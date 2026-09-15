@@ -95,6 +95,8 @@ function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
   const cat = String(item.category || item.category_id || '').toLowerCase().trim();
   const name = String(item.name || (item.item && item.item.name) || (item.flavor && typeof item.flavor === 'object' ? item.flavor.name : item.flavor) || '').toLowerCase().trim();
 
+  const emoji = String(item.emoji || (item.item && item.item.emoji) || '').trim();
+
   // 1. Explicit Hookah Classification
   if (
     cat === 'hookah' || 
@@ -105,6 +107,7 @@ function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
     item.flavor !== undefined ||
     item.iceHose !== undefined ||
     item.iceBase !== undefined ||
+    emoji === '💨' || emoji === '🧪' ||
     name.includes('hookah') ||
     name.includes('shisha') ||
     name.includes('anarkali') ||
@@ -129,7 +132,69 @@ function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
     return 'hookah';
   }
 
-  // 2. Explicit Food Overrides (desserts, appetizers, dosas, biryanis, tandoori, curries, breads, indo-chinese)
+  // 2. Explicit Drinks / Beverages Classification (PRIORITIZED BEFORE FOOD)
+  if (
+    cat === 'drinks' || 
+    cat === 'beverages' || 
+    cat === 'cat_beverages' || 
+    cat === 'soft_drinks' ||
+    cat === 'cat_soft_drinks' ||
+    cat === 'drinks_soft' ||
+    cat === 'cat_drinks_soft' ||
+    cat.includes('drink') || 
+    cat.includes('beverage') || 
+    cat.includes('soft') ||
+    cat.includes('coffee') || 
+    cat.includes('tea') || 
+    cat.includes('bar') ||
+    cat.includes('juice') ||
+    cat.includes('refresher') ||
+    cat.includes('soda') ||
+    emoji === '🥤' || emoji === '🍹' || emoji === '🍸' || emoji === '☕' || emoji === '🍺' || emoji === '🍷' ||
+    name.includes('coca-cola') ||
+    name.includes('coca cola') ||
+    name.includes('coca') ||
+    name.includes('cola') ||
+    name.includes('coke') ||
+    name.includes('pepsi') ||
+    name.includes('sprite') ||
+    name.includes('fanta') ||
+    name.includes('ginger ale') ||
+    name.includes('dr pepper') ||
+    name.includes('dr. pepper') ||
+    name.includes('pepper') ||
+    name.includes('soda') ||
+    name.includes('soft drink') ||
+    name.includes('mojito') ||
+    name.includes('margarita') ||
+    name.includes('juice') ||
+    name.includes('shake') ||
+    name.includes('lassi') ||
+    name.includes('chai') ||
+    name.includes('tea') ||
+    name.includes('coffee') ||
+    name.includes('latte') ||
+    name.includes('espresso') ||
+    name.includes('cappuccino') ||
+    name.includes('red bull') ||
+    name.includes('saratoga') ||
+    name.includes('water') ||
+    name.includes('colada') ||
+    name.includes('lemonade') ||
+    name.includes('smoothie') ||
+    name.includes('beer') ||
+    name.includes('wine') ||
+    name.includes('cocktail') ||
+    name.includes('mocktail') ||
+    name.includes('secret') ||
+    name.includes('affair') ||
+    name.includes('melon') ||
+    name.includes('karak')
+  ) {
+    return 'drinks';
+  }
+
+  // 3. Explicit Food Overrides (desserts, appetizers, dosas, biryanis, tandoori, curries, breads, indo-chinese)
   if (
     cat.includes('food') ||
     cat.includes('appetizer') ||
@@ -222,52 +287,6 @@ function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
     name.includes('sampler')
   ) {
     return 'food';
-  }
-
-  // 3. Explicit Drinks / Beverages Classification
-  if (
-    cat === 'drinks' || 
-    cat === 'beverages' || 
-    cat === 'cat_beverages' || 
-    cat.includes('drink') || 
-    cat.includes('beverage') || 
-    cat.includes('coffee') || 
-    cat.includes('tea') || 
-    cat.includes('bar') ||
-    cat.includes('juice') ||
-    cat.includes('refresher') ||
-    name.includes('mojito') ||
-    name.includes('margarita') ||
-    name.includes('juice') ||
-    name.includes('shake') ||
-    name.includes('lassi') ||
-    name.includes('chai') ||
-    name.includes('tea') ||
-    name.includes('coffee') ||
-    name.includes('latte') ||
-    name.includes('espresso') ||
-    name.includes('cappuccino') ||
-    name.includes('soda') ||
-    name.includes('coke') ||
-    name.includes('sprite') ||
-    name.includes('fanta') ||
-    name.includes('ginger ale') ||
-    name.includes('red bull') ||
-    name.includes('saratoga') ||
-    name.includes('water') ||
-    name.includes('colada') ||
-    name.includes('lemonade') ||
-    name.includes('smoothie') ||
-    name.includes('beer') ||
-    name.includes('wine') ||
-    name.includes('cocktail') ||
-    name.includes('mocktail') ||
-    name.includes('secret') ||
-    name.includes('affair') ||
-    name.includes('melon') ||
-    name.includes('karak')
-  ) {
-    return 'drinks';
   }
 
   return 'food';

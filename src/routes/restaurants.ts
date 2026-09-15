@@ -595,7 +595,13 @@ router.patch('/:id', requireAuth, requirePermission('restaurant:update'), async 
 router.get('/slug/:slug/config', async (req, res) => {
   try {
     const slug = req.params.slug as string;
-    const restaurant = await MultiTenantDbService.getRestaurantBySlug(slug);
+    let restaurant = await MultiTenantDbService.getRestaurantBySlug(slug);
+    if (!restaurant) {
+      restaurant = await MultiTenantDbService.getRestaurantByCode(slug);
+    }
+    if (!restaurant) {
+      restaurant = await MultiTenantDbService.getRestaurant(slug);
+    }
 
     if (!restaurant || !restaurant.active) {
       res.status(404).json({ success: false, error: 'Restaurant not found.' });
@@ -614,6 +620,43 @@ router.get('/slug/:slug/config', async (req, res) => {
     });
   } catch (err: any) {
     console.error('[Restaurants] Slug config error:', err);
+    res.status(500).json({ success: false, error: 'Internal server error.' });
+  }
+});
+
+/**
+ * GET /api/restaurants/code/:code/config
+ *
+ * Public config lookup by restaurant code (e.g. 4821). No auth required.
+ */
+router.get('/code/:code/config', async (req, res) => {
+  try {
+    const code = req.params.code as string;
+    let restaurant = await MultiTenantDbService.getRestaurantByCode(code);
+    if (!restaurant) {
+      restaurant = await MultiTenantDbService.getRestaurantBySlug(code);
+    }
+    if (!restaurant) {
+      restaurant = await MultiTenantDbService.getRestaurant(code);
+    }
+
+    if (!restaurant || !restaurant.active) {
+      res.status(404).json({ success: false, error: 'Restaurant not found.' });
+      return;
+    }
+
+    const config = await MultiTenantDbService.getPublicConfig(restaurant._id);
+    if (!config) {
+      res.status(404).json({ success: false, error: 'Restaurant config not found.' });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      ...config
+    });
+  } catch (err: any) {
+    console.error('[Restaurants] Code config error:', err);
     res.status(500).json({ success: false, error: 'Internal server error.' });
   }
 });

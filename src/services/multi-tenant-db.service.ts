@@ -553,13 +553,21 @@ export class MultiTenantDbService {
   static async getRestaurantBySlug(slug: string): Promise<Restaurant | null> {
     if (!slug) return null;
     const clean = slug.trim().toLowerCase();
+    const rawTrim = slug.trim();
     const searchSlugs = [clean];
     if (clean === 'cavalli') searchSlugs.push('cavali');
     if (clean === 'cavali') searchSlugs.push('cavalli');
 
     if (env.isMongoMode) {
       const db = await this.ensureReady();
-      const rest = await db.collection<any>(COLLECTIONS.restaurants).findOne({ slug: { $in: searchSlugs } });
+      const rest = await db.collection<any>(COLLECTIONS.restaurants).findOne({
+        $or: [
+          { slug: { $in: searchSlugs } },
+          { restaurant_code: rawTrim },
+          { _id: rawTrim },
+          { id: rawTrim },
+        ]
+      });
       if (!rest) return null;
       return {
         ...rest,
@@ -569,7 +577,11 @@ export class MultiTenantDbService {
     }
 
     const list = this.getCollection('restaurants');
-    return list.find(r => searchSlugs.includes(r.slug)) || null;
+    return list.find(r => 
+      searchSlugs.includes(r.slug?.toLowerCase()) || 
+      (r.restaurant_code && r.restaurant_code === rawTrim) || 
+      r._id === rawTrim
+    ) || null;
   }
 
   static async resolveRestaurantId(idOrSlug: string): Promise<string> {

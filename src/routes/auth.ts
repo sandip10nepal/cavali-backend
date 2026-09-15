@@ -684,23 +684,31 @@ router.post('/device/configure-table', async (req, res) => {
       return;
     }
 
-    // 3. Resolve or Create Table
-    const tableNumInt = parseInt(String(table_number).replace(/[^0-9]/g, ''), 10) || 1;
+    // 3. Resolve or Create Table (supports numeric and alphanumeric like "1", "P1", "VIP-2")
+    const rawTableStr = String(table_number || '').trim();
+    const cleanTableLabel = rawTableStr.replace(/^table[\s-_]*/i, '') || rawTableStr || '1';
+    const parsedNum = parseInt(cleanTableLabel.replace(/[^0-9]/g, ''), 10);
+    const tableNumInt = !isNaN(parsedNum) && parsedNum > 0 ? parsedNum : 0;
+
     const tables = await MultiTenantDbService.listTables(restaurant._id);
-    let table = tables.find(t => t.number === tableNumInt);
+    let table = tables.find(t => 
+      (t.label && t.label.toLowerCase() === `table ${cleanTableLabel}`.toLowerCase()) ||
+      (t.label && t.label.toLowerCase() === cleanTableLabel.toLowerCase()) ||
+      (tableNumInt > 0 && t.number === tableNumInt)
+    );
 
     if (!table) {
       table = await MultiTenantDbService.createTable({
         restaurant_id: restaurant._id,
-        number: tableNumInt,
-        label: `Table ${tableNumInt}`,
-        capacity: tableNumInt <= 8 ? 4 : 6,
+        number: tableNumInt || (tables.length + 1),
+        label: cleanTableLabel.toLowerCase().startsWith('table') ? cleanTableLabel : `Table ${cleanTableLabel}`,
+        capacity: 4,
         active: true,
       });
     }
 
     // 4. Register or Update Device
-    const devName = device_name || `Table ${tableNumInt} iPad`;
+    const devName = device_name || `Table ${cleanTableLabel} iPad`;
     const device = await MultiTenantDbService.registerOrUpdateDevice({
       restaurant_id: restaurant._id,
       device_name: devName,
@@ -1027,15 +1035,24 @@ router.post('/device/pair', async (req, res) => {
       return;
     }
 
-    // 3. Find or create table
+    // 3. Find or create table (supports numeric and alphanumeric like "1", "P1", "VIP-2")
+    const rawTableStr = String(table_number || '').trim();
+    const cleanTableLabel = rawTableStr.replace(/^table[\s-_]*/i, '') || rawTableStr || '1';
+    const parsedNum = parseInt(cleanTableLabel.replace(/[^0-9]/g, ''), 10);
+    const tableNumInt = !isNaN(parsedNum) && parsedNum > 0 ? parsedNum : 0;
+
     const tables = await MultiTenantDbService.listTables(restaurant._id);
-    let table = tables.find(t => t.number === table_number);
+    let table = tables.find(t => 
+      (t.label && t.label.toLowerCase() === `table ${cleanTableLabel}`.toLowerCase()) ||
+      (t.label && t.label.toLowerCase() === cleanTableLabel.toLowerCase()) ||
+      (tableNumInt > 0 && t.number === tableNumInt)
+    );
 
     if (!table) {
       table = await MultiTenantDbService.createTable({
         restaurant_id: restaurant._id,
-        number: table_number,
-        label: `Table ${table_number}`,
+        number: tableNumInt || (tables.length + 1),
+        label: cleanTableLabel.toLowerCase().startsWith('table') ? cleanTableLabel : `Table ${cleanTableLabel}`,
         capacity: 4,
         active: true,
       });

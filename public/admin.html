@@ -2218,6 +2218,7 @@
               });
             }
           } else if (isDrink) {
+            rawFood = rawFood.filter(f => (f.item?.name || f.name) !== it.name);
             const alreadyInDrinks = rawDrinks.some(d => (d.item?.name || d.name) === it.name);
             if (!alreadyInDrinks) {
               rawDrinks.push({
@@ -2242,6 +2243,14 @@
           }
         });
       }
+
+      // Ensure rawFood never contains any soft drinks or beverage items
+      rawFood = rawFood.filter(f => {
+        const fName = String(f.item?.name || f.name || '').toLowerCase();
+        const fCat = String(f.category || f.category_id || f.item?.category || '').toLowerCase();
+        const isDrink = fCat === 'drinks' || fCat === 'beverages' || fCat.includes('drink') || fCat.includes('beverage') || fCat.includes('soft') || fName.includes('cola') || fName.includes('coca') || fName.includes('coke') || fName.includes('sprite') || fName.includes('fanta') || fName.includes('ginger ale') || fName.includes('pepper') || fName.includes('soda') || fName.includes('water') || fName.includes('juice') || fName.includes('tea') || fName.includes('chai') || fName.includes('coffee') || fName.includes('red bull') || f.emoji === '🥤' || f.emoji === '🍹' || f.item?.emoji === '🥤' || f.item?.emoji === '🍹';
+        return !isDrink;
+      });
 
       const foodItems = consolidateItems(rawFood);
       const drinkItems = consolidateItems(rawDrinks);
