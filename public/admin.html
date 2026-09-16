@@ -3130,24 +3130,31 @@
       const allMenuCats = getAllMenuCategoriesList();
 
       filtered.forEach(item => {
-        const itemCatId = (activeSubCategory !== 'all')
-          ? activeSubCategory
-          : String((Array.isArray(item.category_ids) && item.category_ids.length > 0) ? item.category_ids[0] : (item.category_id || item.category || 'Menu Items'));
-        const catKey = itemCatId.toLowerCase();
+        const itemCatIds = (activeSubCategory !== 'all')
+          ? [activeSubCategory]
+          : ((Array.isArray(item.category_ids) && item.category_ids.length > 0)
+              ? item.category_ids
+              : [item.category_id || item.category || 'Menu Items']);
 
-        const matchedDbCat = allMenuCats.find(c => String(c.id || c._id || '').toLowerCase() === catKey);
+        itemCatIds.forEach(itemCatId => {
+          const catKey = String(itemCatId).toLowerCase();
+          const matchedDbCat = allMenuCats.find(c => String(c.id || c._id || '').toLowerCase() === catKey);
 
-        const subTitle = matchedDbCat ? matchedDbCat.title : (item.category || itemCatId);
-        const subIcon = matchedDbCat ? (matchedDbCat.icon || '📋') : '🍽️';
+          const subTitle = matchedDbCat ? matchedDbCat.title : (item.category || itemCatId);
+          const subIcon = matchedDbCat ? (matchedDbCat.icon || '📋') : '🍽️';
 
-        if (!subCategoryMap[catKey]) {
-          subCategoryMap[catKey] = {
-            title: `${subIcon} ${subTitle.toUpperCase()}`,
-            items: []
-          };
-        }
+          if (!subCategoryMap[catKey]) {
+            subCategoryMap[catKey] = {
+              title: `${subIcon} ${subTitle.toUpperCase()}`,
+              sort_order: matchedDbCat?.sort_order ?? 999,
+              items: []
+            };
+          }
 
-        subCategoryMap[catKey].items.push(item);
+          if (!subCategoryMap[catKey].items.some(i => (i.id || i._id) === (item.id || item._id))) {
+            subCategoryMap[catKey].items.push(item);
+          }
+        });
       });
 
       // Built-in recipes fallback dict for items with implicit recipes
@@ -3163,7 +3170,10 @@
       };
 
       let html = '';
-      Object.keys(subCategoryMap).forEach(subKey => {
+      const sortedSubKeys = Object.keys(subCategoryMap).sort((a, b) => {
+        return (subCategoryMap[a].sort_order ?? 999) - (subCategoryMap[b].sort_order ?? 999);
+      });
+      sortedSubKeys.forEach(subKey => {
         const subGroup = subCategoryMap[subKey];
         if (subGroup.items.length > 0) {
           html += `

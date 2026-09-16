@@ -2104,12 +2104,23 @@ export class MultiTenantDbService {
         { collation: { locale: 'en', strength: 2 } }
       );
       if (existing) {
+        // Merge category_ids so adding an item to a new category DOES NOT wipe its previous categories!
+        const existingCatIds = Array.isArray(existing.category_ids) && existing.category_ids.length > 0
+          ? existing.category_ids
+          : (existing.category_id ? [existing.category_id] : []);
+        const incomingCatIds = Array.isArray(item.category_ids) && item.category_ids.length > 0
+          ? item.category_ids
+          : (item.category_id ? [item.category_id] : []);
+        const mergedCatIds = Array.from(new Set([...existingCatIds, ...incomingCatIds]));
+
         await db.collection<any>(COLLECTIONS.menu_items).updateOne(
           { _id: existing._id },
           {
             $set: {
               ...item,
               _id: existing._id,
+              category_ids: mergedCatIds,
+              category_id: existing.category_id || mergedCatIds[0] || item.category_id,
               created_at: existing.created_at || now,
               updated_at: now,
             }
@@ -2118,6 +2129,8 @@ export class MultiTenantDbService {
         return {
           ...item,
           _id: existing._id,
+          category_ids: mergedCatIds,
+          category_id: existing.category_id || mergedCatIds[0] || item.category_id,
           created_at: existing.created_at || now,
           updated_at: now,
         };
@@ -2134,9 +2147,19 @@ export class MultiTenantDbService {
     const existingIdx = list.findIndex(i => i.restaurant_id === targetId && i.name.trim().toLowerCase() === item.name.toLowerCase());
     if (existingIdx !== -1) {
       const existing = list[existingIdx];
+      const existingCatIds = Array.isArray(existing.category_ids) && existing.category_ids.length > 0
+        ? existing.category_ids
+        : (existing.category_id ? [existing.category_id] : []);
+      const incomingCatIds = Array.isArray(item.category_ids) && item.category_ids.length > 0
+        ? item.category_ids
+        : (item.category_id ? [item.category_id] : []);
+      const mergedCatIds = Array.from(new Set([...existingCatIds, ...incomingCatIds]));
+
       const updated = {
         ...item,
         _id: existing._id,
+        category_ids: mergedCatIds,
+        category_id: existing.category_id || mergedCatIds[0] || item.category_id,
         created_at: existing.created_at || now,
         updated_at: now,
       };
