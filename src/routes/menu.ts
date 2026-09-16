@@ -167,7 +167,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/menu — add a new menu item (requires Manager or Owner)
 router.post('/', optionalAuth, async (req, res, next) => {
   try {
-    const { name, category, price, emoji, image_url, desc, available, sort_order, recipe, ingredient_id, ingredient_amount, authPin } = req.body;
+    const { name, category, price, emoji, image_url, desc, available, sort_order, recipe, ingredient_id, ingredient_amount, authPin, modifier_groups, modifierGroups } = req.body;
 
     const isAuth = await isAuthorizedManager(authPin || req.headers['x-admin-pin'], req);
     if (!isAuth) {
@@ -184,6 +184,7 @@ router.post('/', optionalAuth, async (req, res, next) => {
     }
 
     const parsedSortOrder = sort_order !== undefined && !isNaN(parseInt(sort_order)) ? parseInt(sort_order) : 99;
+    const parsedModifiers = Array.isArray(modifier_groups) ? modifier_groups : (Array.isArray(modifierGroups) ? modifierGroups : []);
 
     const newItem = await MenuRepository.createItem({
       restaurant_id: restaurantId,
@@ -194,7 +195,7 @@ router.post('/', optionalAuth, async (req, res, next) => {
       emoji: String(emoji || '🍽️').trim(),
       image_url: image_url ? String(image_url).trim() : null,
       available: available !== false && available !== 'false',
-      modifier_groups: [],
+      modifier_groups: parsedModifiers,
       sort_order: parsedSortOrder,
       recipe: Array.isArray(recipe) ? recipe : [],
       ingredient_id: ingredient_id ? String(ingredient_id) : undefined,
@@ -213,6 +214,9 @@ router.patch('/:id', optionalAuth, async (req, res, next) => {
   try {
     const id = String(req.params.id);
     const { authPin, ...fields } = req.body;
+    if (fields.modifierGroups && !fields.modifier_groups) {
+      fields.modifier_groups = fields.modifierGroups;
+    }
 
     const pinHeader = Array.isArray(req.headers['x-admin-pin']) ? req.headers['x-admin-pin'][0] : req.headers['x-admin-pin'];
     const isAuth = await isAuthorizedManager(authPin || pinHeader, req);

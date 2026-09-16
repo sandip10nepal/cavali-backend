@@ -2158,6 +2158,13 @@ export class MultiTenantDbService {
     if (recipe !== undefined) {
       mongoSet.recipe = recipe;
     }
+    if (update.modifier_groups !== undefined) {
+      mongoSet.modifier_groups = update.modifier_groups;
+      mongoSet.modifierGroups = update.modifier_groups;
+    } else if ((update as any).modifierGroups !== undefined) {
+      mongoSet.modifier_groups = (update as any).modifierGroups;
+      mongoSet.modifierGroups = (update as any).modifierGroups;
+    }
 
     if (env.isMongoMode) {
       const db = await this.ensureReady();

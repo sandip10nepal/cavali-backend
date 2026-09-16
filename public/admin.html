@@ -1146,6 +1146,22 @@
         <input type="text" id="menuItemImageUrl" placeholder="e.g. https://... or /images/menu/anarkali.png" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
       </div>
 
+      <!-- Choice Options & Modifiers Section (e.g. Wing Sauces, Soft Drinks, Add-ons) -->
+      <div style="background: rgba(16,185,129,0.06); border: 1.5px dashed #10B981; border-radius: 14px; padding: 14px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <div style="font-size: 12px; font-weight: 800; color: #10B981; text-transform: uppercase; letter-spacing: 0.5px;">✨ Choice Options &amp; Modifiers (e.g. Wing Sauces, Flavors)</div>
+            <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">Prompts customer with choice popup when selecting this item.</div>
+          </div>
+          <button type="button" class="btn" style="padding: 5px 12px; font-size: 11px; font-weight: 800; background: rgba(16,185,129,0.15); border: 1.5px solid #10B981; color: #10B981; border-radius: 8px;" onclick="addModifierGroupBlock()">
+            + Add Choice Group
+          </button>
+        </div>
+
+        <!-- Dynamic Modifier Groups Container -->
+        <div id="modifierGroupsContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      </div>
+
       <!-- Multi-Item Recipe Inventory Deduction Section -->
       <div style="background: rgba(229,177,58,0.06); border: 1px dashed var(--gold); border-radius: 14px; padding: 14px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -2890,6 +2906,151 @@
       return recipe;
     }
 
+    // ── MODIFIERS & CHOICE GROUPS (e.g. Wing Sauces, Soft Drinks, Add-ons) ──
+    function addModifierGroupBlock(groupData = null) {
+      const container = document.getElementById('modifierGroupsContainer');
+      if (!container) return;
+
+      const groupUid = 'grp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+      const groupId = groupData?.id || groupUid;
+      const groupName = groupData?.name || '';
+      const isRequired = groupData ? Boolean(groupData.required) : true;
+      const maxSelect = groupData?.max_selections || groupData?.maxSelect || 1;
+      const isSingle = maxSelect === 1;
+
+      const blockDiv = document.createElement('div');
+      blockDiv.className = 'modifier-group-block';
+      blockDiv.dataset.id = groupId;
+      blockDiv.style.cssText = 'background: var(--card2); border: 1.5px solid rgba(16,185,129,0.35); border-radius: 12px; padding: 14px;';
+
+      blockDiv.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: wrap;">
+          <div style="flex: 2; min-width: 180px;">
+            <label style="display: block; font-size: 10px; font-weight: 800; color: #10B981; text-transform: uppercase; margin-bottom: 3px;">Choice Group Name *</label>
+            <input type="text" class="mod-group-name" value="${groupName.replace(/"/g, '&quot;')}" placeholder="e.g. Wing Sauce, Soft Drink Flavor, Dressing" style="width: 100%; box-sizing: border-box; padding: 7px 10px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: var(--cream); font-size: 13px; font-weight: 700;">
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--cream); cursor: pointer; user-select: none;">
+              <input type="checkbox" class="mod-group-required" ${isRequired ? 'checked' : ''} style="accent-color: #10B981; cursor: pointer;">
+              Required
+            </label>
+
+            <select class="mod-group-mode" onchange="this.closest('.modifier-group-block').querySelector('.mod-max-select-box').style.display = this.value === 'multiple' ? 'block' : 'none';" style="padding: 6px 8px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: var(--cream); font-size: 11px; font-weight: 700;">
+              <option value="single" ${isSingle ? 'selected' : ''}>Single Choice (1 only)</option>
+              <option value="multiple" ${!isSingle ? 'selected' : ''}>Multi-Choice</option>
+            </select>
+
+            <div class="mod-max-select-box" style="display: ${isSingle ? 'none' : 'block'};">
+              <input type="number" class="mod-group-max" min="1" max="50" value="${maxSelect > 1 ? maxSelect : 5}" placeholder="Max" title="Max selections allowed" style="width: 50px; padding: 6px 4px; text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: var(--cream); font-size: 11px;">
+            </div>
+
+            <button type="button" class="btn btn-danger" style="padding: 5px 8px; font-size: 11px; font-weight: 800;" onclick="this.closest('.modifier-group-block').remove()" title="Delete this choice group">
+              ✕ Remove
+            </button>
+          </div>
+        </div>
+
+        <div style="margin-top: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Options &amp; Flavor Choices</span>
+            <button type="button" class="btn" style="padding: 2px 8px; font-size: 10px; font-weight: 800; background: rgba(16,185,129,0.15); border: 1px solid #10B981; color: #10B981; border-radius: 4px;" onclick="addModifierOptionRow('${groupUid}')">
+              + Add Option
+            </button>
+          </div>
+          <div id="options_container_${groupUid}" class="mod-options-container" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+      `;
+
+      container.appendChild(blockDiv);
+
+      const optionsContainer = blockDiv.querySelector(`#options_container_${groupUid}`);
+      if (groupData && Array.isArray(groupData.options) && groupData.options.length > 0) {
+        groupData.options.forEach(opt => addModifierOptionRow(groupUid, opt));
+      } else {
+        addModifierOptionRow(groupUid);
+        addModifierOptionRow(groupUid);
+      }
+    }
+
+    function addModifierOptionRow(groupUid, optData = null) {
+      const optionsContainer = document.getElementById(`options_container_${groupUid}`);
+      if (!optionsContainer) return;
+
+      const optUid = 'opt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+      const optId = optData?.id || optUid;
+      const optName = optData?.name || '';
+      const optPrice = Number(optData?.price_adjustment !== undefined ? optData.price_adjustment : (optData?.price !== undefined ? optData.price : 0));
+
+      const rowDiv = document.createElement('div');
+      rowDiv.className = 'modifier-option-row';
+      rowDiv.dataset.id = optId;
+      rowDiv.style.cssText = 'display: flex; gap: 8px; align-items: center;';
+
+      rowDiv.innerHTML = `
+        <input type="text" class="mod-opt-name" value="${optName.replace(/"/g, '&quot;')}" placeholder="Option name (e.g. Buffalo, BBQ, Garlic Parm)" style="flex: 2; padding: 6px 10px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: var(--cream); font-size: 12px;">
+        <div style="position: relative; flex: 1; max-width: 120px;">
+          <span style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 11px;">+$</span>
+          <input type="number" step="0.01" min="0" class="mod-opt-price" value="${optPrice > 0 ? optPrice.toFixed(2) : '0.00'}" placeholder="0.00" style="width: 100%; box-sizing: border-box; padding: 6px 6px 6px 24px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: var(--cream); font-size: 12px;">
+        </div>
+        <button type="button" class="btn btn-danger" style="padding: 5px 8px; font-size: 11px;" onclick="this.parentElement.remove()" title="Remove option">✕</button>
+      `;
+
+      optionsContainer.appendChild(rowDiv);
+    }
+
+    function getModifiersFromModal() {
+      const groupBlocks = document.querySelectorAll('#modifierGroupsContainer .modifier-group-block');
+      const groups = [];
+
+      groupBlocks.forEach((block, gIdx) => {
+        const nameInput = block.querySelector('.mod-group-name');
+        const groupName = nameInput ? nameInput.value.trim() : '';
+        if (!groupName) return;
+
+        const isRequired = Boolean(block.querySelector('.mod-group-required')?.checked);
+        const mode = block.querySelector('.mod-group-mode')?.value;
+        const maxInput = block.querySelector('.mod-group-max');
+        const maxSelections = mode === 'multiple' ? (parseInt(maxInput?.value) || 5) : 1;
+        const groupId = block.dataset.id || ('mod_' + gIdx + '_' + groupName.toLowerCase().replace(/[^a-z0-9]+/g, '_'));
+
+        const optionRows = block.querySelectorAll('.modifier-option-row');
+        const options = [];
+
+        optionRows.forEach((row, oIdx) => {
+          const optName = row.querySelector('.mod-opt-name')?.value.trim();
+          const optPrice = parseFloat(row.querySelector('.mod-opt-price')?.value) || 0;
+
+          if (optName) {
+            const optId = row.dataset.id || ('opt_' + oIdx + '_' + optName.toLowerCase().replace(/[^a-z0-9]+/g, '_'));
+            options.push({
+              id: optId,
+              name: optName,
+              price_adjustment: optPrice,
+              price: optPrice,
+              available: true,
+              sort_order: oIdx + 1
+            });
+          }
+        });
+
+        if (options.length > 0) {
+          groups.push({
+            id: groupId,
+            name: groupName,
+            required: isRequired,
+            min_selections: isRequired ? 1 : 0,
+            max_selections: maxSelections,
+            maxSelect: maxSelections,
+            sort_order: gIdx + 1,
+            options
+          });
+        }
+      });
+
+      return groups;
+    }
+
     function renderMenuPage() {
       renderMenuCategoryFilterBar();
       renderMenuCatalog();
@@ -3051,6 +3212,19 @@
               `;
             }
 
+            const itemMods = item.modifier_groups || item.modifierGroups || [];
+            let modBadge = '';
+            if (itemMods.length > 0) {
+              const optCount = itemMods.reduce((acc, g) => acc + (g.options ? g.options.length : 0), 0);
+              const groupNames = itemMods.map(g => g.name || 'Choice').join(', ');
+              modBadge = `
+                <div style="font-size: 11px; color: #10B981; background: rgba(16,185,129,0.08); border: 1px dashed rgba(16,185,129,0.4); border-radius: 8px; padding: 6px 10px; margin-top: 6px; margin-bottom: 4px;">
+                  <div style="font-weight: 800; font-size: 11px;">✨ ${itemMods.length} Choice Group${itemMods.length > 1 ? 's' : ''} (${optCount} options)</div>
+                  <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">${groupNames}</div>
+                </div>
+              `;
+            }
+
             const descTag = item.desc 
               ? `<p style="color: var(--muted); font-size: 12px; margin: 4px 0 8px 0; line-height: 1.4;">${item.desc}</p>`
               : '';
@@ -3158,6 +3332,7 @@
                       ${statusBadge}
                     </div>
                     ${recipeBadge}
+                    ${modBadge}
                   </div>
 
                   <div style="display: flex; gap: 6px; margin-top: 16px; flex-wrap: wrap;">
@@ -3199,6 +3374,9 @@
       const imgUrl = document.getElementById('menuItemImageUrl');
       if (imgUrl) imgUrl.value = '';
 
+      const modContainer = document.getElementById('modifierGroupsContainer');
+      if (modContainer) modContainer.innerHTML = '';
+
       const container = document.getElementById('recipeRowsContainer');
       if (container) container.innerHTML = '';
       addRecipeIngredientRow();
@@ -3227,6 +3405,13 @@
         if (desc) desc.value = item.desc || '';
         const imgUrl = document.getElementById('menuItemImageUrl');
         if (imgUrl) imgUrl.value = item.image_url || item.imageUrl || '';
+
+        const modContainer = document.getElementById('modifierGroupsContainer');
+        if (modContainer) modContainer.innerHTML = '';
+        const mods = item.modifier_groups || item.modifierGroups || [];
+        if (Array.isArray(mods) && mods.length > 0) {
+          mods.forEach(g => addModifierGroupBlock(g));
+        }
 
         const container = document.getElementById('recipeRowsContainer');
         if (container) container.innerHTML = '';
@@ -3279,6 +3464,7 @@
       const desc = document.getElementById('menuItemDesc').value.trim();
       const image_url = document.getElementById('menuItemImageUrl').value.trim();
       const recipe = getRecipeFromModal();
+      const modifier_groups = getModifiersFromModal();
 
       if (!name || isNaN(price)) {
         alert('Please fill in valid item name and price');
@@ -3301,6 +3487,7 @@
             desc,
             image_url,
             recipe,
+            modifier_groups,
             ingredient_id: recipe.length > 0 ? recipe[0].ingredientId : '',
             ingredient_amount: recipe.length > 0 ? recipe[0].amount : 0
           })
