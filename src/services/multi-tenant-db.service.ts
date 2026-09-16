@@ -288,8 +288,8 @@ export class MultiTenantDbService {
         this.db.collection<any>(COLLECTIONS.menu_categories).createIndex({ restaurant_id: 1, sort_order: 1 }),
         this.db.collection<any>(COLLECTIONS.menu_items).createIndex({ restaurant_id: 1, category_id: 1 }),
         this.db.collection<any>(COLLECTIONS.menu_items).createIndex(
-          { restaurant_id: 1, name: 1 },
-          { name: 'uniq_restaurant_item_name', unique: true, collation: { locale: 'en', strength: 2 } }
+          { restaurant_id: 1, category_id: 1, name: 1 },
+          { name: 'uniq_restaurant_cat_item_name', unique: true, collation: { locale: 'en', strength: 2 } }
         ),
         this.db.collection<any>(COLLECTIONS.orders).createIndex({ restaurant_id: 1, status: 1 }),
         this.db.collection<any>(COLLECTIONS.orders).createIndex({ restaurant_id: 1, idempotency_key: 1 }),
@@ -704,17 +704,29 @@ export class MultiTenantDbService {
               ]
             }] : []);
 
-        const sanitizedModGroups = rawModGroups.map((g: any) => {
+        const sanitizedModGroups = rawModGroups.map((g: any, gIdx: number) => {
           const isSoftDrinkGroup = (g.id === 'mod_soft_drink_choice' || (item.name && item.name.toLowerCase().includes('soft drink')));
+          const grpId = g.id || g._id || `grp_${gIdx}_${(g.name || 'mod').toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+          const isMaxOne = !isSoftDrinkGroup && (g.max_selection === 1 || g.max_selections === 1 || g.maxSelect === 1 || Boolean(g.required));
+          const maxSel = isSoftDrinkGroup ? 10 : isMaxOne ? 1 : (g.max_selection || g.max_selections || g.maxSelect || 2);
+          const isRequired = isSoftDrinkGroup ? false : Boolean(g.required);
+
           return {
             ...g,
-            max_selections: isSoftDrinkGroup ? 10 : (g.max_selections || g.maxSelect || 2),
-            maxSelect: isSoftDrinkGroup ? 10 : (g.maxSelect || g.max_selections || 2),
-            required: isSoftDrinkGroup ? false : Boolean(g.required),
-            options: (g.options || []).map((opt: any) => {
+            id: grpId,
+            name: g.name,
+            min_selection: g.min_selection !== undefined ? g.min_selection : (isRequired ? 1 : 0),
+            max_selection: maxSel,
+            max_selections: maxSel,
+            maxSelect: maxSel,
+            required: isRequired,
+            options: (g.options || []).map((opt: any, optIdx: number) => {
               const adj = Number(opt.price !== undefined ? opt.price : opt.price_adjustment !== undefined ? opt.price_adjustment : 0);
+              const optId = opt.id || opt._id || `opt_${grpId}_${optIdx}_${(opt.name || '').toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
               return {
                 ...opt,
+                id: optId,
+                name: opt.name,
                 price: adj,
                 price_adjustment: adj,
               };
@@ -2098,9 +2110,9 @@ export class MultiTenantDbService {
 
     if (env.isMongoMode) {
       const db = await this.ensureReady();
-      // Deduplication check: if item with same name exists for this restaurant, update it (upsert)
+      // Deduplication check: if item with same name exists IN THIS CATEGORY, update it (upsert)
       const existing = await db.collection<any>(COLLECTIONS.menu_items).findOne(
-        { restaurant_id: targetId, name: item.name },
+        { restaurant_id: targetId, category_id: primaryCatId, name: item.name },
         { collation: { locale: 'en', strength: 2 } }
       );
       if (existing) {
@@ -2144,7 +2156,7 @@ export class MultiTenantDbService {
     }
 
     const list = this.getCollection('menu_items');
-    const existingIdx = list.findIndex(i => i.restaurant_id === targetId && i.name.trim().toLowerCase() === item.name.toLowerCase());
+    const existingIdx = list.findIndex(i => i.restaurant_id === targetId && i.category_id === primaryCatId && i.name.trim().toLowerCase() === item.name.toLowerCase());
     if (existingIdx !== -1) {
       const existing = list[existingIdx];
       const existingCatIds = Array.isArray(existing.category_ids) && existing.category_ids.length > 0
