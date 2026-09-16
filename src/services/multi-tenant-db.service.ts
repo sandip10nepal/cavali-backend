@@ -722,11 +722,16 @@ export class MultiTenantDbService {
           };
         });
 
+        const itemCatIds = Array.isArray(item.category_ids) && item.category_ids.length > 0
+          ? item.category_ids
+          : (item.category_id ? [item.category_id] : []);
+
         return {
           _id: item._id,
           id: item._id,
           restaurant_id: item.restaurant_id,
           category_id: item.category_id,
+          category_ids: itemCatIds,
           category: superCat,
           subcategory: catTitle || superCat,
           name: item.name,
@@ -1887,20 +1892,24 @@ export class MultiTenantDbService {
         query.$or = [
           { category_id: categoryId },
           { category: categoryId },
+          { category_ids: categoryId },
           { category_id: new RegExp(`^${categoryId}$`, 'i') },
-          { category: new RegExp(`^${categoryId}$`, 'i') }
+          { category: new RegExp(`^${categoryId}$`, 'i') },
+          { category_ids: new RegExp(`^${categoryId}$`, 'i') }
         ];
       }
       const mongoDocs = await db.collection<any>(COLLECTIONS.menu_items).find(query as any).toArray();
       return mongoDocs.map(i => {
         const isHookah = (i.category === 'hookah' || String(i.category_id || '').toLowerCase().includes('hookah') || i.subcategory === 'House Mixes' || /cavalli crush|shah jahan|habibi nights|kashmiri chai|anarkali|white king|zaalim|shokha|dubai nights|dragon/i.test(i.name || ''));
         const mods = i.modifier_groups || i.modifierGroups || (isHookah ? hookahModifiers : []);
+        const itemCatIds = Array.isArray(i.category_ids) && i.category_ids.length > 0 ? i.category_ids : (i.category_id ? [i.category_id] : []);
         return {
           ...i,
           _id: (i._id as any).toString(),
           id: (i._id as any).toString(),
           restaurant_id: i.restaurant_id || targetId,
           category_id: i.category_id || i.category || '',
+          category_ids: itemCatIds,
           category: i.category_id || i.category || '',
           image_url: isHookah ? null : (i.image_url || (i as any).imageUrl || (i as any).image || null),
           imageUrl: isHookah ? null : (i.image_url || (i as any).imageUrl || (i as any).image || null),
@@ -1915,13 +1924,20 @@ export class MultiTenantDbService {
     }
 
     let items = (this.getCollection('menu_items') as MenuItemModel[]).filter(i => i.restaurant_id === targetId && i.active !== false);
-    if (categoryId) items = items.filter(i => (i.category_id || i.category || '').toLowerCase() === categoryId.toLowerCase());
+    if (categoryId) {
+      items = items.filter(i => {
+        const catIds = Array.isArray(i.category_ids) ? i.category_ids.map(c => c.toLowerCase()) : [];
+        return (i.category_id || i.category || '').toLowerCase() === categoryId.toLowerCase() || catIds.includes(categoryId.toLowerCase());
+      });
+    }
     return items.map(i => {
       const isHookah = (i.category === 'hookah' || String(i.category_id || '').toLowerCase().includes('hookah') || (i as any).subcategory === 'House Mixes' || /cavalli crush|shah jahan|habibi nights|kashmiri chai|anarkali|white king|zaalim|shokha|dubai nights|dragon/i.test(i.name || ''));
       const mods = (i as any).modifier_groups || (i as any).modifierGroups || (isHookah ? hookahModifiers : []);
+      const itemCatIds = Array.isArray(i.category_ids) && i.category_ids.length > 0 ? i.category_ids : (i.category_id ? [i.category_id] : []);
       return {
         ...i,
         category_id: i.category_id || i.category || '',
+        category_ids: itemCatIds,
         category: i.category_id || i.category || '',
         image_url: isHookah ? null : (i.image_url || (i as any).imageUrl || (i as any).image || null),
         imageUrl: isHookah ? null : (i.image_url || (i as any).imageUrl || (i as any).image || null),
@@ -1947,12 +1963,14 @@ export class MultiTenantDbService {
         active: { $ne: false }
       } as any);
       if (!item) return null;
+      const itemCatIds = Array.isArray(item.category_ids) && item.category_ids.length > 0 ? item.category_ids : (item.category_id ? [item.category_id] : []);
       return {
         ...item,
         _id: (item._id as any).toString(),
         id: (item._id as any).toString(),
         restaurant_id: item.restaurant_id || targetId,
         category_id: item.category_id || item.category || '',
+        category_ids: itemCatIds,
         category: item.category_id || item.category || '',
         image_url: item.image_url || (item as any).imageUrl || (item as any).image || null,
         desc: item.desc || item.description || '',
@@ -1964,9 +1982,11 @@ export class MultiTenantDbService {
 
     const item = (this.getCollection('menu_items') as MenuItemModel[]).find(i => (i._id === id || (i as any).id === id) && i.restaurant_id === targetId && i.active !== false);
     if (!item) return null;
+    const itemCatIds = Array.isArray(item.category_ids) && item.category_ids.length > 0 ? item.category_ids : (item.category_id ? [item.category_id] : []);
     return {
       ...item,
       category_id: item.category_id || item.category || '',
+      category_ids: itemCatIds,
       category: item.category_id || item.category || '',
       image_url: item.image_url || (item as any).imageUrl || (item as any).image || null,
       desc: item.desc || item.description || '',
@@ -2002,8 +2022,42 @@ export class MultiTenantDbService {
       )
     );
 
+    const rawCategoryIds: string[] = Array.isArray(data.category_ids) && data.category_ids.length > 0
+      ? data.category_ids
+      : (Array.isArray((data as any).categoryIds) && (data as any).categoryIds.length > 0
+          ? (data as any).categoryIds
+          : (categoryId ? [categoryId] : []));
+
+    const resolvedCatIds: string[] = [];
+    for (const rawCat of rawCategoryIds) {
+      const trimmed = String(rawCat).trim();
+      if (!trimmed) continue;
+      const lower = trimmed.toLowerCase().replace(/^cat_/, '');
+      const matched = categories.find(c =>
+        c.active !== false && (
+          c._id === trimmed ||
+          (c as any).id === trimmed ||
+          c._id.toLowerCase() === trimmed.toLowerCase() ||
+          c._id.toLowerCase() === `cat_${lower}` ||
+          (c.name && c.name.toLowerCase() === lower) ||
+          (c.title && c.title.toLowerCase() === lower)
+        )
+      );
+      const catVal = matched ? matched._id : trimmed;
+      if (!resolvedCatIds.includes(catVal)) {
+        resolvedCatIds.push(catVal);
+      }
+    }
+
+    if (!matchedCat && resolvedCatIds.length > 0) {
+      matchedCat = categories.find(c => c._id === resolvedCatIds[0] || (c as any).id === resolvedCatIds[0]);
+    }
     if (!matchedCat) {
       matchedCat = categories.find(c => c.active !== false && c.parent_id !== null) || categories[0];
+    }
+    const primaryCatId = matchedCat ? matchedCat._id : (resolvedCatIds[0] || 'CAT_MAINS');
+    if (!resolvedCatIds.includes(primaryCatId)) {
+      resolvedCatIds.unshift(primaryCatId);
     }
 
     let recipe = data.recipe;
@@ -2024,7 +2078,8 @@ export class MultiTenantDbService {
     const item: MenuItemModel = {
       _id: itemId,
       restaurant_id: targetId,
-      category_id: matchedCat ? matchedCat._id : (data.category_id || data.category || 'cat_mains'),
+      category_id: primaryCatId,
+      category_ids: resolvedCatIds,
       name: data.name.trim(),
       description: desc,
       desc: desc,
@@ -2108,10 +2163,11 @@ export class MultiTenantDbService {
     const imageUrl = update.image_url !== undefined ? update.image_url : ((update as any).imageUrl !== undefined ? (update as any).imageUrl : undefined);
     const desc = update.desc !== undefined ? update.desc : (update.description !== undefined ? update.description : undefined);
 
+    const categories = await this.listMenuCategories(targetId);
+
     let categoryId = update.category_id || (update as any).category;
     if (categoryId) {
       const targetCatId = String(categoryId).trim();
-      const categories = await this.listMenuCategories(targetId);
       const cleanCatLower = targetCatId.toLowerCase().replace(/^cat_/, '');
       const matched = categories.find(c => 
         c.active !== false && (
@@ -2125,6 +2181,34 @@ export class MultiTenantDbService {
       );
       if (matched) {
         categoryId = matched._id;
+      }
+    }
+
+    const rawUpdateCategoryIds = update.category_ids || (update as any).categoryIds;
+    let resolvedUpdateCatIds: string[] | undefined = undefined;
+    if (Array.isArray(rawUpdateCategoryIds)) {
+      resolvedUpdateCatIds = [];
+      for (const rawCat of rawUpdateCategoryIds) {
+        const trimmed = String(rawCat).trim();
+        if (!trimmed) continue;
+        const cleanLower = trimmed.toLowerCase().replace(/^cat_/, '');
+        const matched = categories.find(c => 
+          c.active !== false && (
+            c._id === trimmed || 
+            (c as any).id === trimmed || 
+            c._id.toLowerCase() === trimmed.toLowerCase() ||
+            c._id.toLowerCase() === `cat_${cleanLower}` ||
+            (c.name && c.name.toLowerCase() === cleanLower) ||
+            (c.title && c.title.toLowerCase() === cleanLower)
+          )
+        );
+        const catVal = matched ? matched._id : trimmed;
+        if (!resolvedUpdateCatIds.includes(catVal)) {
+          resolvedUpdateCatIds.push(catVal);
+        }
+      }
+      if (!categoryId && resolvedUpdateCatIds.length > 0) {
+        categoryId = resolvedUpdateCatIds[0];
       }
     }
 
@@ -2154,6 +2238,9 @@ export class MultiTenantDbService {
     if (categoryId) {
       mongoSet.category_id = categoryId;
       mongoSet.category = categoryId;
+    }
+    if (resolvedUpdateCatIds !== undefined) {
+      mongoSet.category_ids = resolvedUpdateCatIds;
     }
     if (recipe !== undefined) {
       mongoSet.recipe = recipe;

@@ -307,6 +307,7 @@ export interface MenuItemModel {
   _id: string;
   restaurant_id: string;
   category_id: string;         // MUST point to a Sub Category
+  category_ids?: string[];     // Multi-category support across all categories
   category?: string;           // Backward-compatible category link / title
   name: string;
   description?: string;

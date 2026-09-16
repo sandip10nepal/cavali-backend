@@ -93,6 +93,7 @@ router.get('/', async (req, res, next) => {
       _id: i._id,
       name: i.name,
       category_id: i.category_id,
+      category_ids: Array.isArray(i.category_ids) && i.category_ids.length > 0 ? i.category_ids : (i.category_id ? [i.category_id] : []),
       category: mapCategoryToLegacy(catMap.get(i.category_id) || i.category_id, i.name, i.desc),
       price: i.price,
       emoji: i.emoji || '🍽️',
@@ -167,7 +168,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/menu — add a new menu item (requires Manager or Owner)
 router.post('/', optionalAuth, async (req, res, next) => {
   try {
-    const { name, category, price, emoji, image_url, desc, available, sort_order, recipe, ingredient_id, ingredient_amount, authPin, modifier_groups, modifierGroups } = req.body;
+    const { name, category, category_ids, categoryIds, price, emoji, image_url, desc, available, sort_order, recipe, ingredient_id, ingredient_amount, authPin, modifier_groups, modifierGroups } = req.body;
 
     const isAuth = await isAuthorizedManager(authPin || req.headers['x-admin-pin'], req);
     if (!isAuth) {
@@ -179,7 +180,10 @@ router.post('/', optionalAuth, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
     }
 
-    if (!name || !category || price === undefined) {
+    const rawCatIds = Array.isArray(category_ids) ? category_ids : (Array.isArray(categoryIds) ? categoryIds : (category ? [category] : []));
+    const primaryCategory = category || (rawCatIds.length > 0 ? rawCatIds[0] : '');
+
+    if (!name || (!primaryCategory && rawCatIds.length === 0) || price === undefined) {
       return res.status(400).json({ success: false, message: 'name, category, and price are required' });
     }
 
@@ -188,7 +192,8 @@ router.post('/', optionalAuth, async (req, res, next) => {
 
     const newItem = await MenuRepository.createItem({
       restaurant_id: restaurantId,
-      category_id: category,
+      category_id: primaryCategory,
+      category_ids: rawCatIds,
       name: String(name).trim(),
       price: parseFloat(Number(price).toFixed(2)),
       desc: String(desc || '').trim(),
@@ -216,6 +221,14 @@ router.patch('/:id', optionalAuth, async (req, res, next) => {
     const { authPin, ...fields } = req.body;
     if (fields.modifierGroups && !fields.modifier_groups) {
       fields.modifier_groups = fields.modifierGroups;
+    }
+    if (fields.categoryIds && !fields.category_ids) {
+      fields.category_ids = fields.categoryIds;
+    }
+    if (Array.isArray(fields.category_ids) && fields.category_ids.length > 0) {
+      if (!fields.category_id && !fields.category) {
+        fields.category_id = fields.category_ids[0];
+      }
     }
 
     const pinHeader = Array.isArray(req.headers['x-admin-pin']) ? req.headers['x-admin-pin'][0] : req.headers['x-admin-pin'];

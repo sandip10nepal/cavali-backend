@@ -1124,14 +1124,16 @@
         </div>
       </div>
 
-      <div style="margin-bottom: 12px;">
-        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Category *</label>
-        <select id="menuItemCategory" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 14px;">
-          <option value="hookah">💨 Hookah Flavors</option>
-          <option value="food">🍔 Food &amp; Mains</option>
-          <option value="beverages">🥤 Drinks &amp; Beverages</option>
-          <option value="desserts">🍰 Desserts</option>
-        </select>
+      <div style="margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Categories / Sub-Categories *</label>
+          <span id="selectedCategoriesCount" style="font-size: 11px; color: var(--gold); font-weight: 800;">0 Selected</span>
+        </div>
+        <div style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">
+          Tap any category to toggle. An item can belong to multiple categories simultaneously (e.g. Appetizers &amp; Vegetarian, Wings &amp; Mains).
+        </div>
+        <div id="menuItemCategoriesGrid" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 160px; overflow-y: auto; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px;"></div>
+        <input type="hidden" id="menuItemCategory" value="">
       </div>
 
       <!-- Description Field -->
@@ -3081,25 +3083,30 @@
         const superTitle = (activeSuperObj?.title || '').toLowerCase();
 
         filtered = filtered.filter(item => {
-          const itemCatId = String(item.category_id || '').toLowerCase();
-          const itemLegacyCat = String(item.category || '').toLowerCase();
+          const itemCatIds = (Array.isArray(item.category_ids) && item.category_ids.length > 0)
+            ? item.category_ids.map(c => String(c).toLowerCase())
+            : [String(item.category_id || item.category || '').toLowerCase()];
 
-          if (validSubCatIds.length > 0 && validSubCatIds.includes(itemCatId)) {
+          if (validSubCatIds.length > 0 && validSubCatIds.some(cid => itemCatIds.includes(cid))) {
             return true;
           }
 
-          if (superTitle.includes('food') && (itemLegacyCat === 'food' || itemCatId === 'food')) return true;
-          if ((superTitle.includes('drink') || superTitle.includes('beverage')) && (itemLegacyCat === 'drinks' || itemCatId === 'drinks')) return true;
-          if (superTitle.includes('hookah') && (itemLegacyCat === 'hookah' || itemCatId === 'hookah')) return true;
+          const itemLegacyCat = String(item.category || '').toLowerCase();
+          if (superTitle.includes('food') && (itemLegacyCat === 'food' || itemCatIds.includes('food'))) return true;
+          if ((superTitle.includes('drink') || superTitle.includes('beverage')) && (itemLegacyCat === 'drinks' || itemCatIds.includes('drinks'))) return true;
+          if (superTitle.includes('hookah') && (itemLegacyCat === 'hookah' || itemCatIds.includes('hookah'))) return true;
 
-          return validSubCatIds.includes(itemCatId);
+          return validSubCatIds.some(cid => itemCatIds.includes(cid));
         });
       }
 
       if (activeSubCategory !== 'all') {
         filtered = filtered.filter(item => {
-          const itemCatId = String(item.category_id || item.category || '').toLowerCase();
-          return itemCatId === String(activeSubCategory).toLowerCase();
+          const targetSub = String(activeSubCategory).toLowerCase();
+          const itemCatIds = (Array.isArray(item.category_ids) && item.category_ids.length > 0)
+            ? item.category_ids.map(c => String(c).toLowerCase())
+            : [String(item.category_id || item.category || '').toLowerCase()];
+          return itemCatIds.includes(targetSub);
         });
       }
 
@@ -3123,7 +3130,9 @@
       const allMenuCats = getAllMenuCategoriesList();
 
       filtered.forEach(item => {
-        const itemCatId = String(item.category_id || item.category || 'Menu Items');
+        const itemCatId = (activeSubCategory !== 'all')
+          ? activeSubCategory
+          : String((Array.isArray(item.category_ids) && item.category_ids.length > 0) ? item.category_ids[0] : (item.category_id || item.category || 'Menu Items'));
         const catKey = itemCatId.toLowerCase();
 
         const matchedDbCat = allMenuCats.find(c => String(c.id || c._id || '').toLowerCase() === catKey);
@@ -3328,7 +3337,17 @@
                     ${descTag}
                     <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:6px;">
                       ${badgeHtml}
-                      <span style="background: rgba(229,177,58,0.1); color: var(--gold); border: 1px solid var(--gold); border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase;">${(item.category || 'menu').toUpperCase()}</span>
+                      ${(() => {
+                        const itemCatIds = (Array.isArray(item.category_ids) && item.category_ids.length > 0)
+                          ? item.category_ids
+                          : [item.category_id || item.category].filter(Boolean);
+                        return itemCatIds.map(cid => {
+                          const matched = allMenuCats.find(c => String(c.id || c._id).toLowerCase() === String(cid).toLowerCase());
+                          const label = matched ? matched.title : String(cid).replace(/^CAT_/i, '').replace(/_/g, ' ');
+                          const icon = matched ? (matched.icon || '🏷️') : '🏷️';
+                          return `<span style="background: rgba(229,177,58,0.12); color: var(--gold); border: 1px solid rgba(229,177,58,0.3); border-radius: 12px; padding: 2px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase;">${icon} ${label}</span>`;
+                        }).join(' ');
+                      })()}
                       ${statusBadge}
                     </div>
                     ${recipeBadge}
@@ -3368,7 +3387,8 @@
       if (price) price.value = '';
       const emoji = document.getElementById('menuItemEmoji');
       if (emoji) emoji.value = '👑';
-      populateMenuCategoryDropdown('hookah');
+      const initialCat = (activeSubCategory && activeSubCategory !== 'all') ? activeSubCategory : 'CAT_APPETIZERS';
+      populateMenuCategorySelector([initialCat]);
       const desc = document.getElementById('menuItemDesc');
       if (desc) desc.value = '';
       const imgUrl = document.getElementById('menuItemImageUrl');
@@ -3400,7 +3420,12 @@
         if (price) price.value = item.price || '';
         const emoji = document.getElementById('menuItemEmoji');
         if (emoji) emoji.value = item.emoji || '🍽️';
-        populateMenuCategoryDropdown(item.category || item.category_id || 'hookah');
+        
+        const initialCats = (Array.isArray(item.category_ids) && item.category_ids.length > 0)
+          ? item.category_ids
+          : [item.category_id || item.category || 'CAT_APPETIZERS'];
+        populateMenuCategorySelector(initialCats);
+
         const desc = document.getElementById('menuItemDesc');
         if (desc) desc.value = item.desc || '';
         const imgUrl = document.getElementById('menuItemImageUrl');
@@ -3460,7 +3485,8 @@
       const name = document.getElementById('menuItemName').value.trim();
       const price = parseFloat(document.getElementById('menuItemPrice').value);
       const emoji = document.getElementById('menuItemEmoji').value.trim() || '🍽️';
-      const category = document.getElementById('menuItemCategory').value;
+      const category_ids = getSelectedMenuItemCategories();
+      const primaryCategory = category_ids[0] || document.getElementById('menuItemCategory').value || 'cat_mains';
       const desc = document.getElementById('menuItemDesc').value.trim();
       const image_url = document.getElementById('menuItemImageUrl').value.trim();
       const recipe = getRecipeFromModal();
@@ -3468,6 +3494,10 @@
 
       if (!name || isNaN(price)) {
         alert('Please fill in valid item name and price');
+        return;
+      }
+      if (category_ids.length === 0 && !primaryCategory) {
+        alert('Please select at least one category for this menu item');
         return;
       }
 
@@ -3483,7 +3513,8 @@
             name,
             price,
             emoji,
-            category,
+            category: primaryCategory,
+            category_ids: category_ids.length > 0 ? category_ids : [primaryCategory],
             desc,
             image_url,
             recipe,
@@ -4177,23 +4208,147 @@
       select.innerHTML = html;
     }
 
-    function populateMenuCategoryDropdown(selectedVal = 'hookah') {
-      const select = document.getElementById('menuItemCategory');
-      if (!select) return;
+    let selectedMenuItemCategoriesSet = new Set();
 
+    function populateMenuCategorySelector(selectedVals = []) {
+      const grid = document.getElementById('menuItemCategoriesGrid');
+      const countEl = document.getElementById('selectedCategoriesCount');
+      const hiddenCat = document.getElementById('menuItemCategory');
+      if (!grid) return;
+
+      selectedMenuItemCategoriesSet.clear();
+      const initialArr = Array.isArray(selectedVals) ? selectedVals : (selectedVals ? [selectedVals] : []);
+      
       const allCats = getAllMenuCategoriesList();
+      const supers = getSuperCategoriesList();
+
+      initialArr.forEach(rawVal => {
+        if (!rawVal) return;
+        const lower = String(rawVal).toLowerCase();
+        const matched = allCats.find(c => 
+          String(c.id || c._id).toLowerCase() === lower || 
+          (c.title || '').toLowerCase() === lower ||
+          String(c.id || c._id).toLowerCase().replace(/^cat_/, '') === lower.replace(/^cat_/, '')
+        );
+        if (matched) {
+          selectedMenuItemCategoriesSet.add(matched.id || matched._id);
+        } else {
+          selectedMenuItemCategoriesSet.add(rawVal);
+        }
+      });
+
+      function updateCategorySelectorUI() {
+        const count = selectedMenuItemCategoriesSet.size;
+        if (countEl) {
+          countEl.innerText = `${count} Selected`;
+          countEl.style.color = count > 0 ? '#10B981' : 'var(--danger)';
+        }
+        if (hiddenCat) {
+          hiddenCat.value = Array.from(selectedMenuItemCategoriesSet)[0] || '';
+        }
+
+        const pills = grid.querySelectorAll('.cat-select-pill');
+        pills.forEach(pill => {
+          const catId = pill.dataset.catId;
+          const isSelected = selectedMenuItemCategoriesSet.has(catId);
+          if (isSelected) {
+            pill.style.background = 'rgba(16, 185, 129, 0.2)';
+            pill.style.borderColor = '#10B981';
+            pill.style.color = '#10B981';
+            const check = pill.querySelector('.cat-check');
+            if (check) {
+              check.innerText = '✓';
+              check.style.color = '#10B981';
+            }
+          } else {
+            pill.style.background = 'var(--card)';
+            pill.style.borderColor = 'var(--line)';
+            pill.style.color = 'var(--cream)';
+            const check = pill.querySelector('.cat-check');
+            if (check) {
+              check.innerText = '+';
+              check.style.color = 'var(--muted)';
+            }
+          }
+        });
+      }
+
       let html = '';
       allCats.forEach(cat => {
-        const val = cat.id || cat._id || cat.title;
-        const isSel = (selectedVal.toLowerCase() === val.toLowerCase() || selectedVal.toLowerCase() === (cat.title || '').toLowerCase()) ? 'selected' : '';
-        html += `<option value="${val}" ${isSel}>${cat.icon || '📋'} ${cat.title}</option>`;
+        const id = cat.id || cat._id;
+        const title = cat.title || 'Category';
+        const icon = cat.icon || '📋';
+        const parentSuper = supers.find(s => s.id === cat.parent_id);
+        const parentLabel = parentSuper ? parentSuper.title : '';
+
+        html += `
+          <button type="button" class="cat-select-pill" data-cat-id="${id}" onclick="toggleMenuItemCategory('${id}')" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--line); background: var(--card); color: var(--cream);">
+            <span class="cat-check" style="font-size: 13px; font-weight: 900; color: var(--muted); width: 12px; text-align: center;">+</span>
+            <span>${icon} ${title}</span>
+            ${parentLabel ? `<span style="font-size: 9px; opacity: 0.6; text-transform: uppercase;">(${parentLabel})</span>` : ''}
+          </button>
+        `;
       });
 
       if (!html) {
-        html = '<option value="hookah">💨 Hookah & Shisha</option><option value="food">🍔 Food & Dining</option><option value="drinks">🍹 Beverages & Drinks</option>';
+        html = '<div style="color: var(--muted); font-size: 12px; padding: 8px;">No categories configured yet.</div>';
       }
 
-      select.innerHTML = html;
+      grid.innerHTML = html;
+      updateCategorySelectorUI();
+    }
+
+    function toggleMenuItemCategory(catId) {
+      if (selectedMenuItemCategoriesSet.has(catId)) {
+        selectedMenuItemCategoriesSet.delete(catId);
+      } else {
+        selectedMenuItemCategoriesSet.add(catId);
+      }
+      const countEl = document.getElementById('selectedCategoriesCount');
+      const hiddenCat = document.getElementById('menuItemCategory');
+      const grid = document.getElementById('menuItemCategoriesGrid');
+      if (countEl) {
+        const count = selectedMenuItemCategoriesSet.size;
+        countEl.innerText = `${count} Selected`;
+        countEl.style.color = count > 0 ? '#10B981' : 'var(--danger)';
+      }
+      if (hiddenCat) {
+        hiddenCat.value = Array.from(selectedMenuItemCategoriesSet)[0] || '';
+      }
+      if (grid) {
+        const pills = grid.querySelectorAll('.cat-select-pill');
+        pills.forEach(pill => {
+          const pId = pill.dataset.catId;
+          const isSelected = selectedMenuItemCategoriesSet.has(pId);
+          if (isSelected) {
+            pill.style.background = 'rgba(16, 185, 129, 0.2)';
+            pill.style.borderColor = '#10B981';
+            pill.style.color = '#10B981';
+            const check = pill.querySelector('.cat-check');
+            if (check) {
+              check.innerText = '✓';
+              check.style.color = '#10B981';
+            }
+          } else {
+            pill.style.background = 'var(--card)';
+            pill.style.borderColor = 'var(--line)';
+            pill.style.color = 'var(--cream)';
+            const check = pill.querySelector('.cat-check');
+            if (check) {
+              check.innerText = '+';
+              check.style.color = 'var(--muted)';
+            }
+          }
+        });
+      }
+    }
+
+    function getSelectedMenuItemCategories() {
+      return Array.from(selectedMenuItemCategoriesSet);
+    }
+
+    function populateMenuCategoryDropdown(selectedVal = 'hookah') {
+      populateMenuCategorySelector(selectedVal ? [selectedVal] : []);
     }
 
     function openAddSuperCategoryModal() {
