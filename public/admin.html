@@ -4624,52 +4624,6 @@
       populateInventoryCategoryDropdowns();
     }
 
-    // ── REAL-TIME SSE STREAM & PARALLEL DATA FETCH DIRECT FROM CLOUD RUN & MONGODB ──
-    async function loadData() {
-      try {
-        const headers = getAuthHeaders();
-        const storedVenueName = localStorage.getItem('benzin_restaurant_name');
-        const nameEl = document.getElementById('currentRestaurantName');
-        if (storedVenueName && nameEl) {
-          nameEl.innerText = storedVenueName;
-        }
-
-        const restCode = localStorage.getItem('benzin_restaurant_code');
-        if (restCode) {
-          fetch(`${API_URL}/api/auth/staff-roster`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ restaurant_code: restCode })
-          }).then(r => r.json()).then(data => {
-            if (data.success && data.restaurant) {
-              localStorage.setItem('benzin_restaurant_name', data.restaurant.name);
-              if (nameEl) nameEl.innerText = data.restaurant.name;
-            }
-          }).catch(_ => {});
-        }
-
-        // Run ALL 5 API endpoints concurrently in parallel directly from Cloud Run & MongoDB Atlas
-        const results = await Promise.allSettled([
-          fetchMenuCategories(),
-          fetchInventoryCategories(),
-          loadMenuItems(),
-          fetch(`${API_URL}/api/orders`, { headers }).then(r => r.json()),
-          fetch(`${API_URL}/api/orders/inventory`, { headers }).then(r => r.json())
-        ]);
-
-        if (results[3].status === 'fulfilled' && results[3].value.success) {
-          orders = results[3].value.orders || [];
-          renderOrders();
-        }
-
-        if (results[4].status === 'fulfilled' && results[4].value.success) {
-          inventory = results[4].value.inventory || results[4].value.rawMaterials || {};
-          renderInventoryPage();
-        }
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-      }
-    }
 
     function renderInventoryCategoryTabs() {
       const container = document.getElementById('inventoryCategoryTabs');
@@ -4877,6 +4831,62 @@
       }
     }
 
+    // ── LIGHTWEIGHT REAL-TIME ORDER SYNCHRONIZATION ──
+    let isFetchingOrders = false;
+    async function fetchOrders(silent = true) {
+      if (isFetchingOrders) return;
+      isFetchingOrders = true;
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/orders?_t=${Date.now()}`, {
+          headers,
+          cache: 'no-store'
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.orders)) {
+            const incomingOrders = data.orders;
+            const existingIdSet = new Set(orders.map(o => o.id || o._id));
+
+            // Detect newly placed unfulfilled tickets
+            const hasNewUnfulfilled = incomingOrders.some(o => 
+              !existingIdSet.has(o.id || o._id) && 
+              o.status !== 'fulfilled' && 
+              o.status !== 'completed' && 
+              !o.closedSession
+            );
+
+            // Fast structural change comparison
+            const serializeState = (arr) => arr.map(o => `${o.id || o._id}:${o.status}:${o.paymentStatus}:${(o.fulfilledDepartments || []).join(',')}`).join('|');
+            const stateChanged = incomingOrders.length !== orders.length || serializeState(incomingOrders) !== serializeState(orders);
+
+            if (stateChanged || orders.length === 0) {
+              orders = incomingOrders;
+              renderOrders();
+
+              if (hasNewUnfulfilled && silent) {
+                playOrderChime();
+              }
+            }
+          }
+        }
+      } catch (err) {
+        if (!silent) console.error('Error fetching live orders:', err);
+      } finally {
+        isFetchingOrders = false;
+      }
+    }
+
+    function playOrderChime() {
+      try {
+        const chime = document.getElementById('orderChime');
+        if (chime) {
+          chime.currentTime = 0;
+          chime.play().catch(e => console.log('Autoplay audio policy notice:', e.message));
+        }
+      } catch (_) {}
+    }
+
     // ── REAL-TIME SSE STREAM & INITIAL DATA FETCH ──
     async function loadData() {
       try {
@@ -4907,16 +4917,10 @@
           loadMenuItems()
         ]);
 
-        const [ordersRes, invRes] = await Promise.all([
-          fetch(`${API_URL}/api/orders`, { headers }),
+        const [_, invRes] = await Promise.all([
+          fetchOrders(false),
           fetch(`${API_URL}/api/orders/inventory`, { headers })
         ]);
-
-        const ordersData = await ordersRes.json();
-        if (ordersData.success) {
-          orders = ordersData.orders || [];
-          renderOrders();
-        }
 
         const invData = await invRes.json();
         if (invData.success) {
@@ -4934,6 +4938,7 @@
     function connectSSE() {
       if (sseEventSource) {
         try { sseEventSource.close(); } catch (e) {}
+        sseEventSource = null;
       }
 
       const token = localStorage.getItem('benzin_jwt_token') || '';
@@ -4944,7 +4949,16 @@
       if (token) sseUrl += `&token=${encodeURIComponent(token)}`;
 
       console.log('📡 [SSE] Connecting to live order stream:', sseUrl);
-      sseEventSource = new EventSource(sseUrl);
+      try {
+        sseEventSource = new EventSource(sseUrl);
+      } catch (err) {
+        console.warn('⚠️ [SSE] Could not initialize EventSource:', err);
+        return;
+      }
+
+      sseEventSource.onopen = function() {
+        console.log('✅ [SSE] Real-time stream connected');
+      };
 
       sseEventSource.onmessage = function(event) {
         try {
@@ -4956,12 +4970,23 @@
           if (data.type === 'archive_cleared') {
             orders = orders.filter(o => o.status !== 'fulfilled' && o.status !== 'completed' && !o.closedSession);
             renderOrders();
-            loadData();
+            fetchOrders(true);
             return;
           }
 
-          if (
-            data.id || 
+          // Immediate optimistic merge into local ticket array for instant rendering
+          const incomingOrder = data.order || (data.items || data.food || data.drinks || data.hookahs ? data : null);
+          if (incomingOrder && (incomingOrder.id || incomingOrder._id)) {
+            const incId = incomingOrder.id || incomingOrder._id;
+            const existingIdx = orders.findIndex(o => (o.id || o._id) === incId);
+            if (existingIdx >= 0) {
+              orders[existingIdx] = { ...orders[existingIdx], ...incomingOrder };
+            } else {
+              orders.unshift(incomingOrder);
+              playOrderChime();
+            }
+            renderOrders();
+          } else if (
             data.type === 'order_created' || 
             data.type === 'new_order' || 
             data.type === 'order_updated' || 
@@ -4970,11 +4995,14 @@
             data.type === 'coal_refill_request' ||
             data.type === 'coal_refill_updated'
           ) {
-            const chime = document.getElementById('orderChime');
-            if (chime) chime.play().catch(e => console.log('Autoplay audio blocked by browser policy.'));
+            playOrderChime();
           }
 
-          loadData();
+          // Concurrently trigger background fetch to ensure authoritative persistence
+          fetchOrders(true);
+          if (data.type === 'coal_refill_request' || data.type === 'coal_refill_updated' || data.type === 'server_call') {
+            loadServiceRequests();
+          }
         } catch (err) {
           console.warn('Error processing SSE event:', err);
         }
@@ -4983,6 +5011,7 @@
       sseEventSource.onerror = function() {
         console.warn('⚠️ [SSE] Connection lost. Reconnecting in 3 seconds...');
         try { sseEventSource.close(); } catch (e) {}
+        sseEventSource = null;
         setTimeout(connectSSE, 3000);
       };
     }
@@ -5011,13 +5040,11 @@
     // ── INITIALIZATION BOOTSTRAP ──
     document.addEventListener('DOMContentLoaded', async () => {
       initTenantFromUrl();
-      const savedCode = localStorage.getItem('benzin_restaurant_code');
+      const savedCode = localStorage.getItem('benzin_restaurant_code') || '4821';
       const codeInput = document.getElementById('loginVenueCode');
       if (codeInput && savedCode) codeInput.value = savedCode;
 
-      if (savedCode && savedCode !== '4821') {
-        await verifyRestaurantVenue();
-      }
+      await verifyRestaurantVenue();
 
       const savedTheme = localStorage.getItem('benzin_theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
@@ -5034,6 +5061,38 @@
       await loadData();
       await loadMenuItems();
       connectSSE();
+
+      // Automated background order synchronization loop (every 3 seconds)
+      setInterval(() => {
+        fetchOrders(true);
+      }, 3000);
+
+      // Instant refresh when user returns to tab / unlocks screen
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          fetchOrders(true);
+          if (!sseEventSource || sseEventSource.readyState === EventSource.CLOSED) {
+            connectSSE();
+          }
+        }
+      });
+
+      // Unlock browser audio policy on first user interaction anywhere on page
+      const unlockAudio = () => {
+        const chime = document.getElementById('orderChime');
+        if (chime) {
+          chime.play().then(() => {
+            chime.pause();
+            chime.currentTime = 0;
+          }).catch(() => {});
+        }
+        window.removeEventListener('click', unlockAudio);
+        window.removeEventListener('keydown', unlockAudio);
+        window.removeEventListener('touchstart', unlockAudio);
+      };
+      window.addEventListener('click', unlockAudio, { once: true });
+      window.addEventListener('keydown', unlockAudio, { once: true });
+      window.addEventListener('touchstart', unlockAudio, { once: true });
 
       setInterval(() => {
         if (isUserClockedIn) {

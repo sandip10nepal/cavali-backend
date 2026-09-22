@@ -707,7 +707,15 @@ router.post('/', async (req, res) => {
     }
 
     // Broadcast the new order to KDS in real-time
-    sseService.broadcast(newOrder, restaurantId);
+    const broadcastEvent = {
+      type: 'order_created',
+      id: newOrder.id || newOrder._id,
+      orderId: newOrder.id || newOrder._id,
+      restaurant_id: restaurantId,
+      order: newOrder,
+      ...newOrder,
+    };
+    sseService.broadcast(broadcastEvent, restaurantId);
 
     res.status(201).json({
       success: true,

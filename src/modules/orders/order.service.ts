@@ -82,13 +82,23 @@ export class OrderService {
     eventBus.publish(createOrderCreatedEvent(created, restaurantId));
 
     // Broadcast to KDS / station clients
+    const formattedOrder = {
+      ...created,
+      id: created._id,
+      _id: created._id,
+      table: (created as any).table_id || (created as any).table || '1',
+      customerName: (created as any).customer_name || (created as any).customerName || 'Guest',
+      customerPhone: (created as any).customer_phone || (created as any).customerPhone || '',
+      grandTotal: (created as any).grand_total || (created as any).grandTotal || created.total || 0,
+    };
+
     const broadcastEvent = {
       type: 'order_created',
       id: created._id,
       orderId: created._id,
       restaurant_id: restaurantId,
-      order: created,
-      ...created,
+      order: formattedOrder,
+      ...formattedOrder,
     };
     sseService.broadcast(broadcastEvent, restaurantId);
 
