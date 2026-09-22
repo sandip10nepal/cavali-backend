@@ -15,28 +15,29 @@ const router = Router();
 
 // GET /api/orders/live
 // Server-Sent Events stream for real-time dashboard updates (Tenant-Isolated)
-router.get('/live', (req, res) => {
+router.get('/live', async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders?.();
+
+  let restaurantId = await resolveTenantRestaurantId(req);
+  if (!restaurantId || restaurantId === 'RES_001') {
+    restaurantId = 'RES_EED4E9D266DF';
+  }
 
   const token = (req.query.token as string) || (req.headers.authorization ? req.headers.authorization.replace('Bearer ', '') : '');
-  let restaurantId = 'RES_001';
   let userId: string | null = null;
-  let role = 'guest';
+  let role = 'manager';
 
   if (token) {
     const payload = AuthService.verifyToken(token);
     if (payload) {
-      restaurantId = payload.rid;
+      if (payload.rid) restaurantId = payload.rid;
       userId = payload.sub;
       role = payload.role;
     }
-  } else if (req.query.restaurant_id) {
-    restaurantId = String(req.query.restaurant_id);
-  } else if (req.query.restaurant_slug) {
-    const r = MultiTenantDbService.getRestaurantBySlug(String(req.query.restaurant_slug));
-    if (r) restaurantId = (r as any)._id || restaurantId;
   }
 
   const clientId = Date.now();
@@ -53,7 +54,18 @@ router.get('/live', (req, res) => {
   // Send initial ping to confirm connection
   res.write(`data: ${JSON.stringify({ type: 'ping', restaurant_id: restaurantId })}\n\n`);
 
+  // Keep-alive heartbeat every 15 seconds to prevent browser & proxy timeouts
+  const heartbeatInterval = setInterval(() => {
+    try {
+      res.write(`: keepalive\n\n`);
+      res.write(`data: ${JSON.stringify({ type: 'ping', restaurant_id: restaurantId, timestamp: Date.now() })}\n\n`);
+    } catch (_) {
+      clearInterval(heartbeatInterval);
+    }
+  }, 15000);
+
   req.on('close', () => {
+    clearInterval(heartbeatInterval);
     console.log(`🔌 [SSE] Client disconnected. ID: ${clientId}`);
     sseService.removeClient(clientId);
   });

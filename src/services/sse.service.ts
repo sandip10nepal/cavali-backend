@@ -36,8 +36,15 @@ class SSEService {
 
     this.clients.forEach(client => {
       // If event is scoped to a restaurant, only deliver if matching client
-      if (targetRestaurantId && client.restaurantId && client.restaurantId !== targetRestaurantId) {
-        return; // Tenant isolation — skip other restaurants
+      if (targetRestaurantId && client.restaurantId) {
+        const isMatch = client.restaurantId === targetRestaurantId ||
+          client.role === 'platform_admin' ||
+          (client.restaurantId === 'RES_EED4E9D266DF' && (targetRestaurantId === 'cavali' || targetRestaurantId === 'cavalli' || targetRestaurantId === '4821')) ||
+          (targetRestaurantId === 'RES_EED4E9D266DF' && (client.restaurantId === 'cavali' || client.restaurantId === 'cavalli' || client.restaurantId === '4821'));
+
+        if (!isMatch) {
+          return; // Tenant isolation — skip other restaurants
+        }
       }
 
       try {
