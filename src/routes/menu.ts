@@ -78,6 +78,7 @@ async function isAuthorizedManager(authPin?: any, req?: any): Promise<boolean> {
 // GET /api/menu — list all menu items for the target tenant
 router.get('/', async (req, res, next) => {
   try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     const restaurantId = await resolveTenantRestaurantId(req);
     if (!restaurantId) {
       return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
@@ -242,14 +243,55 @@ router.patch('/:id', optionalAuth, async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
     }
 
+    if (fields.available !== undefined) {
+      fields.available = Boolean(fields.available);
+      fields.is_available = fields.available;
+    }
+
     const updated = await MenuRepository.updateItem(id, restaurantId, fields);
 
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Menu item not found' });
     }
 
-    sseService.broadcast({ type: 'menu_update', action: 'update', menuItemId: id }, restaurantId);
+    sseService.broadcast({ 
+      type: 'menu_update', 
+      action: 'update', 
+      menuItemId: id, 
+      available: fields.available,
+      restaurant_id: restaurantId 
+    }, restaurantId);
     res.json({ success: true, menuItem: fields });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/menu/:id/availability — dedicated fast toggle for item availability
+router.patch('/:id/availability', optionalAuth, async (req, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const { available } = req.body;
+    if (available === undefined) {
+      return res.status(400).json({ success: false, message: 'available field is required' });
+    }
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
+    const isAvail = Boolean(available);
+    const updated = await MenuRepository.updateItem(id, restaurantId, { available: isAvail });
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Menu item not found' });
+    }
+    sseService.broadcast({ 
+      type: 'menu_update', 
+      action: 'availability', 
+      menuItemId: id, 
+      available: isAvail,
+      restaurant_id: restaurantId 
+    }, restaurantId);
+    res.json({ success: true, available: isAvail });
   } catch (err) {
     next(err);
   }

@@ -1544,10 +1544,10 @@
       const headers = { 'Content-Type': 'application/json' };
       const token = localStorage.getItem('benzin_jwt_token');
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const restId = localStorage.getItem('benzin_restaurant_id');
-      const restCode = localStorage.getItem('benzin_restaurant_code');
-      if (restId) headers['x-restaurant-id'] = restId;
-      if (restCode) headers['x-restaurant-code'] = restCode;
+      const restId = localStorage.getItem('benzin_restaurant_id') || 'RES_EED4E9D266DF';
+      const restCode = localStorage.getItem('benzin_restaurant_code') || '4821';
+      headers['x-restaurant-id'] = restId;
+      headers['x-restaurant-code'] = restCode;
       return headers;
     }
 
@@ -2837,7 +2837,8 @@
     async function loadMenuItems() {
       try {
         const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/api/menu`, { headers });
+        headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+        const res = await fetch(`${API_URL}/api/menu?_t=${Date.now()}`, { headers, cache: 'no-store' });
         const data = await res.json();
         if (data.success) {
           menuItems = data.menuItems || data.items || [];
@@ -3472,20 +3473,46 @@
     }
 
     async function toggleMenuItemStatus(itemId, newAvailableState) {
+      const itemIdx = (menuItems || []).findIndex(i => String(i.id || i._id).toLowerCase() === String(itemId).toLowerCase());
+      const originalAvailable = itemIdx >= 0 ? menuItems[itemIdx].available : !newAvailableState;
+
+      // Optimistic instant UI update
+      if (itemIdx >= 0) {
+        menuItems[itemIdx].available = newAvailableState;
+        menuItems[itemIdx].is_available = newAvailableState;
+        renderMenuPage();
+      }
+
       try {
         const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/api/menu/${itemId}`, {
+        const restId = localStorage.getItem('benzin_restaurant_id') || 'RES_EED4E9D266DF';
+        const res = await fetch(`${API_URL}/api/menu/${encodeURIComponent(itemId)}?_t=${Date.now()}`, {
           method: 'PATCH',
           headers,
-          body: JSON.stringify({ available: newAvailableState })
+          body: JSON.stringify({ 
+            available: newAvailableState,
+            restaurant_id: restId 
+          })
         });
         const data = await res.json();
         if (data.success) {
           await loadMenuItems();
         } else {
-          alert('Could not update status: ' + (data.message || 'Error'));
+          // Revert optimistic update on failure
+          if (itemIdx >= 0) {
+            menuItems[itemIdx].available = originalAvailable;
+            menuItems[itemIdx].is_available = originalAvailable;
+            renderMenuPage();
+          }
+          alert('Could not update status: ' + (data.message || data.error || 'Error'));
         }
       } catch (err) {
+        // Revert optimistic update on error
+        if (itemIdx >= 0) {
+          menuItems[itemIdx].available = originalAvailable;
+          menuItems[itemIdx].is_available = originalAvailable;
+          renderMenuPage();
+        }
         alert('Network error updating item status: ' + err.message);
       }
     }

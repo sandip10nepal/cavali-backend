@@ -677,7 +677,7 @@ export class MultiTenantDbService {
         sort_order: c.sort_order ?? 0,
         active: c.active !== false,
       })).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
-      menu_items: menuItems.filter(i => i.active !== false).map(item => {
+      menu_items: menuItems.filter(i => i.active !== false && i.available !== false && (i as any).is_available !== false).map(item => {
         const cat = categories.find(c => c._id === item.category_id || (c as any).id === item.category_id);
         const catTitle = cat?.name || cat?.title || item.category_id || '';
         const catLower = (catTitle + ' ' + (item.category_id || '')).toLowerCase();
@@ -2288,10 +2288,26 @@ export class MultiTenantDbService {
       mongoSet.modifierGroups = (update as any).modifierGroups;
     }
 
+    if (update.available !== undefined) {
+      const isAvail = Boolean(update.available);
+      mongoSet.available = isAvail;
+      mongoSet.is_available = isAvail;
+      mongoSet.status = isAvail ? 'active' : 'disabled';
+    }
+
     if (env.isMongoMode) {
       const db = await this.ensureReady();
+      const safeIdRegex = new RegExp(`^${id.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}$`, 'i');
       const res = await db.collection<any>(COLLECTIONS.menu_items).updateOne(
-        { $or: [{ _id: id }, { id: id }], restaurant_id: targetId } as any,
+        { 
+          $or: [
+            { _id: id }, 
+            { id: id },
+            { _id: safeIdRegex },
+            { id: safeIdRegex }
+          ], 
+          restaurant_id: targetId 
+        } as any,
         { $set: mongoSet }
       );
       // Explicit check: matchedCount === 0 means item does not exist for this restaurant
@@ -2299,7 +2315,12 @@ export class MultiTenantDbService {
     }
 
     const list = this.getCollection('menu_items') as MenuItemModel[];
-    let idx = list.findIndex(i => (i._id === id || (i as any).id === id) && i.restaurant_id === targetId && i.active !== false);
+    let idx = list.findIndex(i => (
+      i._id === id || 
+      (i as any).id === id || 
+      String(i._id).toLowerCase() === String(id).toLowerCase() || 
+      String((i as any).id).toLowerCase() === String(id).toLowerCase()
+    ) && i.restaurant_id === targetId && i.active !== false);
     if (idx === -1) {
       return false;
     }
