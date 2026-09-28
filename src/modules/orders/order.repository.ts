@@ -60,6 +60,12 @@ export class OrderRepository {
       accepted_at: orderData.accepted_at || null,
       completed_at: orderData.completed_at || null,
       idempotencyKey: orderData.idempotencyKey || orderData.idempotency_key || null,
+      customer_nickname: orderData.customer_nickname || orderData.customerNickname || orderData.nickname || orderData.customer_name || orderData.customerName || 'Guest',
+      customerNickname: orderData.customer_nickname || orderData.customerNickname || orderData.nickname || orderData.customer_name || orderData.customerName || 'Guest',
+      tracking_token_hash: orderData.tracking_token_hash || orderData.trackingTokenHash || null,
+      trackingTokenHash: orderData.tracking_token_hash || orderData.trackingTokenHash || null,
+      tracking_expires_at: orderData.tracking_expires_at || orderData.trackingExpiresAt || null,
+      trackingExpiresAt: orderData.tracking_expires_at || orderData.trackingExpiresAt || null,
     };
 
     return await MultiTenantDbService.createOrder(payload as any);

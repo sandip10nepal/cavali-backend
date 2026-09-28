@@ -13,6 +13,7 @@ import { AppError, NotFoundError, ValidationError } from '../../core/errors';
 
 import { eventBus } from '../../events/event-bus';
 import { createOrderCreatedEvent, createOrderFulfilledEvent } from './order.events';
+import crypto from 'crypto';
 
 export class OrderService {
   /**
@@ -45,6 +46,12 @@ export class OrderService {
     const tipAmount = Number(orderData.tipAmount) || 0;
     const grandTotal = parseFloat((totalVal + taxAmount + tipAmount - discountAmount).toFixed(2));
 
+    const rawTrackingToken = orderData.trackingToken || orderData.tracking_token || ('trk_' + crypto.randomBytes(24).toString('hex'));
+    const trackingTokenHash = crypto.createHash('sha256').update(rawTrackingToken).digest('hex');
+    const nowMs = Date.now();
+    const trackingExpiresAt = new Date(nowMs + 2 * 60 * 60 * 1000).toISOString();
+    const nickname = String(orderData.customerNickname || orderData.customer_nickname || orderData.nickname || orderData.customerName || orderData.customer_name || 'Guest').trim();
+
     const payload = {
       ...orderData,
       _id: `cav-${Date.now()}`,
@@ -63,9 +70,18 @@ export class OrderService {
       totalDue: orderData.totalDue !== undefined ? Number(orderData.totalDue) : grandTotal,
       totalPaid: Number(orderData.totalPaid) || 0,
       createdAt: new Date().toISOString(),
+      customer_nickname: nickname,
+      customerNickname: nickname,
+      tracking_token_hash: trackingTokenHash,
+      trackingTokenHash: trackingTokenHash,
+      tracking_expires_at: trackingExpiresAt,
+      trackingExpiresAt: trackingExpiresAt,
     };
 
     const created = await OrderRepository.create(payload);
+    (created as any).trackingToken = rawTrackingToken;
+    (created as any).trackingExpiresAt = trackingExpiresAt;
+    (created as any).customerNickname = nickname;
 
     // Toast POS forwarding
     try {

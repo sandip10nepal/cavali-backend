@@ -78,4 +78,10 @@ export interface Order {
   fulfilledDepartments?: string[];
   taxExempt?: boolean;
   closedSession?: boolean;
+  customer_nickname?: string;
+  customerNickname?: string;
+  tracking_token_hash?: string;
+  trackingTokenHash?: string;
+  tracking_expires_at?: string;
+  trackingExpiresAt?: string;
 }

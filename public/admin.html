@@ -2346,9 +2346,9 @@
           <div class="ticket-header">
             <div>
               <div class="ticket-title">Table ${order.table || '?'} <span style="font-size:12px; color:var(--muted);">#${displayId}</span></div>
-              <div class="ticket-meta">👤 ${order.customerName || 'Guest'} • 🕒 ${timeStr}</div>
+              <div class="ticket-meta">👤 ${order.customerNickname || order.customerName || 'Guest'} • 🕒 ${timeStr}</div>
             </div>
-            <span class="ticket-badge ${isFulfilledOrder ? 'badge-fulfilled' : 'badge-pending'}">${isFulfilledOrder ? 'FULFILLED' : 'PENDING'}</span>
+            <span class="ticket-badge ${isFulfilledOrder ? 'badge-fulfilled' : order.status === 'ready' ? 'badge-ready' : order.status === 'preparing' ? 'badge-preparing' : 'badge-pending'}">${(order.status || 'PENDING').toUpperCase()}</span>
           </div>
           <div style="margin-bottom:6px; display:flex; gap:4px; flex-wrap:wrap; align-items:center;">
             ${readinessBadges}
@@ -2361,9 +2361,13 @@
             <span style="font-weight:900; color:${isFullyPaid ? 'var(--success)' : 'var(--gold)'};">$${totalDue.toFixed(2)}</span>
           </div>
           <div class="ticket-actions">
-            ${!isFulfilledOrder ? `<button class="btn btn-primary" onclick="fulfillOrder('${orderId}')" style="background:var(--success); border-color:var(--success); font-weight:800;"><i data-lucide="check-circle" style="width:14px;height:14px;"></i> Fulfill</button>` : ''}
-            <button class="btn" style="background:rgba(229,177,58,0.15); border-color:var(--gold); color:var(--gold); font-weight:800;" onclick="openCollectCashModal('${orderId}', ${grandTotal}, ${totalPaid}, ${totalDue})">💵 Pay Cash</button>
-            <button class="btn" onclick="printTicket('${orderId}')"><i data-lucide="printer" style="width:14px;height:14px;"></i> Print</button>
+            ${!isFulfilledOrder ? `
+              <button class="btn" onclick="updateOrderStatus('${orderId}', 'preparing')" style="background:rgba(59,130,246,0.15); border-color:#3B82F6; color:#60A5FA; font-weight:800; font-size:11px; padding:4px 8px;">👨‍🍳 Prep</button>
+              <button class="btn" onclick="updateOrderStatus('${orderId}', 'ready')" style="background:rgba(245,158,11,0.15); border-color:#F59E0B; color:#FBBF24; font-weight:800; font-size:11px; padding:4px 8px;">🔔 Ready</button>
+              <button class="btn btn-primary" onclick="fulfillOrder('${orderId}')" style="background:var(--success); border-color:var(--success); font-weight:800; font-size:11px; padding:4px 8px;"><i data-lucide="check-circle" style="width:13px;height:13px;"></i> Serve</button>
+            ` : ''}
+            <button class="btn" style="background:rgba(229,177,58,0.15); border-color:var(--gold); color:var(--gold); font-weight:800; font-size:11px; padding:4px 8px;" onclick="openCollectCashModal('${orderId}', ${grandTotal}, ${totalPaid}, ${totalDue})">💵 Pay Cash</button>
+            <button class="btn" style="font-size:11px; padding:4px 8px;" onclick="printTicket('${orderId}')"><i data-lucide="printer" style="width:13px;height:13px;"></i> Print</button>
           </div>
         </div>
       `;
@@ -2428,6 +2432,25 @@
         }
       } catch (err) {
         alert('Error fulfilling order: ' + err.message);
+      }
+    }
+
+    async function updateOrderStatus(orderId, status) {
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/orders/${orderId}/status`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (data.success) {
+          await loadData();
+        } else {
+          alert('Could not update order status: ' + (data.message || data.error || 'Error'));
+        }
+      } catch (err) {
+        alert('Error updating order status: ' + err.message);
       }
     }
 

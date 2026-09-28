@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import crypto from 'crypto';
 import { ToastService } from '../services/toast.service';
 import { MultiTenantDbService } from '../services/multi-tenant-db.service';
 import { RecipeService } from '../services/recipe.service';
@@ -14,7 +15,7 @@ import { PaymentRepository } from '../modules/payments/payment.repository';
 const router = Router();
 
 // GET /api/orders/live
-// Server-Sent Events stream for real-time dashboard updates (Tenant-Isolated)
+// Server-Sent Events stream for real-time dashboard updates (Tenant-Isolated & Customer-Scoped)
 router.get('/live', async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -40,6 +41,37 @@ router.get('/live', async (req, res) => {
     }
   }
 
+  // Check for customer tracking capability token & orderId
+  const trackingToken = (req.query.tracking_token as string) || (req.query.trackingToken as string) || (req.headers['x-tracking-token'] as string) || '';
+  const trackingOrderId = (req.query.order_id as string) || (req.query.orderId as string) || '';
+  let trackingExpiresAt: string | null = null;
+  let isCustomerTracking = false;
+
+  if (trackingToken && trackingOrderId) {
+    const orderRecord = await OrderRepository.findById(trackingOrderId, restaurantId);
+    if (!orderRecord) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Order not found for tracking' })}\n\n`);
+      res.end();
+      return;
+    }
+    const expTime = new Date(orderRecord.tracking_expires_at || orderRecord.trackingExpiresAt).getTime();
+    if (Date.now() > expTime) {
+      res.write(`data: ${JSON.stringify({ type: 'tracking_expired', orderId: trackingOrderId, message: 'Tracking access expired (2-hour limit reached)', expired: true })}\n\n`);
+      res.end();
+      return;
+    }
+    const tokenHash = crypto.createHash('sha256').update(trackingToken).digest('hex');
+    const storedHash = orderRecord.tracking_token_hash || orderRecord.trackingTokenHash;
+    if (!storedHash || storedHash !== tokenHash) {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Invalid tracking capability token' })}\n\n`);
+      res.end();
+      return;
+    }
+    isCustomerTracking = true;
+    trackingExpiresAt = orderRecord.tracking_expires_at || orderRecord.trackingExpiresAt;
+    role = 'customer_tracking';
+  }
+
   const clientId = Date.now();
   sseService.addClient({
     id: clientId,
@@ -47,16 +79,26 @@ router.get('/live', async (req, res) => {
     res,
     role,
     userId,
+    trackingOrderId: isCustomerTracking ? trackingOrderId : null,
+    trackingExpiresAt,
   });
 
-  console.log(`🔌 [SSE] New client connected for restaurant [${restaurantId}]. ID: ${clientId} (Total: ${sseService.getClientCount()})`);
+  console.log(`🔌 [SSE] New client connected for restaurant [${restaurantId}] (${role}${isCustomerTracking ? ` - Order: ${trackingOrderId}` : ''}). ID: ${clientId} (Total: ${sseService.getClientCount()})`);
 
   // Send initial ping to confirm connection
-  res.write(`data: ${JSON.stringify({ type: 'ping', restaurant_id: restaurantId })}\n\n`);
+  res.write(`data: ${JSON.stringify({ type: 'ping', restaurant_id: restaurantId, orderId: trackingOrderId || undefined })}\n\n`);
 
   // Keep-alive heartbeat every 15 seconds to prevent browser & proxy timeouts
   const heartbeatInterval = setInterval(() => {
     try {
+      // Enforce 2-hour expiration during heartbeat
+      if (trackingExpiresAt && Date.now() > new Date(trackingExpiresAt).getTime()) {
+        res.write(`data: ${JSON.stringify({ type: 'tracking_expired', orderId: trackingOrderId, message: 'Tracking access expired (2-hour limit reached)' })}\n\n`);
+        res.end();
+        clearInterval(heartbeatInterval);
+        sseService.removeClient(clientId);
+        return;
+      }
       res.write(`: keepalive\n\n`);
       res.write(`data: ${JSON.stringify({ type: 'ping', restaurant_id: restaurantId, timestamp: Date.now() })}\n\n`);
     } catch (_) {
@@ -429,6 +471,10 @@ function mapOrderForClient(o: any): any {
     requestType: o.requestType || o.request_type || null,
     note: o.notes || o.note || '',
     fulfilledDepartments: o.fulfilledDepartments || [],
+    customerNickname: o.customer_nickname || o.customerNickname || o.customer_name || o.customerName || 'Guest',
+    customer_nickname: o.customer_nickname || o.customerNickname || o.customer_name || o.customerName || 'Guest',
+    trackingExpiresAt: o.tracking_expires_at || o.trackingExpiresAt || null,
+    tracking_expires_at: o.tracking_expires_at || o.trackingExpiresAt || null,
   };
 }
 
@@ -453,6 +499,232 @@ async function updateUnifiedOrder(orderId: string, updateFields: any, restaurant
 async function deleteUnifiedOrder(orderId: string, restaurantId?: string | null): Promise<boolean> {
   return await OrderRepository.delete(orderId, restaurantId || undefined);
 }
+
+// ── CUSTOMER ORDER TRACKING ENDPOINTS ──────────────────────────────────────
+
+// GET /api/orders/:orderId/track
+// Read-only customer tracking endpoint guarded by cryptographic capability token & 2-hour expiration
+router.get('/:orderId/track', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const restaurantId = await resolveTenantRestaurantId(req);
+    const trackingToken = (req.headers['x-tracking-token'] as string) || (req.query.token as string) || (req.query.tracking_token as string) || '';
+
+    if (!trackingToken) {
+      return res.status(401).json({ success: false, error: 'Tracking capability token required' });
+    }
+
+    const found = await findUnifiedOrder(orderId, restaurantId);
+    if (!found || !found.order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    const order = found.order;
+    const expiresAt = order.tracking_expires_at || order.trackingExpiresAt;
+    if (expiresAt && Date.now() > new Date(expiresAt).getTime()) {
+      return res.status(410).json({
+        success: false,
+        error: 'Tracking access for this order has expired (2-hour limit reached).',
+        expired: true
+      });
+    }
+
+    const storedHash = order.tracking_token_hash || order.trackingTokenHash;
+    const tokenHash = crypto.createHash('sha256').update(trackingToken).digest('hex');
+    if (!storedHash || storedHash !== tokenHash) {
+      return res.status(403).json({ success: false, error: 'Unauthorized tracking capability' });
+    }
+
+    const clientOrder = mapOrderForClient(order);
+    const expiresInSeconds = expiresAt ? Math.max(0, Math.round((new Date(expiresAt).getTime() - Date.now()) / 1000)) : 7200;
+
+    return res.status(200).json({
+      success: true,
+      order: {
+        id: clientOrder.id,
+        orderId: clientOrder.id,
+        customerNickname: order.customer_nickname || order.customerNickname || clientOrder.customerName || 'Guest',
+        table: clientOrder.table,
+        status: clientOrder.status || 'pending',
+        fulfilledDepartments: clientOrder.fulfilledDepartments || [],
+        hookahs: clientOrder.hookahs || [],
+        food: clientOrder.food || [],
+        drinks: clientOrder.drinks || [],
+        items: (clientOrder.items || []).map((it: any) => ({
+          name: it.name,
+          qty: it.qty || 1,
+          category: it.category || 'food',
+          notes: it.notes || it.note || '',
+          price: it.price || 0,
+        })),
+        total: clientOrder.total,
+        grandTotal: clientOrder.grandTotal,
+        taxAmount: clientOrder.taxAmount,
+        gratuityAmount: clientOrder.gratuityAmount,
+        paymentStatus: clientOrder.paymentStatus,
+        createdAt: clientOrder.createdAt,
+        trackingExpiresAt: expiresAt,
+        expiresInSeconds,
+      }
+    });
+  } catch (err: any) {
+    console.error('Error in /api/orders/:orderId/track:', err);
+    return res.status(500).json({ success: false, error: 'Failed to retrieve tracking status' });
+  }
+});
+
+// POST /api/orders/lookup-tracking
+// Safe customer lookup (Case B): requires Order Nickname + Order ID or Token
+router.post('/lookup-tracking', async (req, res) => {
+  try {
+    const restaurantId = (await resolveTenantRestaurantId(req)) || req.body.restaurant_id || req.body.restaurantId;
+    const { nickname, orderId, table, trackingToken } = req.body;
+
+    if (!nickname || (!orderId && !trackingToken)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Order nickname and Order ID/Code are required'
+      });
+    }
+
+    const targetOrderId = orderId || null;
+    if (!targetOrderId) {
+      return res.status(400).json({ success: false, error: 'Order ID is required for lookup' });
+    }
+
+    const found = await findUnifiedOrder(targetOrderId, restaurantId);
+    if (!found || !found.order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    const order = found.order;
+    const expiresAt = order.tracking_expires_at || order.trackingExpiresAt;
+    if (expiresAt && Date.now() > new Date(expiresAt).getTime()) {
+      return res.status(410).json({
+        success: false,
+        error: 'Tracking access for this order has expired (2-hour limit reached).',
+        expired: true
+      });
+    }
+
+    // Verify nickname (case-insensitive)
+    const orderNick = String(order.customer_nickname || order.customerNickname || order.customer_name || order.customerName || '').toLowerCase().trim();
+    const inputNick = String(nickname).toLowerCase().trim();
+    if (orderNick !== inputNick) {
+      return res.status(403).json({ success: false, error: 'Order details do not match' });
+    }
+
+    // Verify table if provided
+    if (table) {
+      const orderTable = String(order.table_id || order.table || '').replace(/^table\s*/i, '').trim().toLowerCase();
+      const inputTable = String(table).replace(/^table\s*/i, '').trim().toLowerCase();
+      if (orderTable && inputTable && orderTable !== inputTable) {
+        return res.status(403).json({ success: false, error: 'Order details do not match' });
+      }
+    }
+
+    // Provide or verify valid capability token
+    let capabilityToken = trackingToken;
+    const storedHash = order.tracking_token_hash || order.trackingTokenHash;
+    if (!capabilityToken || (storedHash && crypto.createHash('sha256').update(capabilityToken).digest('hex') !== storedHash)) {
+      // Issue new capability token since credentials matched
+      capabilityToken = 'trk_' + crypto.randomBytes(24).toString('hex');
+      const tokenHash = crypto.createHash('sha256').update(capabilityToken).digest('hex');
+      await updateUnifiedOrder(order._id || order.id, {
+        tracking_token_hash: tokenHash,
+        trackingTokenHash: tokenHash
+      }, restaurantId);
+    }
+
+    const clientOrder = mapOrderForClient(order);
+    const expiresInSeconds = expiresAt ? Math.max(0, Math.round((new Date(expiresAt).getTime() - Date.now()) / 1000)) : 7200;
+
+    return res.status(200).json({
+      success: true,
+      trackingToken: capabilityToken,
+      trackingExpiresAt: expiresAt,
+      orderId: clientOrder.id,
+      order: {
+        id: clientOrder.id,
+        orderId: clientOrder.id,
+        customerNickname: order.customer_nickname || order.customerNickname || clientOrder.customerName || 'Guest',
+        table: clientOrder.table,
+        status: clientOrder.status || 'pending',
+        fulfilledDepartments: clientOrder.fulfilledDepartments || [],
+        hookahs: clientOrder.hookahs || [],
+        food: clientOrder.food || [],
+        drinks: clientOrder.drinks || [],
+        items: clientOrder.items || [],
+        total: clientOrder.total,
+        grandTotal: clientOrder.grandTotal,
+        createdAt: clientOrder.createdAt,
+        trackingExpiresAt: expiresAt,
+        expiresInSeconds,
+      }
+    });
+  } catch (err: any) {
+    console.error('Error in /api/orders/lookup-tracking:', err);
+    return res.status(500).json({ success: false, error: 'Lookup failed' });
+  }
+});
+
+// POST /api/orders/:orderId/status
+// Staff & KDS status transition endpoint (e.g. accepted -> preparing -> ready -> served)
+router.post('/:orderId/status', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status, department } = req.body;
+    const restaurantId = await resolveTenantRestaurantId(req);
+
+    if (!status) {
+      return res.status(400).json({ success: false, message: 'Status is required' });
+    }
+
+    const found = await findUnifiedOrder(orderId, restaurantId);
+    if (!found || !found.order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const updateFields: any = {
+      status,
+      updated_at: new Date().toISOString()
+    };
+    if (status === 'preparing' && !found.order.accepted_at) {
+      updateFields.accepted_at = new Date().toISOString();
+    }
+    if (status === 'fulfilled' || status === 'served' || status === 'completed') {
+      updateFields.completed_at = new Date().toISOString();
+    }
+
+    const updated = await updateUnifiedOrder(orderId, updateFields, restaurantId);
+    const clientOrder = mapOrderForClient(updated);
+
+    // Broadcast status change event over SSE
+    sseService.broadcast({
+      type: 'order_status_changed',
+      orderId,
+      status,
+      department: department || null,
+      order: clientOrder
+    }, restaurantId || undefined);
+
+    // Also broadcast order_updated for legacy KDS compatibility
+    sseService.broadcast({
+      type: status === 'fulfilled' ? 'order_fulfilled' : 'order_updated',
+      orderId,
+      order: clientOrder
+    }, restaurantId || undefined);
+
+    return res.status(200).json({
+      success: true,
+      message: `Order status updated to ${status}`,
+      order: clientOrder
+    });
+  } catch (err: any) {
+    console.error('Error updating order status:', err);
+    return res.status(500).json({ success: false, message: 'Failed to update order status' });
+  }
+});
 
 // GET /api/orders
 // Returns orders stored in persistent DB scoped strictly to the caller's role station
@@ -529,7 +801,18 @@ router.post('/', async (req, res) => {
     if (idempotencyKey) {
       const existingOrder = await OrderService.createOrder(restaurantId, orderPayload, String(idempotencyKey));
       if (existingOrder) {
-        return res.status(200).json({ success: true, order: mapOrderForClient(existingOrder), message: 'Returned idempotent order' });
+        const clientOrder = mapOrderForClient(existingOrder);
+        const expAt = existingOrder.tracking_expires_at || existingOrder.trackingExpiresAt;
+        const nick = existingOrder.customer_nickname || existingOrder.customerNickname || clientOrder.customerName || 'Guest';
+        return res.status(200).json({
+          success: true,
+          order: clientOrder,
+          orderId: clientOrder.id,
+          trackingToken: (existingOrder as any).trackingToken || null,
+          trackingExpiresAt: expAt,
+          customerNickname: nick,
+          message: 'Returned idempotent order'
+        });
       }
     }
 
@@ -655,8 +938,20 @@ router.post('/', async (req, res) => {
       });
     }
 
+    const rawTrackingToken = orderPayload.trackingToken || orderPayload.tracking_token || ('trk_' + crypto.randomBytes(24).toString('hex'));
+    const trackingTokenHash = crypto.createHash('sha256').update(rawTrackingToken).digest('hex');
+    const nowMs = Date.now();
+    const trackingExpiresAt = new Date(nowMs + 2 * 60 * 60 * 1000).toISOString();
+    const customerNickname = String(orderPayload.customerNickname || orderPayload.customer_nickname || orderPayload.nickname || orderPayload.customerName || orderPayload.customer_name || 'Guest').trim();
+
     const orderPayloadToSave = {
       ...orderPayload,
+      customer_nickname: customerNickname,
+      customerNickname,
+      tracking_token_hash: trackingTokenHash,
+      trackingTokenHash,
+      tracking_expires_at: trackingExpiresAt,
+      trackingExpiresAt,
       hookahs: sanitizedHookahs,
       drinks: sanitizedDrinks,
       items: sanitizedItems,
@@ -720,6 +1015,10 @@ router.post('/', async (req, res) => {
     res.status(201).json({
       success: true,
       order: newOrder,
+      orderId: newOrder.id || newOrder._id,
+      trackingToken: rawTrackingToken,
+      trackingExpiresAt,
+      customerNickname,
       message: toastResult.success ? 'Order received & sent to POS' : 'Order received, POS call failed'
     });
 

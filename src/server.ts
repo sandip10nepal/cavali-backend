@@ -29,6 +29,11 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 /*                    API ROUTES                                               */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 app.use('/api/orders', ordersRouter);
+// Legacy SSE compatibility alias -> forwards to /api/orders/live
+app.get('/api/sse', (req, res, next) => {
+  req.url = '/live';
+  return ordersRouter(req, res, next);
+});
 app.use('/api/service-requests', serviceRequestsRouter);
 app.use('/api/payment-sessions', paymentsRouter);
 app.use('/api/employees', employeesRouter);
