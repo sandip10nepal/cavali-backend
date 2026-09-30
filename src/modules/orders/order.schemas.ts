@@ -23,12 +23,16 @@ export const CreateOrderSchema = z.object({
   drinks: z.array(z.any()).optional().default([]),
   hookahs: z.array(z.any()).optional().default([]),
   total: z.number().min(0),
+  subtotal: z.number().min(0).optional(),
+  grandTotal: z.number().min(0).optional(),
+  gratuityAmount: z.number().min(0).optional(),
+  taxAmount: z.number().min(0).optional(),
   taxExempt: z.boolean().optional().default(false),
   discountAmount: z.number().min(0).optional().default(0),
   tipAmount: z.number().min(0).optional().default(0),
   paymentStatus: z.enum(['unpaid', 'paid', 'partially_paid', 'refunded']).optional().default('unpaid'),
   paymentMethod: z.enum(['CASH', 'SQUARE', 'CARD', 'TAB']).optional().default('CASH'),
-});
+}).passthrough();
 
 export const FulfillOrderSchema = z.object({
   orderId: z.string().min(1),

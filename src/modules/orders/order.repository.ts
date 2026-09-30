@@ -25,31 +25,76 @@ export class OrderRepository {
     if (Array.isArray(orderData.drinks)) rawItems.push(...orderData.drinks);
     if (Array.isArray(orderData.hookahs)) rawItems.push(...orderData.hookahs);
 
-    const subtotal = Number(orderData.subtotal || orderData.total || 0);
-    const taxAmount = Number(orderData.tax_amount || orderData.taxAmount || 0);
-    const gratuityAmount = Number(orderData.gratuity_amount || orderData.gratuityAmount || orderData.tip_amount || orderData.tipAmount || 0);
-    const tipAmount = Number(orderData.tip_amount || orderData.tipAmount || gratuityAmount || 0);
-    const discountAmount = Number(orderData.discount_amount || orderData.discountAmount || 0);
-    const grandTotal = Number(orderData.grand_total || orderData.grandTotal || (subtotal + taxAmount + gratuityAmount - discountAmount));
+    let rawItemSubtotal = 0;
+    if (rawItems.length > 0) {
+      rawItemSubtotal = rawItems.reduce((acc, it) => {
+        const p = Number(it.price !== undefined ? it.price : (it.item && it.item.price !== undefined ? it.item.price : 0)) || 0;
+        const q = Number(it.qty || it.quantity || 1) || 1;
+        const mods = Array.isArray(it.modifiers) ? it.modifiers : (it.selectedModifiers || []);
+        const modTotal = Array.isArray(mods) ? mods.reduce((mAcc: number, m: any) => mAcc + (Number(m.price || m.price_adjustment || 0) || 0), 0) : 0;
+        return acc + (p + modTotal) * q;
+      }, 0);
+    }
+
+    const subtotal = parseFloat(Number(orderData.subtotal !== undefined
+      ? orderData.subtotal
+      : (rawItemSubtotal > 0 ? rawItemSubtotal : (orderData.total || 0))).toFixed(2));
+    const isTaxExempt = Boolean(orderData.taxExempt);
+    const taxAmount = isTaxExempt
+      ? 0
+      : parseFloat(Number(orderData.tax_amount !== undefined
+          ? orderData.tax_amount
+          : (orderData.taxAmount !== undefined ? orderData.taxAmount : (subtotal * 0.0825))).toFixed(2));
+    const gratuityAmount = parseFloat(Number(orderData.gratuity_amount !== undefined
+      ? orderData.gratuity_amount
+      : (orderData.gratuityAmount !== undefined
+          ? orderData.gratuityAmount
+          : (orderData.tip_amount !== undefined
+              ? orderData.tip_amount
+              : (orderData.tipAmount !== undefined ? orderData.tipAmount : (subtotal * 0.18))))).toFixed(2));
+    const tipAmount = parseFloat(Number(orderData.tip_amount !== undefined
+      ? orderData.tip_amount
+      : (orderData.tipAmount !== undefined ? orderData.tipAmount : gratuityAmount)).toFixed(2));
+    const discountAmount = parseFloat(Number(orderData.discount_amount !== undefined
+      ? orderData.discount_amount
+      : (orderData.discountAmount || 0)).toFixed(2));
+    const grandTotal = parseFloat(Number(orderData.grand_total !== undefined
+      ? orderData.grand_total
+      : (orderData.grandTotal !== undefined
+          ? orderData.grandTotal
+          : (subtotal + taxAmount + gratuityAmount - discountAmount))).toFixed(2));
+    const totalPaid = parseFloat(Number(orderData.totalPaid || (orderData.payment_status === 'paid' || orderData.paymentStatus === 'paid' ? grandTotal : 0)).toFixed(2));
+    const totalDue = orderData.totalDue !== undefined
+      ? parseFloat(Number(orderData.totalDue).toFixed(2))
+      : Math.max(0, parseFloat((grandTotal - totalPaid).toFixed(2)));
 
     const payload = {
       _id: orderData._id || orderData.id || `cav-${Date.now()}`,
       restaurant_id: restaurantId,
       table_id: String(orderData.table_id || orderData.table || '1'),
+      table: String(orderData.table_id || orderData.table || '1'),
       device_id: orderData.device_id || 'dev-local',
       session_id: orderData.session_id || orderData.sessionId || `ses-${Date.now()}`,
       customer_name: orderData.customer_name || orderData.customerName || orderData.name || 'Guest',
       customer_phone: orderData.customer_phone || orderData.customerPhone || orderData.phone || '',
       items: rawItems,
+      hookahs: orderData.hookahs || [],
+      food: orderData.food || [],
+      drinks: orderData.drinks || [],
       subtotal,
+      total: subtotal,
       tax_amount: taxAmount,
+      taxAmount,
       gratuity_amount: gratuityAmount,
       gratuityAmount,
       tip_amount: tipAmount,
+      tipAmount,
       discount_amount: discountAmount,
+      discountAmount,
       grand_total: grandTotal,
-      totalPaid: Number(orderData.totalPaid || 0),
-      totalDue: orderData.totalDue !== undefined ? Number(orderData.totalDue) : grandTotal,
+      grandTotal,
+      totalPaid,
+      totalDue,
       status: (orderData.status as OrderStatus) || 'pending',
       payment_method: orderData.payment_method || orderData.paymentMethod || 'cash',
       payment_status: orderData.payment_status || orderData.paymentStatus || 'unpaid',
@@ -60,6 +105,7 @@ export class OrderRepository {
       accepted_at: orderData.accepted_at || null,
       completed_at: orderData.completed_at || null,
       idempotencyKey: orderData.idempotencyKey || orderData.idempotency_key || null,
+      idempotency_key: orderData.idempotencyKey || orderData.idempotency_key || null,
       customer_nickname: orderData.customer_nickname || orderData.customerNickname || orderData.nickname || orderData.customer_name || orderData.customerName || 'Guest',
       customerNickname: orderData.customer_nickname || orderData.customerNickname || orderData.nickname || orderData.customer_name || orderData.customerName || 'Guest',
       tracking_token_hash: orderData.tracking_token_hash || orderData.trackingTokenHash || null,

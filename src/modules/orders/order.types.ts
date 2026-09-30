@@ -84,4 +84,24 @@ export interface Order {
   trackingTokenHash?: string;
   tracking_expires_at?: string;
   trackingExpiresAt?: string;
+  // Dollar-denominated financial fields
+  subtotal?: number;
+  total?: number;
+  tax_amount?: number;
+  taxAmount?: number;
+  gratuity_amount?: number;
+  gratuityAmount?: number;
+  tip_amount?: number;
+  tipAmount?: number;
+  discount_amount?: number;
+  discountAmount?: number;
+  grand_total?: number;
+  grandTotal?: number;
+  total_paid?: number;
+  totalPaid?: number;
+  total_due?: number;
+  totalDue?: number;
+  hookahs?: any[];
+  food?: any[];
+  drinks?: any[];
 }

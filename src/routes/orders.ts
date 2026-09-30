@@ -557,10 +557,14 @@ router.get('/:orderId/track', async (req, res) => {
           notes: it.notes || it.note || '',
           price: it.price || 0,
         })),
-        total: clientOrder.total,
+        subtotal: clientOrder.subtotal,
+        total: clientOrder.subtotal,
         grandTotal: clientOrder.grandTotal,
         taxAmount: clientOrder.taxAmount,
         gratuityAmount: clientOrder.gratuityAmount,
+        tipAmount: clientOrder.tipAmount,
+        totalPaid: clientOrder.totalPaid,
+        totalDue: clientOrder.totalDue,
         paymentStatus: clientOrder.paymentStatus,
         createdAt: clientOrder.createdAt,
         trackingExpiresAt: expiresAt,
@@ -655,8 +659,15 @@ router.post('/lookup-tracking', async (req, res) => {
         food: clientOrder.food || [],
         drinks: clientOrder.drinks || [],
         items: clientOrder.items || [],
-        total: clientOrder.total,
+        subtotal: clientOrder.subtotal,
+        total: clientOrder.subtotal,
         grandTotal: clientOrder.grandTotal,
+        taxAmount: clientOrder.taxAmount,
+        gratuityAmount: clientOrder.gratuityAmount,
+        tipAmount: clientOrder.tipAmount,
+        totalPaid: clientOrder.totalPaid,
+        totalDue: clientOrder.totalDue,
+        paymentStatus: clientOrder.paymentStatus,
         createdAt: clientOrder.createdAt,
         trackingExpiresAt: expiresAt,
         expiresInSeconds,
@@ -799,16 +810,17 @@ router.post('/', async (req, res) => {
     // Check Idempotency-Key header or payload to eliminate duplicate orders 100%
     const idempotencyKey = req.headers['idempotency-key'] || req.headers['x-idempotency-key'] || orderPayload?.idempotencyKey || orderPayload?.idempotency_key;
     if (idempotencyKey) {
-      const existingOrder = await OrderService.createOrder(restaurantId, orderPayload, String(idempotencyKey));
-      if (existingOrder) {
-        const clientOrder = mapOrderForClient(existingOrder);
-        const expAt = existingOrder.tracking_expires_at || existingOrder.trackingExpiresAt;
-        const nick = existingOrder.customer_nickname || existingOrder.customerNickname || clientOrder.customerName || 'Guest';
+      const existing = await OrderRepository.listByRestaurant(restaurantId);
+      const match = existing.find((o: any) => o.idempotencyKey === idempotencyKey || o.idempotency_key === idempotencyKey || o._id === idempotencyKey);
+      if (match) {
+        const clientOrder = mapOrderForClient(match);
+        const expAt = match.tracking_expires_at || match.trackingExpiresAt;
+        const nick = match.customer_nickname || match.customerNickname || clientOrder.customerName || 'Guest';
         return res.status(200).json({
           success: true,
           order: clientOrder,
           orderId: clientOrder.id,
-          trackingToken: (existingOrder as any).trackingToken || null,
+          trackingToken: (match as any).trackingToken || null,
           trackingExpiresAt: expAt,
           customerNickname: nick,
           message: 'Returned idempotent order'
@@ -816,210 +828,21 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // ── Backend Source of Truth: Subtotal, Tax (8.25%), Gratuity (18%), Total ──
-    let rawItemSubtotal = 0;
-    const allPassedItems: any[] = [];
-    if (Array.isArray(orderPayload.items) && orderPayload.items.length > 0) {
-      allPassedItems.push(...orderPayload.items);
-    } else {
-      if (Array.isArray(orderPayload.hookahs)) allPassedItems.push(...orderPayload.hookahs);
-      if (Array.isArray(orderPayload.food)) allPassedItems.push(...orderPayload.food);
-      if (Array.isArray(orderPayload.drinks)) allPassedItems.push(...orderPayload.drinks);
-    }
-
-    if (allPassedItems.length > 0) {
-      rawItemSubtotal = allPassedItems.reduce((acc, it) => {
-        const p = Number(it.price !== undefined ? it.price : (it.item && it.item.price !== undefined ? it.item.price : 0)) || 0;
-        const q = Number(it.qty || it.quantity || 1) || 1;
-        const mods = Array.isArray(it.modifiers) ? it.modifiers : (it.selectedModifiers || []);
-        const modTotal = Array.isArray(mods) ? mods.reduce((mAcc: number, m: any) => mAcc + (Number(m.price || m.price_adjustment || 0) || 0), 0) : 0;
-        return acc + (p + modTotal) * q;
-      }, 0);
-    }
-
-    const calculatedSubtotal = parseFloat((rawItemSubtotal > 0 ? rawItemSubtotal : Number(orderPayload.subtotal || orderPayload.total || 0)).toFixed(2));
-
-    const isTaxExempt = Boolean(orderPayload.taxExempt);
-    const taxRate = isTaxExempt ? 0 : 0.0825;
-    const taxAmount = isTaxExempt ? 0 : parseFloat((calculatedSubtotal * 0.0825).toFixed(2));
-    const gratuityAmount = parseFloat((calculatedSubtotal * 0.18).toFixed(2));
-    const discountAmount = Number(orderPayload.discountAmount || orderPayload.discount_amount || 0);
-    // tip_amount equals gratuityAmount for POS compatibility, NOT an additional charge on top of 18% gratuity
-    const tipAmount = gratuityAmount;
-    const grandTotal = parseFloat((calculatedSubtotal + taxAmount + gratuityAmount - discountAmount).toFixed(2));
-
-    // Enrich generic soft drink items with specific flavor names
-    let sanitizedDrinks = Array.isArray(orderPayload.drinks) ? orderPayload.drinks : [];
-    sanitizedDrinks = sanitizedDrinks.map((d: any) => {
-      const itemObj = d.item || {};
-      const mods = d.modifiers || itemObj.modifiers || [];
-      const modNames = Array.isArray(mods) ? mods.map((m: any) => m.optionName || m.name).filter(Boolean) : [];
-      let name = d.name || itemObj.name || 'Drink';
-      const noteStr = d.note || d.notes || itemObj.note || itemObj.notes || '';
-      if ((name.toLowerCase().includes('soft drink') || name.toLowerCase().includes('soda')) && modNames.length > 0) {
-        name = modNames.join(', ');
-      }
-      const noteParts = [noteStr, modNames.length > 0 && !noteStr.includes(modNames[0]) ? `Choice: ${modNames.join(', ')}` : ''].filter(Boolean);
-      const finalNote = noteParts.join(' · ');
-      return {
-        ...d,
-        name,
-        item: { ...itemObj, name },
-        note: finalNote,
-        notes: finalNote,
-      };
-    });
-
-    let sanitizedItems = Array.isArray(orderPayload.items) ? orderPayload.items : [];
-    sanitizedItems = sanitizedItems.map((it: any) => {
-      const mods = it.modifiers || [];
-      const modNames = Array.isArray(mods) ? mods.map((m: any) => m.optionName || m.name).filter(Boolean) : [];
-      let name = it.name || 'Item';
-      const noteStr = it.notes || it.note || '';
-      if ((name.toLowerCase().includes('soft drink') || name.toLowerCase().includes('soda')) && modNames.length > 0) {
-        name = modNames.join(', ');
-      }
-      const noteParts = [noteStr, ...modNames.filter(mn => !noteStr.includes(mn))].filter(Boolean);
-      const finalNote = noteParts.join(' · ');
-      return {
-        ...it,
-        name,
-        modifiers: mods,
-        notes: finalNote,
-        note: finalNote,
-      };
-    });
-
-    // Enrich and preserve hookahs with exact flavor and enhancements (Ice Base, Ice Hose)
-    let sanitizedHookahs = Array.isArray(orderPayload.hookahs) ? orderPayload.hookahs : [];
-    const hookahFromItems = sanitizedItems.filter((it: any) => {
-      const cat = (it.category || '').toLowerCase();
-      const name = (it.name || '').toLowerCase();
-      return cat === 'hookah' || name.includes('hookah') || it.emoji === '💨' || it.emoji === '🧪';
-    });
-
-    if (sanitizedHookahs.length === 0 && hookahFromItems.length > 0) {
-      sanitizedHookahs = hookahFromItems.map((it: any) => {
-        const mods = it.modifiers || [];
-        const modNames = Array.isArray(mods) ? mods.map((m: any) => m.optionName || m.name).filter(Boolean) : [];
-        const noteStr = it.notes || it.note || '';
-        const noteParts = [noteStr, ...modNames.filter(mn => !noteStr.includes(mn))].filter(Boolean);
-        const finalNote = noteParts.join(' · ');
-        return {
-          flavor: { name: it.name, id: it.id },
-          name: it.name,
-          qty: it.qty || it.quantity || 1,
-          price: it.price || 0,
-          modifiers: mods,
-          notes: finalNote,
-          note: finalNote,
-        };
-      });
-    } else {
-      sanitizedHookahs = sanitizedHookahs.map((h: any) => {
-        const matchingItem = sanitizedItems.find((it: any) => 
-          (it.name && h.flavor?.name && it.name.toLowerCase() === h.flavor.name.toLowerCase()) ||
-          (it.id && h.flavor?.id && it.id === h.flavor.id) ||
-          (it.name && h.name && it.name.toLowerCase() === h.name.toLowerCase())
-        );
-        const mods = h.modifiers || matchingItem?.modifiers || [];
-        const modNames = Array.isArray(mods) ? mods.map((m: any) => m.optionName || m.name).filter(Boolean) : [];
-        const existingNote = h.notes || h.note || matchingItem?.notes || matchingItem?.note || '';
-        const missingMods = modNames.filter(mn => !existingNote.includes(mn));
-        const combinedNotes = [existingNote, ...missingMods].filter(Boolean).join(' · ');
-        return {
-          ...h,
-          name: h.name || h.flavor?.name || 'Hookah',
-          flavor: h.flavor || { name: h.name || 'Hookah' },
-          modifiers: mods,
-          notes: combinedNotes,
-          note: combinedNotes,
-        };
-      });
-    }
-
-    const rawTrackingToken = orderPayload.trackingToken || orderPayload.tracking_token || ('trk_' + crypto.randomBytes(24).toString('hex'));
-    const trackingTokenHash = crypto.createHash('sha256').update(rawTrackingToken).digest('hex');
-    const nowMs = Date.now();
-    const trackingExpiresAt = new Date(nowMs + 2 * 60 * 60 * 1000).toISOString();
-    const customerNickname = String(orderPayload.customerNickname || orderPayload.customer_nickname || orderPayload.nickname || orderPayload.customerName || orderPayload.customer_name || 'Guest').trim();
-
-    const orderPayloadToSave = {
-      ...orderPayload,
-      customer_nickname: customerNickname,
-      customerNickname,
-      tracking_token_hash: trackingTokenHash,
-      trackingTokenHash,
-      tracking_expires_at: trackingExpiresAt,
-      trackingExpiresAt,
-      hookahs: sanitizedHookahs,
-      drinks: sanitizedDrinks,
-      items: sanitizedItems,
-      _id: `cav-${Date.now()}`,
-      restaurant_id: restaurantId,
-      status: 'pending',
-      paymentStatus: orderPayload.paymentStatus || 'unpaid',
-      paymentMethod: orderPayload.paymentMethod || 'CASH',
-      subtotal: calculatedSubtotal,
-      total: calculatedSubtotal,
-      taxRate,
-      taxAmount,
-      tax_amount: taxAmount,
-      taxExempt: isTaxExempt,
-      gratuityAmount,
-      gratuity_amount: gratuityAmount,
-      tipAmount,
-      tip_amount: tipAmount,
-      discountAmount,
-      discount_amount: discountAmount,
-      grandTotal,
-      grand_total: grandTotal,
-      totalDue: orderPayload.totalDue !== undefined ? Number(orderPayload.totalDue) : grandTotal,
-      totalPaid: Number(orderPayload.totalPaid) || 0,
-      createdAt: new Date().toISOString(),
-    };
-
-    // Save order strictly once via OrderRepository
-    const createdOrder = await OrderRepository.create(orderPayloadToSave);
+    // Delegate creation to OrderService.createOrder (single source of truth for finances, deductions, POS, SSE)
+    const createdOrder = await OrderService.createOrder(restaurantId, orderPayload, idempotencyKey ? String(idempotencyKey) : undefined);
     const newOrder = mapOrderForClient(createdOrder);
+    const expAt = createdOrder.tracking_expires_at || createdOrder.trackingExpiresAt;
+    const nick = createdOrder.customer_nickname || createdOrder.customerNickname || newOrder.customerName || 'Guest';
+    const trackingToken = (createdOrder as any).trackingToken || '';
 
-    // Process inventory deductions based on item recipes
-    try {
-      await RecipeService.processOrderDeductions(newOrder);
-    } catch (recipeErr) {
-      console.warn('[OrdersRoute] Auto inventory deduction error:', recipeErr);
-    }
-
-    // Forward to Toast POS
-    const toastResult = await ToastService.submitOrder(newOrder);
-
-    if (toastResult.success) {
-      newOrder.status = 'sent_to_toast';
-      await OrderRepository.update(newOrder.id, restaurantId, { status: 'sent_to_toast' } as any);
-    } else {
-      newOrder.status = 'toast_failed';
-      await OrderRepository.update(newOrder.id, restaurantId, { status: 'toast_failed' } as any);
-    }
-
-    // Broadcast the new order to KDS in real-time
-    const broadcastEvent = {
-      type: 'order_created',
-      id: newOrder.id || newOrder._id,
-      orderId: newOrder.id || newOrder._id,
-      restaurant_id: restaurantId,
-      order: newOrder,
-      ...newOrder,
-    };
-    sseService.broadcast(broadcastEvent, restaurantId);
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       order: newOrder,
       orderId: newOrder.id || newOrder._id,
-      trackingToken: rawTrackingToken,
-      trackingExpiresAt,
-      customerNickname,
-      message: toastResult.success ? 'Order received & sent to POS' : 'Order received, POS call failed'
+      trackingToken,
+      trackingExpiresAt: expAt,
+      customerNickname: nick,
+      message: 'Order created successfully'
     });
 
   } catch (error) {
