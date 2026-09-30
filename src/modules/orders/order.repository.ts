@@ -68,11 +68,14 @@ export class OrderRepository {
       ? parseFloat(Number(orderData.totalDue).toFixed(2))
       : Math.max(0, parseFloat((grandTotal - totalPaid).toFixed(2)));
 
+    const rawTable = String(orderData.table_id || orderData.table || '1').trim();
+    const cleanTable = rawTable.replace(/^tbl[_-]*/i, '').replace(/^table[\s-_]*/i, '').trim() || rawTable || '1';
+
     const payload = {
       _id: orderData._id || orderData.id || `cav-${Date.now()}`,
       restaurant_id: restaurantId,
-      table_id: String(orderData.table_id || orderData.table || '1'),
-      table: String(orderData.table_id || orderData.table || '1'),
+      table_id: cleanTable,
+      table: cleanTable,
       device_id: orderData.device_id || 'dev-local',
       session_id: orderData.session_id || orderData.sessionId || `ses-${Date.now()}`,
       customer_name: orderData.customer_name || orderData.customerName || orderData.name || 'Guest',

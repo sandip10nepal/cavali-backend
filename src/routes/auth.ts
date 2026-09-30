@@ -686,21 +686,25 @@ router.post('/device/configure-table', async (req, res) => {
 
     // 3. Resolve or Create Table (supports numeric and alphanumeric like "1", "P1", "VIP-2")
     const rawTableStr = String(table_number || '').trim();
-    const cleanTableLabel = rawTableStr.replace(/^table[\s-_]*/i, '') || rawTableStr || '1';
-    const parsedNum = parseInt(cleanTableLabel.replace(/[^0-9]/g, ''), 10);
-    const tableNumInt = !isNaN(parsedNum) && parsedNum > 0 ? parsedNum : 0;
+    const cleanTableLabel = rawTableStr.replace(/^table[\s-_]*/i, '').trim() || rawTableStr || '1';
+    const isPurelyNumeric = /^\d+$/.test(cleanTableLabel);
+    const tableNumInt = isPurelyNumeric ? parseInt(cleanTableLabel, 10) : 0;
 
     const tables = await MultiTenantDbService.listTables(restaurant._id);
-    let table = tables.find(t => 
-      (t.label && t.label.toLowerCase() === `table ${cleanTableLabel}`.toLowerCase()) ||
-      (t.label && t.label.toLowerCase() === cleanTableLabel.toLowerCase()) ||
-      (tableNumInt > 0 && t.number === tableNumInt)
-    );
+    const targetLabelLower = cleanTableLabel.toLowerCase();
+    let table = tables.find(t => {
+      const tLabelClean = (t.label || '').replace(/^table[\s-_]*/i, '').trim().toLowerCase();
+      if (tLabelClean === targetLabelLower) return true;
+      if (t.label && (t.label.toLowerCase() === `table ${targetLabelLower}` || t.label.toLowerCase() === targetLabelLower)) return true;
+      if (isPurelyNumeric && tableNumInt > 0 && t.number === tableNumInt) return true;
+      return false;
+    });
 
     if (!table) {
+      const maxNum = tables.reduce((max, t) => Math.max(max, t.number || 0), 0);
       table = await MultiTenantDbService.createTable({
         restaurant_id: restaurant._id,
-        number: tableNumInt || (tables.length + 1),
+        number: isPurelyNumeric && tableNumInt > 0 ? tableNumInt : (maxNum + 1),
         label: cleanTableLabel.toLowerCase().startsWith('table') ? cleanTableLabel : `Table ${cleanTableLabel}`,
         capacity: 4,
         active: true,
@@ -758,7 +762,7 @@ router.post('/device/configure-table', async (req, res) => {
       table: {
         id: table._id,
         number: table.number,
-        label: table.label,
+        label: table.label ? table.label.replace(/^table[\s-_]*/i, '').trim() : String(table.number),
         capacity: table.capacity,
       },
       authorized_by: {
@@ -960,7 +964,7 @@ router.post('/device', async (req, res) => {
       table: table ? {
         id: table._id,
         number: table.number,
-        label: table.label,
+        label: table.label ? table.label.replace(/^table[\s-_]*/i, '').trim() : String(table.number),
       } : null,
       device: {
         id: device._id,
@@ -1037,21 +1041,25 @@ router.post('/device/pair', async (req, res) => {
 
     // 3. Find or create table (supports numeric and alphanumeric like "1", "P1", "VIP-2")
     const rawTableStr = String(table_number || '').trim();
-    const cleanTableLabel = rawTableStr.replace(/^table[\s-_]*/i, '') || rawTableStr || '1';
-    const parsedNum = parseInt(cleanTableLabel.replace(/[^0-9]/g, ''), 10);
-    const tableNumInt = !isNaN(parsedNum) && parsedNum > 0 ? parsedNum : 0;
+    const cleanTableLabel = rawTableStr.replace(/^table[\s-_]*/i, '').trim() || rawTableStr || '1';
+    const isPurelyNumeric = /^\d+$/.test(cleanTableLabel);
+    const tableNumInt = isPurelyNumeric ? parseInt(cleanTableLabel, 10) : 0;
 
     const tables = await MultiTenantDbService.listTables(restaurant._id);
-    let table = tables.find(t => 
-      (t.label && t.label.toLowerCase() === `table ${cleanTableLabel}`.toLowerCase()) ||
-      (t.label && t.label.toLowerCase() === cleanTableLabel.toLowerCase()) ||
-      (tableNumInt > 0 && t.number === tableNumInt)
-    );
+    const targetLabelLower = cleanTableLabel.toLowerCase();
+    let table = tables.find(t => {
+      const tLabelClean = (t.label || '').replace(/^table[\s-_]*/i, '').trim().toLowerCase();
+      if (tLabelClean === targetLabelLower) return true;
+      if (t.label && (t.label.toLowerCase() === `table ${targetLabelLower}` || t.label.toLowerCase() === targetLabelLower)) return true;
+      if (isPurelyNumeric && tableNumInt > 0 && t.number === tableNumInt) return true;
+      return false;
+    });
 
     if (!table) {
+      const maxNum = tables.reduce((max, t) => Math.max(max, t.number || 0), 0);
       table = await MultiTenantDbService.createTable({
         restaurant_id: restaurant._id,
-        number: tableNumInt || (tables.length + 1),
+        number: isPurelyNumeric && tableNumInt > 0 ? tableNumInt : (maxNum + 1),
         label: cleanTableLabel.toLowerCase().startsWith('table') ? cleanTableLabel : `Table ${cleanTableLabel}`,
         capacity: 4,
         active: true,
@@ -1099,7 +1107,7 @@ router.post('/device/pair', async (req, res) => {
       table: {
         id: table._id,
         number: table.number,
-        label: table.label,
+        label: table.label ? table.label.replace(/^table[\s-_]*/i, '').trim() : String(table.number),
       },
       device: {
         id: device._id,

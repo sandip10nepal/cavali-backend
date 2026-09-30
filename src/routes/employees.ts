@@ -16,16 +16,25 @@ async function resolveRestaurantId(req: any): Promise<string> {
 
 // Helper to check if caller is an authorized Manager or Owner
 async function isAuthorizedManagerOrOwner(authPin?: any, req?: any): Promise<boolean> {
-  if (req?.tenant && (req.tenant.role === 'owner' || req.tenant.role === 'manager' || req.tenant.role === 'platform_admin')) {
+  if (req?.tenant && (req.tenant.role === 'owner' || req.tenant.role === 'manager' || req.tenant.role === 'platform_admin' || req.tenant.role === 'admin')) {
     return true;
   }
-  if (authPin) {
-    const pinStr = String(authPin).trim();
+  const token = req?.headers?.authorization ? req.headers.authorization.replace('Bearer ', '').trim() : '';
+  if (token) {
+    const payload = AuthService.verifyToken(token);
+    const pRole = (payload?.role as string) || '';
+    if (payload && (pRole === 'owner' || pRole === 'manager' || pRole === 'platform_admin' || pRole === 'admin')) {
+      return true;
+    }
+  }
+  const pinStr = authPin ? String(authPin).trim() : (req?.headers?.['x-admin-pin'] || req?.headers?.['x-staff-pin'] || '');
+  if (pinStr) {
     const restaurantId = await resolveRestaurantId(req);
     if (restaurantId && MultiTenantDbService.isInitialized()) {
       const users = await UserRepository.listByRestaurant(restaurantId);
       for (const u of users) {
-        if ((u.role === 'owner' || u.role === 'manager' || u.role === 'platform_admin') && AuthService.verifyPin(pinStr, u.pin_hash)) {
+        const uRole = (u.role as string) || '';
+        if ((uRole === 'owner' || uRole === 'manager' || uRole === 'platform_admin' || uRole === 'admin') && AuthService.verifyPin(String(pinStr).trim(), u.pin_hash)) {
           return true;
         }
       }
@@ -603,13 +612,13 @@ router.post('/', optionalAuth, async (req, res) => {
   }
 });
 
-// PATCH /api/employees/:id — update employee profile (Manager or Owner)
-router.patch('/:id', optionalAuth, async (req, res) => {
+// Update employee profile handler (supports both PATCH and PUT for full compatibility)
+const updateEmployeeHandler = async (req: any, res: any) => {
   try {
     const id = String(req.params.id);
-    const { name, role, position, pin, email, phone, hourly_rate, active, authPin } = req.body;
+    const { name, role, position, pin, email, phone, hourly_rate, active, authPin } = req.body || {};
 
-    const isAuth = await isAuthorizedManagerOrOwner(authPin, req);
+    const isAuth = await isAuthorizedManagerOrOwner(authPin || req.headers['x-admin-pin'] || req.headers['x-staff-pin'], req);
     if (!isAuth) {
       return res.status(403).json({ success: false, message: 'Manager or Owner authorization required' });
     }
@@ -623,7 +632,7 @@ router.patch('/:id', optionalAuth, async (req, res) => {
     if (phone !== undefined) updatePayload.phone = String(phone).trim();
     if (hourly_rate !== undefined) updatePayload.hourly_rate = Number(hourly_rate);
     if (active !== undefined) updatePayload.active = Boolean(active);
-    if (pin !== undefined) {
+    if (pin !== undefined && String(pin).trim().length > 0) {
       const pinStr = String(pin).trim();
       if (!/^\d{4}$/.test(pinStr)) {
         return res.status(400).json({ success: false, message: 'PIN must be exactly 4 digits' });
@@ -639,7 +648,10 @@ router.patch('/:id', optionalAuth, async (req, res) => {
     console.error('Error updating employee:', err);
     res.status(500).json({ success: false, message: 'Failed to update employee' });
   }
-});
+};
+
+router.patch('/:id', optionalAuth, updateEmployeeHandler);
+router.put('/:id', optionalAuth, updateEmployeeHandler);
 
 // DELETE /api/employees/:id — remove employee (Manager or Owner)
 router.delete('/:id', optionalAuth, async (req, res) => {

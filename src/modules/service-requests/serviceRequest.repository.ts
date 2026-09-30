@@ -41,7 +41,8 @@ export class ServiceRequestRepository {
    * Helper to normalize table string (e.g. 'Table 1' -> '1', 'TBL_1' -> '1')
    */
   static normalizeTableId(raw: string): string {
-    return String(raw || '').replace(/[^0-9]/g, '') || String(raw || '').trim();
+    const s = String(raw || '').trim();
+    return s.replace(/^tbl[_-]*/i, '').replace(/^table[\s-_]*/i, '').trim() || s || '1';
   }
 
   /**

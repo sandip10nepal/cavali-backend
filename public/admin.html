@@ -2171,6 +2171,7 @@
       const displayId = String(orderId).slice(-6).toUpperCase();
       const timeStr = order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
 
+      const cleanTable = String(order.table || order.table_id || '?').replace(/^table[\s-_]*/i, '').trim() || '?';
       // ── SPECIAL RENDERING FOR SERVER CALL ASSISTANCE REQUESTS ──
       if (order.kind === 'server_request' || order.requestType) {
         const reqLabels = {
@@ -2186,9 +2187,9 @@
             <div class="ticket-header" style="background: ${isFulfilledOrder ? 'transparent' : 'rgba(225,29,72,0.12)'}; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px;">
               <div>
                 <div class="ticket-title" style="color: ${isFulfilledOrder ? 'var(--muted)' : '#f43f5e'}; font-size: 19px; font-weight: 900; letter-spacing: 0.5px;">
-                  🛎️ Table ${order.table || '?'} <span style="font-size:12px; color:var(--muted);">#${displayId}</span>
+                  🛎️ Table ${cleanTable} <span style="font-size:12px; color:var(--muted);">#${displayId}</span>
                 </div>
-                <div class="ticket-meta">👤 Table ${order.table || '?'} • 🕒 ${timeStr}</div>
+                <div class="ticket-meta">👤 Table ${cleanTable} • 🕒 ${timeStr}</div>
               </div>
               <span class="ticket-badge" style="background: ${isFulfilledOrder ? 'var(--muted)' : '#e11d48'}; color: #fff; font-weight: 900; padding: 4px 10px; border-radius: 6px; font-size: 11px;">
                 ${isFulfilledOrder ? 'DISMISSED' : 'CALL SERVER'}
@@ -2196,7 +2197,7 @@
             </div>
             <div style="background: rgba(255,255,255,0.03); border: 1.5px solid ${isFulfilledOrder ? 'rgba(255,255,255,0.08)' : 'rgba(225,29,72,0.3)'}; border-radius: 12px; padding: 18px 14px; text-align: center; margin-bottom: 14px;">
               <div style="font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 6px;">${reqTitle}</div>
-              <div style="font-size: 13px; color: var(--gold); font-weight: 700;">Customer at Table ${order.table || '?'} is waiting for staff</div>
+              <div style="font-size: 13px; color: var(--gold); font-weight: 700;">Customer at Table ${cleanTable} is waiting for staff</div>
             </div>
             <div class="ticket-actions">
               ${!isFulfilledOrder ? `
@@ -2348,7 +2349,7 @@
         <div class="ticket-card ${isFulfilledOrder ? 'fulfilled' : ''}">
           <div class="ticket-header">
             <div>
-              <div class="ticket-title">Table ${order.table || '?'} <span style="font-size:12px; color:var(--muted);">#${displayId}</span></div>
+              <div class="ticket-title">Table ${cleanTable} <span style="font-size:12px; color:var(--muted);">#${displayId}</span></div>
               <div class="ticket-meta">👤 ${order.customerNickname || order.customerName || 'Guest'} • 🕒 ${timeStr}</div>
             </div>
             <span class="ticket-badge ${isFulfilledOrder ? 'badge-fulfilled' : order.status === 'ready' ? 'badge-ready' : order.status === 'preparing' ? 'badge-preparing' : 'badge-pending'}">${(order.status || 'PENDING').toUpperCase()}</span>
@@ -2606,7 +2607,7 @@
           <h2 style="text-align: center; margin-bottom: 5px;">CAVALLI</h2>
           <div style="text-align: center; font-size: 11px; margin-bottom: 10px;">Order #${String(orderId).slice(-6).toUpperCase()}</div>
           <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-          <div><strong>Table:</strong> ${order.table || '?'}</div>
+          <div><strong>Table:</strong> Table ${String(order.table || order.table_id || '?').replace(/^table[\s-_]*/i, '').trim() || '?'}</div>
           <div><strong>Guest:</strong> ${order.customerName || 'Guest'}</div>
           <hr style="border-top: 1px dashed #000; margin: 5px 0;">
           ${(order.items || []).map(i => `<div>${i.qty || 1}x ${i.name} - $${((i.price || 0) * (i.qty || 1)).toFixed(2)}</div>`).join('')}
@@ -3946,17 +3947,30 @@
         const method = id ? 'PUT' : 'POST';
         const url = id ? `${API_URL}/api/employees/${id}` : `${API_URL}/api/employees`;
 
+        const bodyPayload = { name, role };
+        if (pin) {
+          bodyPayload.pin = pin;
+        }
+
         const res = await fetch(url, {
           method,
           headers,
-          body: JSON.stringify({ name, role, pin })
+          body: JSON.stringify(bodyPayload)
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          alert('Server error saving staff (status ' + res.status + '): ' + text.slice(0, 150));
+          return;
+        }
+
         if (data.success) {
           closeEmpModal();
           await renderStaffPage();
         } else {
-          alert('Could not save employee: ' + (data.message || 'Error'));
+          alert('Could not save employee: ' + (data.message || data.error || 'Error'));
         }
       } catch (err) {
         alert('Network error saving staff: ' + err.message);
@@ -3968,11 +3982,19 @@
       try {
         const headers = getAuthHeaders();
         const res = await fetch(`${API_URL}/api/employees/${id}`, { method: 'DELETE', headers });
-        const data = await res.json();
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          alert('Server error deleting staff (status ' + res.status + '): ' + text.slice(0, 150));
+          return;
+        }
+
         if (data.success) {
           await renderStaffPage();
         } else {
-          alert('Could not delete staff: ' + (data.message || 'Error'));
+          alert('Could not delete staff: ' + (data.message || data.error || 'Error'));
         }
       } catch (err) {
         alert('Error deleting staff: ' + err.message);

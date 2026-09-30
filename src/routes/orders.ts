@@ -126,26 +126,26 @@ async function isManagerOrOwner(req: any, authPin?: any): Promise<boolean> {
       return true;
     }
   }
-    const pin = authPin || req.headers?.['x-admin-pin'] || req.query?.authPin;
-    if (pin) {
-      const pinStr = String(pin).trim();
-      const restaurantId = await resolveTenantRestaurantId(req);
-      if (restaurantId && MultiTenantDbService.isInitialized()) {
-        const users = await MultiTenantDbService.listUsers(restaurantId);
-        for (const u of users) {
-          if ((u.role === 'owner' || u.role === 'manager' || u.role === 'platform_admin') && AuthService.verifyPin(pinStr, u.pin_hash)) {
-            return true;
-          }
+  const pin = authPin || req.headers?.['x-admin-pin'] || req.query?.authPin;
+  if (pin) {
+    const pinStr = String(pin).trim();
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (restaurantId && MultiTenantDbService.isInitialized()) {
+      const users = await MultiTenantDbService.listUsers(restaurantId);
+      for (const u of users) {
+        if ((u.role === 'owner' || u.role === 'manager' || u.role === 'platform_admin') && AuthService.verifyPin(pinStr, u.pin_hash)) {
+          return true;
         }
       }
     }
-    return false;
   }
+  return false;
+}
 
 // Helper: Classify any item into 'hookah' | 'drinks' | 'food'
 function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
   if (!item) return 'food';
-  
+
   const cat = String(item.category || item.category_id || '').toLowerCase().trim();
   const name = String(item.name || (item.item && item.item.name) || (item.flavor && typeof item.flavor === 'object' ? item.flavor.name : item.flavor) || '').toLowerCase().trim();
 
@@ -153,9 +153,9 @@ function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
 
   // 1. Explicit Hookah Classification
   if (
-    cat === 'hookah' || 
-    cat === 'cat_hookah' || 
-    cat.includes('hookah') || 
+    cat === 'hookah' ||
+    cat === 'cat_hookah' ||
+    cat.includes('hookah') ||
     cat.includes('shisha') ||
     item.is_hookah === true ||
     item.flavor !== undefined ||
@@ -188,18 +188,18 @@ function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
 
   // 2. Explicit Drinks / Beverages Classification (PRIORITIZED BEFORE FOOD)
   if (
-    cat === 'drinks' || 
-    cat === 'beverages' || 
-    cat === 'cat_beverages' || 
+    cat === 'drinks' ||
+    cat === 'beverages' ||
+    cat === 'cat_beverages' ||
     cat === 'soft_drinks' ||
     cat === 'cat_soft_drinks' ||
     cat === 'drinks_soft' ||
     cat === 'cat_drinks_soft' ||
-    cat.includes('drink') || 
-    cat.includes('beverage') || 
+    cat.includes('drink') ||
+    cat.includes('beverage') ||
     cat.includes('soft') ||
-    cat.includes('coffee') || 
-    cat.includes('tea') || 
+    cat.includes('coffee') ||
+    cat.includes('tea') ||
     cat.includes('bar') ||
     cat.includes('juice') ||
     cat.includes('refresher') ||
@@ -349,7 +349,7 @@ function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
 // Helper: Convert any order (MultiTenant or Legacy) into clean standardized format for KDS / client
 function mapOrderForClient(o: any): any {
   if (!o) return {};
-  
+
   // Consolidate all items
   const allRawItems: any[] = [];
   if (Array.isArray(o.items) && o.items.length > 0) {
@@ -372,7 +372,7 @@ function mapOrderForClient(o: any): any {
   allRawItems.forEach(i => {
     const rawName = i.name || (i.item && i.item.name) || (i.flavor && typeof i.flavor === 'object' ? i.flavor.name : i.flavor) || 'Item';
     const key = rawName.toLowerCase().trim();
-    
+
     if (nameMap.has(key)) {
       const existing = nameMap.get(key);
       // Retain highest price and merge notes/addons if present
@@ -382,8 +382,8 @@ function mapOrderForClient(o: any): any {
       if (i.iceHose) existing.iceHose = true;
       if (i.iceBase) existing.iceBase = true;
     } else {
-      const copy = { 
-        ...i, 
+      const copy = {
+        ...i,
         name: rawName,
         qty: Number(i.qty || i.quantity || 1),
         price: i.price !== undefined ? Number(i.price) : (i.item && i.item.price !== undefined ? Number(i.item.price) : 0),
@@ -446,7 +446,7 @@ function mapOrderForClient(o: any): any {
     _id: o._id || o.id,
     restaurant_id: o.restaurant_id || o.restaurantId || '',
     restaurantId: o.restaurant_id || o.restaurantId || '',
-    table: o.table_id || o.table || '1',
+    table: String(o.table || o.table_id || '1').replace(/^tbl[_-]*/i, '').replace(/^table[\s-_]*/i, '').trim() || '1',
     status: o.status,
     paymentStatus: o.payment_status || o.paymentStatus || (o.status === 'paid' ? 'paid' : 'unpaid'),
     subtotal: o.subtotal !== undefined ? Number(o.subtotal) : Number(o.total || 0),
@@ -806,7 +806,7 @@ router.post('/', async (req, res) => {
     if (!restaurantId) {
       return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
     }
-    
+
     // Check Idempotency-Key header or payload to eliminate duplicate orders 100%
     const idempotencyKey = req.headers['idempotency-key'] || req.headers['x-idempotency-key'] || orderPayload?.idempotencyKey || orderPayload?.idempotency_key;
     if (idempotencyKey) {
@@ -856,8 +856,8 @@ router.post('/', async (req, res) => {
 router.post('/server-call', async (req, res) => {
   try {
     const { table, requestType, note, restaurant_id } = req.body;
-    const tableNum = String(table || '1').replace(/[^0-9]/g, '') || '1';
-    
+    const tableNum = String(table || '1').replace(/^tbl[_-]*/i, '').replace(/^table[\s-_]*/i, '').trim() || '1';
+
     const requestLabels: Record<string, string> = {
       server: 'Server Assistance Needed',
       coals: 'Hookah Coal Refill 🔥',
@@ -888,7 +888,7 @@ router.post('/server-call', async (req, res) => {
         });
       }
     }
-    
+
     const serviceReq = await ServiceRequestRepository.create({
       restaurant_id: restId,
       table_id: `TBL_${tableNum}`,
@@ -1155,7 +1155,7 @@ router.get('/sales/summary', async (req, res) => {
         o.payment_logs.forEach((pl: any) => {
           paymentLogs.push({
             id: pl.id || o._id || o.id,
-            table: o.table_id || o.table || '1',
+            table: String(o.table || o.table_id || '1').replace(/^tbl[_-]*/i, '').replace(/^table[\s-_]*/i, '').trim() || '1',
             customer: o.customer_name || o.customerName || 'Guest',
             payment_method: String(pl.payment_method || o.payment_method || o.paymentMethod || 'CASH').toUpperCase(),
             payment_status: String(pl.payment_status || orderPaymentStatus || 'paid').toUpperCase(),
@@ -1169,7 +1169,7 @@ router.get('/sales/summary', async (req, res) => {
       } else {
         paymentLogs.push({
           id: o._id || o.id,
-          table: o.table_id || o.table || '1',
+          table: String(o.table || o.table_id || '1').replace(/^tbl[_-]*/i, '').replace(/^table[\s-_]*/i, '').trim() || '1',
           customer: o.customer_name || o.customerName || 'Guest',
           payment_method: String(o.payment_method || o.paymentMethod || 'CASH').toUpperCase(),
           payment_status: String(orderPaymentStatus || 'paid').toUpperCase(),
@@ -1397,7 +1397,7 @@ router.post('/inventory/adjust', async (req, res) => {
   if (!restaurantId) {
     return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
   }
-  
+
   if (!ingredientId || amount === undefined || Number(amount) <= 0 || !['increase', 'decrease'].includes(type)) {
     return res.status(400).json({ success: false, message: 'Invalid adjust payload parameters' });
   }
@@ -1575,7 +1575,7 @@ router.post('/:orderId/payment-session', async (req, res) => {
 
   // Calculate amount server-side (cents, always integer — never float)
   const remainingCents = Math.round((order.totalDue !== undefined ? order.totalDue : (order.total ?? 0)) * 100);
-  
+
   let amountCents = remainingCents;
   if (req.body.amount_cents !== undefined) {
     const reqCents = Number(req.body.amount_cents);
@@ -1583,7 +1583,7 @@ router.post('/:orderId/payment-session', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid amount_cents' });
     }
     if (reqCents > remainingCents) {
-      return res.status(400).json({ success: false, message: `Requested amount exceeds remaining order balance of $${(remainingCents/100).toFixed(2)}` });
+      return res.status(400).json({ success: false, message: `Requested amount exceeds remaining order balance of $${(remainingCents / 100).toFixed(2)}` });
     }
     amountCents = reqCents;
   }
@@ -1821,7 +1821,7 @@ router.post('/pay-debt', async (req, res) => {
 
     const orderDue = (order as any).totalDue !== undefined ? Number((order as any).totalDue) : ((order as any).grand_total || (order as any).total || 0);
     const payForThisOrder = Number(Math.min(remainingPayment, orderDue).toFixed(2));
-    
+
     const newPaid = Number((((order as any).totalPaid || 0) + payForThisOrder).toFixed(2));
     const newDue = Number((orderDue - payForThisOrder).toFixed(2));
     const paymentStatus = newDue <= 0.01 ? 'paid' : 'partially_paid';
