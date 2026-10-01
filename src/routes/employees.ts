@@ -64,13 +64,18 @@ router.get('/', optionalAuth, async (req, res) => {
         const tenantUsers = await MultiTenantDbService.listUsers(restaurantId);
         for (const u of tenantUsers) {
           const activeShift = await MultiTenantDbService.getActiveTimecard(restaurantId, u._id);
+          let displayEmail = u.email;
+          if (!displayEmail && (u.role === 'manager' || u.role === 'owner')) {
+            const cleanName = u.name.toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '');
+            displayEmail = `${cleanName}@cavalli.com`;
+          }
           employees.push({
             id: u._id,
             name: u.name,
             role: u.role,
             position: u.position || u.role,
             hourly_rate: u.hourly_rate ?? null,
-            email: u.email,
+            email: displayEmail,
             phone: u.phone,
             pin: '****',
             active: u.active,
@@ -552,7 +557,25 @@ router.post('/', optionalAuth, async (req, res) => {
 
     const restaurantId = await resolveRestaurantId(req);
     const validRole: UserRole = role as UserRole;
-    const employeeEmail = email ? String(email).trim().toLowerCase() : `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}_${Date.now().toString(36)}@cavalli.com`;
+
+    // Mandate email for manager role across all venues
+    if (validRole === 'manager') {
+      if (!email || !String(email).trim()) {
+        return res.status(400).json({ success: false, message: 'Email is required for manager employee registration across all venues' });
+      }
+      const emailTrim = String(email).trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim)) {
+        return res.status(400).json({ success: false, message: 'Please enter a valid email address for manager registration' });
+      }
+    }
+
+    let employeeEmail: string | null = null;
+    if (email && String(email).trim()) {
+      employeeEmail = String(email).trim().toLowerCase();
+    } else if (validRole === 'manager') {
+      const cleanName = String(name).toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '');
+      employeeEmail = `${cleanName}@cavalli.com`;
+    }
 
     // 1. Create in MultiTenantDbService
     let createdUser: any = null;
@@ -628,7 +651,16 @@ const updateEmployeeHandler = async (req: any, res: any) => {
     if (name !== undefined) updatePayload.name = String(name).trim();
     if (role !== undefined) updatePayload.role = role as UserRole;
     if (position !== undefined) updatePayload.position = String(position).trim();
-    if (email !== undefined) updatePayload.email = String(email).trim().toLowerCase();
+    if (role === 'manager' && email !== undefined && !String(email).trim()) {
+      return res.status(400).json({ success: false, message: 'Email is required for manager employees' });
+    }
+    if (email !== undefined) {
+      const emailTrim = String(email).trim().toLowerCase();
+      if (emailTrim && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim)) {
+        return res.status(400).json({ success: false, message: 'Please enter a valid email address' });
+      }
+      updatePayload.email = emailTrim || null;
+    }
     if (phone !== undefined) updatePayload.phone = String(phone).trim();
     if (hourly_rate !== undefined) updatePayload.hourly_rate = Number(hourly_rate);
     if (active !== undefined) updatePayload.active = Boolean(active);

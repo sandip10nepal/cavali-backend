@@ -890,10 +890,24 @@ export class MultiTenantDbService {
     if (!email) return null;
     const cleanEmail = email.trim().toLowerCase();
 
+    // Check alias variations for Cavalli domain to avoid typos causing authentication failures
+    const emailCandidates = new Set<string>([cleanEmail]);
+    if (cleanEmail.includes('@cavalli.com')) {
+      emailCandidates.add(cleanEmail.replace('@cavalli.com', '@cavlli.com'));
+      emailCandidates.add(cleanEmail.replace('@cavalli.com', '@cavali.com'));
+    } else if (cleanEmail.includes('@cavlli.com')) {
+      emailCandidates.add(cleanEmail.replace('@cavlli.com', '@cavalli.com'));
+      emailCandidates.add(cleanEmail.replace('@cavlli.com', '@cavali.com'));
+    } else if (cleanEmail.includes('@cavali.com')) {
+      emailCandidates.add(cleanEmail.replace('@cavali.com', '@cavalli.com'));
+      emailCandidates.add(cleanEmail.replace('@cavali.com', '@cavlli.com'));
+    }
+
     if (env.isMongoMode) {
       const db = this.assertDbReady();
+      const candidatesArr = Array.from(emailCandidates);
       const user = await db.collection<any>(COLLECTIONS.users).findOne({
-        email: cleanEmail,
+        email: { $in: candidatesArr },
         active: { $ne: false }
       });
       if (!user) return null;
@@ -904,7 +918,7 @@ export class MultiTenantDbService {
       } as unknown as User;
     }
 
-    return this.getCollection('users').find(u => u.active !== false && u.email?.toLowerCase() === cleanEmail) || null;
+    return this.getCollection('users').find(u => u.active !== false && u.email && emailCandidates.has(u.email.toLowerCase())) || null;
   }
 
   static async listUsers(restaurantId: string, includeInactive = false): Promise<User[]> {

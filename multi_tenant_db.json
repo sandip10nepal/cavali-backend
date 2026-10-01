@@ -2822,7 +2822,7 @@
       "_id": "USR_504897B0CC2C",
       "restaurant_id": "RES_EED4E9D266DF",
       "name": "Owner",
-      "email": "owner@cavali.com",
+      "email": "owner@cavalli.com",
       "phone": null,
       "role": "owner",
       "pin_hash": "f1fcb4fdd2cb767cb9e3809a244f3bfb:afb1b280cfe9d2dcbbc8d6635a187b52bd54921c8e2a7cdbdcd9e4278913a8b494b00e6b04252f0cd7c04c7eb1edce6bc90a10b26b4bdc259cd5011a53c1c863",
@@ -30789,7 +30789,7 @@
       "resource_id": "USR_504897B0CC2C",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com"
+        "email": "owner@cavalli.com"
       },
       "timestamp": "2026-08-10T04:18:07.357Z"
     },
@@ -30845,7 +30845,7 @@
       "resource_id": "USR_504897B0CC2C",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com"
+        "email": "owner@cavalli.com"
       },
       "timestamp": "2026-08-10T04:38:57.321Z"
     },
@@ -30873,7 +30873,7 @@
       "resource_id": "USR_504897B0CC2C",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com"
+        "email": "owner@cavalli.com"
       },
       "timestamp": "2026-08-10T04:40:27.703Z"
     },
@@ -30887,7 +30887,7 @@
       "resource_id": "USR_504897B0CC2C",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com"
+        "email": "owner@cavalli.com"
       },
       "timestamp": "2026-08-10T05:15:06.494Z"
     },
@@ -30957,7 +30957,7 @@
       "resource_id": "USR_504897B0CC2C",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com"
+        "email": "owner@cavalli.com"
       },
       "timestamp": "2026-08-12T16:54:24.455Z"
     },
@@ -30971,7 +30971,7 @@
       "resource_id": "USR_504897B0CC2C",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com"
+        "email": "owner@cavalli.com"
       },
       "timestamp": "2026-08-12T17:48:21.410Z"
     },
@@ -31542,7 +31542,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com"
+        "email": "owner@cavalli.com"
       },
       "resource_id": "USR_504897B0CC2C",
       "resource_type": "user",
@@ -32048,7 +32048,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32077,7 +32077,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32136,7 +32136,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32644,7 +32644,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32659,7 +32659,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32702,7 +32702,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32773,7 +32773,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32816,7 +32816,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32845,7 +32845,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32905,7 +32905,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -32937,7 +32937,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33103,7 +33103,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33163,7 +33163,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33242,7 +33242,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33285,7 +33285,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33580,7 +33580,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33640,7 +33640,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33700,7 +33700,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33732,7 +33732,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33775,7 +33775,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33832,7 +33832,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33952,7 +33952,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -33984,7 +33984,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -34045,7 +34045,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -34150,7 +34150,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -34268,7 +34268,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -34283,7 +34283,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -34457,7 +34457,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -34831,7 +34831,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -35639,7 +35639,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -35740,7 +35740,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -35948,7 +35948,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -35978,7 +35978,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36039,7 +36039,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36054,7 +36054,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36069,7 +36069,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36084,7 +36084,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36307,7 +36307,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36437,7 +36437,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36469,7 +36469,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36499,7 +36499,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36546,7 +36546,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36578,7 +36578,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36610,7 +36610,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36642,7 +36642,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36685,7 +36685,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36717,7 +36717,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36749,7 +36749,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36764,7 +36764,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36796,7 +36796,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36843,7 +36843,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36890,7 +36890,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36905,7 +36905,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36937,7 +36937,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -36969,7 +36969,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37001,7 +37001,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37033,7 +37033,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37076,7 +37076,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37108,7 +37108,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37140,7 +37140,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37172,7 +37172,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37204,7 +37204,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37236,7 +37236,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37268,7 +37268,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37300,7 +37300,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37360,7 +37360,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37496,7 +37496,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37528,7 +37528,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37560,7 +37560,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37795,7 +37795,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37827,7 +37827,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37859,7 +37859,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37891,7 +37891,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37923,7 +37923,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37955,7 +37955,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -37987,7 +37987,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38115,7 +38115,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38130,7 +38130,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38145,7 +38145,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38160,7 +38160,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38175,7 +38175,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38190,7 +38190,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38205,7 +38205,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38343,7 +38343,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38439,7 +38439,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38454,7 +38454,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38469,7 +38469,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38627,7 +38627,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",
@@ -38659,7 +38659,7 @@
       "actor_name": "Owner",
       "metadata": {
         "action": "manager_email_login",
-        "email": "owner@cavali.com",
+        "email": "owner@cavalli.com",
         "role": "owner"
       },
       "resource_id": "USR_504897B0CC2C",

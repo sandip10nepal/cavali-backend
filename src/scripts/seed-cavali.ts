@@ -263,14 +263,14 @@ async function seed() {
   });
   console.log(`✅ Created restaurant: ${restaurant.name} (${restaurant._id})`);
 
-  // 2. Create owner account (PIN: 1234)
+  // 2. Create owner account (PIN: 2448)
   const owner = await MultiTenantDbService.createUser({
     restaurant_id: restaurant._id,
     name: 'Owner',
-    email: 'owner@cavali.com',
+    email: 'owner@cavalli.com',
     phone: null,
     role: 'owner',
-    pin_hash: AuthService.hashPin('1234abcD'),
+    pin_hash: AuthService.hashPin('2448'),
     active: true,
   });
   console.log(`✅ Created owner: ${owner.name} (${owner._id})`);
@@ -383,8 +383,8 @@ async function seed() {
 
   console.log(`\n🎉 Cavalli seed migration complete!`);
   console.log(`   Restaurant ID: ${restaurant._id}`);
-  console.log(`   Owner email:   owner@cavali.com`);
-  console.log(`   Owner PIN:     1234`);
+  console.log(`   Owner email:   owner@cavalli.com`);
+  console.log(`   Owner PIN:     2448`);
   console.log(`   Slug:          cavali`);
 
   process.exit(0);

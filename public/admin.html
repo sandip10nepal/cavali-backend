@@ -691,14 +691,14 @@
       <div id="loginFormEmail" style="display: none;">
         <div style="margin-bottom: 14px; text-align: left;">
           <label style="display: block; font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; margin-bottom: 4px;">Owner / Manager Email *</label>
-          <input type="email" id="loginManagerEmailInput" placeholder="alex@restaurant.com" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px;">
+          <input type="email" id="loginManagerEmailInput" placeholder="name@cavalli.com" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px;">
         </div>
         <div style="margin-bottom: 14px; text-align: left;">
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Password *</label>
-          <input type="password" id="loginManagerPassInput" placeholder="••••••••••••" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px;">
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Passcode / Password * (4-Digit PIN e.g. 2448)</label>
+          <input type="password" id="loginManagerPassInput" placeholder="Enter 4-Digit Passcode" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px;">
         </div>
         <div style="margin-bottom: 20px; text-align: left;">
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Venue Code (Optional)</label>
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Venue Code (Optional if email is unique)</label>
           <input type="text" id="loginManagerVenueCode" placeholder="e.g. 4821 or leave blank" value="" style="width: 100%; padding: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; color: var(--cream); font-size: 14px; font-weight: 700; text-transform: uppercase;">
         </div>
         <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 15px; font-weight: 800;" onclick="handleManagerEmailLogin()">Open Dashboard</button>
@@ -1327,9 +1327,10 @@
               <h2 id="profName" style="color: var(--cream); font-size: 20px; font-weight: 900; margin: 0;">Staff Name</h2>
               <span id="profStatusBadge" style="background: rgba(34,197,94,0.15); color: var(--success); border: 1px solid var(--success); border-radius: 20px; padding: 2px 8px; font-size: 10px; font-weight: 800;">OFF SHIFT</span>
             </div>
-            <div style="margin-top: 4px; display: flex; gap: 8px; align-items: center;">
+            <div style="margin-top: 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <span id="profPosition" style="background: rgba(229,177,58,0.1); color: var(--gold); border: 1px solid var(--gold); border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700;">SERVER</span>
               <span id="profPayRate" style="font-size: 13px; font-weight: 800; color: var(--gold);">$0.00 / hr</span>
+              <span id="profEmail" style="font-size: 12px; color: var(--gold); font-weight: 700; display: none;"></span>
             </div>
           </div>
         </div>
@@ -1494,7 +1495,7 @@
 
       <div style="margin-bottom: 12px;">
         <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Role *</label>
-        <select id="empRole" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 14px;">
+        <select id="empRole" onchange="handleEmpRoleChange()" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 14px;">
           <option value="cashier">Server / Cashier</option>
           <option value="bartender">Bartender</option>
           <option value="chef">Chef / Kitchen</option>
@@ -1503,8 +1504,14 @@
         </select>
       </div>
 
+      <div id="empEmailContainer" style="margin-bottom: 12px; display: none;">
+        <label id="empEmailLabel" style="display: block; font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; margin-bottom: 4px;">Manager Email * (Required for Manager Portal)</label>
+        <input type="email" id="empEmail" placeholder="name@cavalli.com" style="width: 100%; padding: 10px; background: var(--card2); border: 1.5px solid var(--gold); border-radius: 8px; color: var(--cream); font-size: 14px;">
+        <span style="font-size: 11px; color: var(--muted); display: block; margin-top: 3px;">Used by managers to authenticate into the Manager Portal with their passcode.</span>
+      </div>
+
       <div style="margin-bottom: 20px;">
-        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">4-Digit Staff PIN *</label>
+        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">4-Digit Staff Passcode / PIN *</label>
         <input type="password" id="empPin" maxlength="4" placeholder="••••" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 18px; font-weight: 800; letter-spacing: 6px; text-align: center;">
       </div>
 
@@ -1766,7 +1773,8 @@
           body: JSON.stringify({
             restaurant_code: venueCode || undefined,
             email: email,
-            password: password
+            password: password,
+            pin: password
           })
         });
         const data = await res.json();
@@ -3726,19 +3734,31 @@
             listBody.innerHTML = data.employees.map(e => {
               const badge = ROLE_BADGES[e.role] || { label: e.role, color: 'var(--muted)' };
               const clockedTag = e.is_clocked_in ? '<span style="background:rgba(34,197,94,0.15);color:var(--success);border:1px solid var(--success);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:800;margin-left:6px;">🟢 ON SHIFT</span>' : '';
+              const isMgr = e.role === 'manager' || e.role === 'owner';
+              const cleanFallbackEmail = e.name.toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '') + '@cavalli.com';
+              const displayEmail = e.email || (isMgr ? cleanFallbackEmail : null);
+
+              const emailDisplay = displayEmail ? `
+                <div style="margin-top:6px;font-size:12px;color:var(--gold);display:flex;align-items:center;gap:6px;font-weight:700;">
+                  <span style="font-size:13px;">✉️</span>
+                  <span>${displayEmail}</span>
+                  ${isMgr ? '<span style="font-size:9px;background:rgba(229,177,58,0.18);border:1px solid var(--gold);padding:1px 6px;border-radius:4px;color:var(--gold);font-weight:800;letter-spacing:0.5px;">MANAGER LOGIN</span>' : ''}
+                </div>` : '';
+
               return `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--background);border:1.5px solid var(--line);border-radius:12px;padding:14px 18px;gap:12px;flex-wrap:wrap;">
                 <div style="display:flex;align-items:center;gap:14px;cursor:pointer;" onclick="openStaffProfileModal('${e.id}')" title="Tap picture/emoji to view full staff profile, 6-month hours &amp; weekly payroll logs">
                   <div style="width:42px;height:42px;border-radius:50%;background:rgba(59,130,246,0.15);border:2px solid ${badge.color};display:flex;align-items:center;justify-content:center;font-size:18px;color:${badge.color};font-weight:900;">${e.name.charAt(0).toUpperCase()}</div>
                   <div>
                     <div style="font-weight:700;color:var(--cream);font-size:15px;display:flex;align-items:center;gap:6px;">${e.name} ${clockedTag} <span style="font-size:11px;color:var(--gold);font-weight:700;">👤 Profile</span></div>
                     <div style="margin-top:4px;"><span style="background:rgba(229,177,58,0.1);color:${badge.color};border:1px solid ${badge.color};border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;">${badge.label.toUpperCase()}</span></div>
+                    ${emailDisplay}
                   </div>
                 </div>
                 <div style="display:flex;gap:8px;">
-                  <button class="btn" style="padding:6px 12px;font-size:12px;" onclick="openEditEmpModal('${e.id}', '${e.name.replace(/'/g, "\\'")}', '${e.role}')">
+                  <button class="btn" style="padding:6px 12px;font-size:12px;" onclick="openEditEmpModal('${e.id}', '${e.name.replace(/'/g, "\\'")}', '${e.role}', '${(displayEmail || '').replace(/'/g, "\\'")}')">
                     <i data-lucide="edit-2" style="width:12px;height:12px;"></i> Edit
                   </button>
-                  ${e.id !== 'emp-owner' ? `<button class="btn" style="padding:6px 12px;font-size:12px;background:rgba(239,68,68,0.15);border-color:var(--danger);color:var(--danger);" onclick="deleteEmployee('${e.id}')">Remove</button>` : ''}
+                  ${e.id !== 'emp-owner' && e.role !== 'owner' ? `<button class="btn" style="padding:6px 12px;font-size:12px;background:rgba(239,68,68,0.15);border-color:var(--danger);color:var(--danger);" onclick="deleteEmployee('${e.id}')">Remove</button>` : ''}
                 </div>
               </div>`;
             }).join('');
@@ -3799,6 +3819,12 @@
           document.getElementById('profAvatar').innerText = (p.name || 'A').charAt(0).toUpperCase();
           document.getElementById('profPosition').innerText = (p.position || p.role || 'STAFF').toUpperCase();
           document.getElementById('profPayRate').innerText = `$${(Number(p.hourly_rate) || 0).toFixed(2)} / hr`;
+
+          const emailEl = document.getElementById('profEmail');
+          if (emailEl) {
+            emailEl.innerText = p.email ? `✉️ ${p.email}` : '';
+            emailEl.style.display = p.email ? 'inline' : 'none';
+          }
 
           const statusBadge = document.getElementById('profStatusBadge');
           if (statusBadge) {
@@ -3909,21 +3935,46 @@
       }
     }
 
+    function handleEmpRoleChange() {
+      const role = document.getElementById('empRole').value;
+      const emailCont = document.getElementById('empEmailContainer');
+      const emailInput = document.getElementById('empEmail');
+      const nameInput = document.getElementById('empName');
+      if (role === 'manager') {
+        emailCont.style.display = 'block';
+        emailInput.required = true;
+        if (!emailInput.value.trim() && nameInput.value.trim()) {
+          const clean = nameInput.value.trim().toLowerCase().split(' ')[0].replace(/[^a-z0-9]/g, '');
+          const restCode = localStorage.getItem('benzin_restaurant_code') || '';
+          if (clean && (restCode === '4821' || !restCode)) {
+            emailInput.value = `${clean}@cavalli.com`;
+          }
+        }
+      } else {
+        emailCont.style.display = 'none';
+        emailInput.required = false;
+      }
+    }
+
     function openAddEmployeeModal() {
       document.getElementById('empModalTitle').innerText = 'Add Employee';
       document.getElementById('empEditId').value = '';
       document.getElementById('empName').value = '';
       document.getElementById('empRole').value = 'cashier';
+      document.getElementById('empEmail').value = '';
       document.getElementById('empPin').value = '';
+      handleEmpRoleChange();
       document.getElementById('empModal').style.display = 'flex';
     }
 
-    function openEditEmpModal(id, name, role) {
+    function openEditEmpModal(id, name, role, email) {
       document.getElementById('empModalTitle').innerText = 'Edit Employee';
       document.getElementById('empEditId').value = id;
       document.getElementById('empName').value = name;
       document.getElementById('empRole').value = role;
+      document.getElementById('empEmail').value = email || '';
       document.getElementById('empPin').value = '';
+      handleEmpRoleChange();
       document.getElementById('empModal').style.display = 'flex';
     }
 
@@ -3935,11 +3986,25 @@
       const id = document.getElementById('empEditId').value;
       const name = document.getElementById('empName').value.trim();
       const role = document.getElementById('empRole').value;
+      const email = document.getElementById('empEmail').value.trim().toLowerCase();
       const pin = document.getElementById('empPin').value.trim();
 
       if (!name) {
         alert('Please enter staff name');
         return;
+      }
+
+      if (role === 'manager') {
+        if (!email) {
+          alert('Manager email is required for manager registration across all venues.');
+          document.getElementById('empEmail').focus();
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          alert('Please enter a valid email address (e.g. name@cavalli.com).');
+          document.getElementById('empEmail').focus();
+          return;
+        }
       }
 
       try {
@@ -3948,6 +4013,9 @@
         const url = id ? `${API_URL}/api/employees/${id}` : `${API_URL}/api/employees`;
 
         const bodyPayload = { name, role };
+        if (email) {
+          bodyPayload.email = email;
+        }
         if (pin) {
           bodyPayload.pin = pin;
         }
