@@ -1712,12 +1712,12 @@
       
       <div style="margin-bottom: 14px;">
         <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Table Number *</label>
-        <input type="number" id="addTableNumber" placeholder="e.g. 15" min="1" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+        <input type="text" id="addTableNumber" placeholder="e.g. 15, P1, P2, VIP1" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
       </div>
 
       <div style="margin-bottom: 14px;">
         <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Table Name / Label (Optional)</label>
-        <input type="text" id="addTableLabel" placeholder="e.g. Table 15, VIP Booth 2, Patio 1" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+        <input type="text" id="addTableLabel" placeholder="e.g. Table 15, P1, Patio 2, VIP Booth" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
       </div>
 
       <div style="margin-bottom: 20px;">
@@ -1741,12 +1741,12 @@
 
       <div style="margin-bottom: 14px;">
         <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Table Number *</label>
-        <input type="number" id="editTableNumber" min="1" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+        <input type="text" id="editTableNumber" placeholder="e.g. 15, P1, P2" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
       </div>
 
       <div style="margin-bottom: 14px;">
         <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Table Name / Label</label>
-        <input type="text" id="editTableLabel" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+        <input type="text" id="editTableLabel" placeholder="e.g. Table 15, P1, Patio 2" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
       </div>
 
       <div style="margin-bottom: 20px;">
@@ -2879,11 +2879,13 @@
 
         // Filter by search query
         if (query) {
+          const isPatioTable = /^p\d+/i.test(t.label || '') || (t.label || '').toLowerCase().includes('patio');
+          const matchPatioQuery = (query === 'patio' || query === 'p') && isPatioTable;
           const matchLabel = (t.label || '').toLowerCase().includes(query);
           const matchServer = (t.assigned_server_name || '').toLowerCase().includes(query);
           const matchNick = (t.customer_nickname || (t.active_order?.customerName) || '').toLowerCase().includes(query);
           const matchItems = (t.items_summary || '').toLowerCase().includes(query);
-          if (!matchLabel && !matchServer && !matchNick && !matchItems) return false;
+          if (!matchLabel && !matchServer && !matchNick && !matchItems && !matchPatioQuery) return false;
         }
 
         return true;
@@ -2937,11 +2939,15 @@
           } catch (_) {}
         }
 
+        const isPatio = /^p\d+/i.test(t.label || '') || (t.label || '').toLowerCase().includes('patio');
+        const badgeText = isPatio ? 'PATIO' : 'TABLE';
+        const badgeColor = isPatio ? '#38bdf8' : 'var(--gold)';
+
         return `
           <div class="table-card ${!isAvailable ? 'has-order' : ''}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
               <div>
-                <div style="font-size: 11px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; color: var(--gold);">TABLE</div>
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; color: ${badgeColor};">${badgeText}</div>
                 <h3 style="font-size: 20px; font-weight: 900; margin: 0; color: var(--cream);">${escapeHtml(t.label)}</h3>
               </div>
               <div style="display: flex; align-items: center; gap: 6px;">
@@ -3214,7 +3220,10 @@
       if (!modal) return;
       let nextNum = 1;
       if (Array.isArray(tablesList) && tablesList.length > 0) {
-        const maxNum = tablesList.reduce((m, t) => Math.max(m, t.table_number || t.number || 0), 0);
+        const maxNum = tablesList.reduce((m, t) => {
+          const num = t.table_number || t.number || 0;
+          return num < 100 ? Math.max(m, num) : m;
+        }, 0);
         nextNum = maxNum + 1;
       }
       const numInput = document.getElementById('addTableNumber');
@@ -3229,7 +3238,7 @@
 
     function closeAddTableModal() {
       const modal = document.getElementById('addTableModal');
-      if (modal) modal.style.display = 'none';
+      if (!modal) modal.style.display = 'none';
     }
 
     async function submitAddTable() {
@@ -3237,12 +3246,12 @@
       const labelInput = document.getElementById('addTableLabel');
       const capInput = document.getElementById('addTableCapacity');
 
-      const number = parseInt(numInput?.value, 10);
-      const label = (labelInput?.value || '').trim() || (number ? `Table ${number}` : '');
+      const rawNum = (numInput?.value || '').trim();
+      const rawLabel = (labelInput?.value || '').trim();
       const capacity = parseInt(capInput?.value, 10) || 4;
 
-      if (!number || number <= 0) {
-        alert('Please enter a valid table number (e.g. 15).');
+      if (!rawNum && !rawLabel) {
+        alert('Please enter a table number or label (e.g. 15, P1, VIP-2).');
         return;
       }
 
@@ -3251,7 +3260,7 @@
         const res = await fetch(`${API_URL}/api/tables`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ number, label, capacity })
+          body: JSON.stringify({ number: rawNum, label: rawLabel, capacity })
         });
         const data = await res.json();
         if (!res.ok || !data.success) {
@@ -3274,8 +3283,11 @@
       const sub = document.getElementById('editTableModalSub');
       if (!modal) return;
 
+      const isPatio = /^p\d+/i.test(label || '') || (label || '').toLowerCase().includes('patio');
+      const displayNum = isPatio ? label : (number && number < 100 ? number : label);
+
       if (idInput) idInput.value = tableId;
-      if (numInput) numInput.value = number || '';
+      if (numInput) numInput.value = displayNum || '';
       if (labelInput) labelInput.value = label || '';
       if (capInput) capInput.value = capacity || 4;
       if (sub) sub.innerText = `Editing ${label || 'Table ' + number}`;
@@ -3286,7 +3298,7 @@
 
     function closeEditTableModal() {
       const modal = document.getElementById('editTableModal');
-      if (modal) modal.style.display = 'none';
+      if (!modal) modal.style.display = 'none';
     }
 
     async function submitEditTable() {
@@ -3298,12 +3310,12 @@
       const tableId = idInput?.value;
       if (!tableId) return;
 
-      const number = parseInt(numInput?.value, 10);
-      const label = (labelInput?.value || '').trim();
+      const rawNum = (numInput?.value || '').trim();
+      const rawLabel = (labelInput?.value || '').trim();
       const capacity = parseInt(capInput?.value, 10) || 4;
 
-      if (!number || number <= 0) {
-        alert('Please enter a valid table number.');
+      if (!rawNum && !rawLabel) {
+        alert('Please enter a valid table number or label.');
         return;
       }
 
@@ -3312,7 +3324,7 @@
         const res = await fetch(`${API_URL}/api/tables/${tableId}`, {
           method: 'PUT',
           headers,
-          body: JSON.stringify({ number, label, capacity })
+          body: JSON.stringify({ number: rawNum, label: rawLabel, capacity })
         });
         const data = await res.json();
         if (!res.ok || !data.success) {

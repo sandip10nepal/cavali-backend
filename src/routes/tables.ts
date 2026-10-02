@@ -34,14 +34,58 @@ function isManagerOrAdmin(req: Request): boolean {
   return ['owner', 'manager', 'platform_admin', 'admin'].includes(role);
 }
 
+// Natural sort helper for tables
+export function sortTablesNaturally(a: any, b: any): number {
+  const getSortKey = (item: any) => {
+    const raw = String(item.label || item.table_label || item.table_number || item.number || '').trim();
+    const clean = raw.replace(/^table[\s-_]*/i, '').replace(/^tbl[\s-_]*/i, '').trim();
+    
+    // 1. Pure numeric tables: 1, 2, 3 ... 21
+    const numMatch = clean.match(/^(\d+)$/);
+    if (numMatch) {
+      return { type: 1, section: '', num: parseInt(numMatch[1], 10), raw: clean };
+    }
+    
+    // 2. Alphanumeric section tables like P1, P2, VIP1
+    const alphaNumMatch = clean.match(/^([a-zA-Z\s_-]+?)(\d+)$/);
+    if (alphaNumMatch) {
+      const section = alphaNumMatch[1].replace(/[\s-_]+$/, '').toUpperCase();
+      return { type: 2, section, num: parseInt(alphaNumMatch[2], 10), raw: clean };
+    }
+    
+    // 3. Other named tables
+    return { type: 3, section: clean.toUpperCase(), num: 0, raw: clean };
+  };
+
+  const keyA = getSortKey(a);
+  const keyB = getSortKey(b);
+
+  if (keyA.type !== keyB.type) {
+    return keyA.type - keyB.type;
+  }
+
+  if (keyA.type === 1) {
+    return keyA.num - keyB.num;
+  }
+
+  if (keyA.type === 2) {
+    if (keyA.section !== keyB.section) {
+      return keyA.section.localeCompare(keyB.section);
+    }
+    return keyA.num - keyB.num;
+  }
+
+  return keyA.raw.localeCompare(keyB.raw, undefined, { numeric: true, sensitivity: 'base' });
+}
+
 // GET /api/tables
 // Returns all floor tables for the restaurant
 router.get('/', async (req: Request, res: Response) => {
   try {
     const restaurantId = await resolveRestaurantId(req);
     const tables = await MultiTenantDbService.listTables(restaurantId);
-    // Sort tables numerically
-    tables.sort((a, b) => (a.number || 0) - (b.number || 0));
+    // Sort tables naturally: 1-21, then P1-P8, etc.
+    tables.sort(sortTablesNaturally);
     return res.status(200).json({
       success: true,
       restaurant_id: restaurantId,
@@ -54,7 +98,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // POST /api/tables
-// Adds a new floor table
+// Adds a new floor table (supports numeric like "15" and alphanumeric like "P1", "P2", "VIP1")
 router.post('/', async (req: Request, res: Response) => {
   try {
     if (!isManagerOrAdmin(req)) {
@@ -64,21 +108,39 @@ router.post('/', async (req: Request, res: Response) => {
     const restaurantId = await resolveRestaurantId(req);
     const existingTables = await MultiTenantDbService.listTables(restaurantId);
 
-    let number = parseInt(String(req.body.number), 10);
-    if (isNaN(number) || number <= 0) {
-      // Auto-assign highest number + 1
-      const maxNum = existingTables.reduce((max, t) => Math.max(max, t.number || 0), 0);
-      number = maxNum + 1;
+    const rawNumStr = String(req.body.number || '').trim();
+    const rawLabelStr = String(req.body.label || '').trim();
+
+    // Check if input represents a Patio table like "P1", "P2" or "Patio 1"
+    const pMatch = rawNumStr.match(/^p(\d+)$/i) || 
+                   rawLabelStr.match(/^p(\d+)$/i) || 
+                   rawNumStr.match(/^patio[\s-_]*(\d+)$/i) || 
+                   rawLabelStr.match(/^patio[\s-_]*(\d+)$/i);
+
+    let number = 0;
+    let label = '';
+
+    if (pMatch) {
+      const pIdx = parseInt(pMatch[1], 10);
+      label = rawLabelStr && !/^p\d+$/i.test(rawLabelStr) ? rawLabelStr : `P${pIdx}`;
+      number = 100 + pIdx;
+    } else {
+      const parsedNum = parseInt(rawNumStr, 10);
+      if (!isNaN(parsedNum) && parsedNum > 0) {
+        number = parsedNum;
+      } else {
+        const maxNum = existingTables.reduce((max, t) => Math.max(max, t.number || 0), 0);
+        number = maxNum + 1;
+      }
+      label = rawLabelStr || (rawNumStr && isNaN(parseInt(rawNumStr, 10)) ? rawNumStr : `Table ${number}`);
     }
 
-    const labelInput = (req.body.label || '').trim();
-    const label = labelInput || `Table ${number}`;
     const capacity = parseInt(String(req.body.capacity), 10) || 4;
 
     // Check for duplicate number or label
     const duplicate = existingTables.find(t => 
       t.number === number || 
-      (t.label && t.label.toLowerCase() === label.toLowerCase())
+      (t.label && t.label.trim().toLowerCase() === label.trim().toLowerCase())
     );
     if (duplicate) {
       return res.status(409).json({
@@ -129,14 +191,30 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 
     const updates: any = {};
-    if (req.body.number !== undefined) {
-      const num = parseInt(String(req.body.number), 10);
-      if (!isNaN(num) && num > 0) updates.number = num;
+    const rawNumStr = req.body.number !== undefined ? String(req.body.number).trim() : '';
+    const rawLabelStr = req.body.label !== undefined ? String(req.body.label).trim() : '';
+
+    if (rawNumStr || rawLabelStr) {
+      const pMatch = rawNumStr.match(/^p(\d+)$/i) || 
+                     rawLabelStr.match(/^p(\d+)$/i) || 
+                     rawNumStr.match(/^patio[\s-_]*(\d+)$/i) || 
+                     rawLabelStr.match(/^patio[\s-_]*(\d+)$/i);
+
+      if (pMatch) {
+        const pIdx = parseInt(pMatch[1], 10);
+        updates.label = rawLabelStr && !/^p\d+$/i.test(rawLabelStr) ? rawLabelStr : `P${pIdx}`;
+        updates.number = 100 + pIdx;
+      } else {
+        if (rawNumStr) {
+          const num = parseInt(rawNumStr, 10);
+          if (!isNaN(num) && num > 0) updates.number = num;
+        }
+        if (rawLabelStr) {
+          updates.label = rawLabelStr;
+        }
+      }
     }
-    if (req.body.label !== undefined) {
-      const lbl = String(req.body.label).trim();
-      if (lbl) updates.label = lbl;
-    }
+
     if (req.body.capacity !== undefined) {
       const cap = parseInt(String(req.body.capacity), 10);
       if (!isNaN(cap) && cap > 0) updates.capacity = cap;
@@ -151,7 +229,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       const conflict = allTables.find(t => 
         t._id !== tableId && (
           (updates.number && t.number === updates.number) ||
-          (updates.label && t.label && t.label.toLowerCase() === updates.label.toLowerCase())
+          (updates.label && t.label && t.label.trim().toLowerCase() === updates.label.trim().toLowerCase())
         )
       );
       if (conflict) {

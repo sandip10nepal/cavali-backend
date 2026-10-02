@@ -11,6 +11,7 @@ import { OrderService } from '../modules/orders/order.service';
 import { InventoryRepository } from '../modules/inventory/inventory.repository';
 import { ServiceRequestRepository } from '../modules/service-requests/serviceRequest.repository';
 import { PaymentRepository } from '../modules/payments/payment.repository';
+import { sortTablesNaturally } from './tables';
 
 const router = Router();
 
@@ -446,7 +447,10 @@ function mapOrderForClient(o: any): any {
     _id: o._id || o.id,
     restaurant_id: o.restaurant_id || o.restaurantId || '',
     restaurantId: o.restaurant_id || o.restaurantId || '',
-    table: String(o.table || o.table_id || '1').replace(/^tbl[_-]*/i, '').replace(/^table[\s-_]*/i, '').trim() || '1',
+    table: (() => {
+      const raw = String(o.table || o.table_id || '1').replace(/^tbl[_-]*/i, '').replace(/^table[\s-_]*/i, '').trim() || '1';
+      return /^p\d+$/i.test(raw) ? raw.toUpperCase() : raw;
+    })(),
     status: o.status,
     paymentStatus: o.payment_status || o.paymentStatus || (o.status === 'paid' ? 'paid' : 'unpaid'),
     subtotal: o.subtotal !== undefined ? Number(o.subtotal) : Number(o.total || 0),
@@ -1031,20 +1035,35 @@ router.get('/tables/overview', async (req, res) => {
 
     // Helper: Normalize table string for matching
     const normalizeTable = (val: any): string => {
-      return String(val || '')
-        .replace(/^tbl[_-]*/i, '')
-        .replace(/^table[\s-_]*/i, '')
-        .trim()
-        .toLowerCase();
+      let s = String(val || '').trim().toLowerCase();
+      s = s.replace(/^tbl[_\s-]*/i, '').replace(/^table[\s-_]*/i, '').trim();
+      if (s.startsWith('patio')) {
+        s = s.replace(/^patio[\s-_]*/i, '');
+        if (!s.startsWith('p')) {
+          s = 'p' + s;
+        }
+      }
+      s = s.replace(/[\s-_]+/g, '');
+      return s;
     };
 
     // Table matcher
     const matchesTable = (tableObj: any, orderTableStr: any): boolean => {
+      if (!orderTableStr) return false;
+      const orderIdStr = String(orderTableStr).trim();
+      if (tableObj._id === orderIdStr || tableObj.id === orderIdStr) return true;
+
       const oClean = normalizeTable(orderTableStr);
       if (!oClean) return false;
-      const numStr = String(tableObj.number || '');
       const labelClean = normalizeTable(tableObj.label || '');
-      return oClean === labelClean || oClean === numStr || `table ${oClean}` === String(tableObj.label || '').toLowerCase();
+      if (oClean === labelClean) return true;
+
+      const numStr = String(tableObj.number || '');
+      // If purely numeric on both sides, compare numeric values
+      if (/^\d+$/.test(oClean) && /^\d+$/.test(numStr)) {
+        return parseInt(oClean, 10) === parseInt(numStr, 10);
+      }
+      return false;
     };
 
     // Build map of configured tables
@@ -1173,11 +1192,23 @@ router.get('/tables/overview', async (req, res) => {
           : (o.note || 'Order Placed');
         const createdTime = o.createdAt || o.created_at;
         const elapsedMinutes = createdTime ? Math.max(0, Math.floor((Date.now() - new Date(createdTime).getTime()) / 60000)) : 0;
-        const displayLabel = cleanTbl.toUpperCase().startsWith('TABLE') ? cleanTbl : `Table ${cleanTbl.toUpperCase()}`;
+        const isPatioDynamic = /^p\d+$/i.test(cleanTbl);
+        let displayLabel = cleanTbl.toUpperCase();
+        let tableNum = 999;
+        if (isPatioDynamic) {
+          const pIdx = parseInt(cleanTbl.substring(1), 10);
+          displayLabel = `P${pIdx}`;
+          tableNum = 100 + pIdx;
+        } else if (/^\d+$/.test(cleanTbl)) {
+          displayLabel = `Table ${cleanTbl}`;
+          tableNum = parseInt(cleanTbl, 10) || 999;
+        } else if (!displayLabel.startsWith('TABLE')) {
+          displayLabel = `Table ${displayLabel}`;
+        }
 
         tableCards.push({
           table_id: `dynamic-${cleanTbl}`,
-          table_number: parseInt(cleanTbl, 10) || 999,
+          table_number: tableNum,
           table_label: displayLabel,
           label: displayLabel,
           capacity: 4,
@@ -1212,8 +1243,8 @@ router.get('/tables/overview', async (req, res) => {
       }
     }
 
-    // Sort table cards cleanly by table number
-    tableCards.sort((a, b) => (a.table_number || 0) - (b.table_number || 0));
+    // Sort table cards cleanly using natural table sorting (1-21 dining tables, P1-P8 patio tables, etc.)
+    tableCards.sort(sortTablesNaturally);
 
     return res.status(200).json({
       success: true,

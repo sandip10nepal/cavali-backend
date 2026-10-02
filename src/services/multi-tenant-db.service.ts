@@ -152,6 +152,7 @@ export class MultiTenantDbService {
       // Baseline sanity data in background (non-blocking)
       this.ensureRestaurantCodes().catch(() => {});
       this.ensureDefaultStaff().catch(() => {});
+      this.ensureDefaultTables().catch(() => {});
       this.ensureDefaultInventory().catch(() => {});
       this.archiveExpiredTimecards(undefined, 180).catch(() => {});
       this.ensureSoftDrinksConfiguration().catch(() => {});
@@ -360,6 +361,41 @@ export class MultiTenantDbService {
         }
       }
     } catch (err) {}
+  }
+
+  static async ensureDefaultTables(): Promise<void> {
+    try {
+      const restaurant = await this.getRestaurantBySlug('cavali');
+      if (!restaurant) return;
+
+      const existingTables = await this.listTables(restaurant._id);
+      const existingLabels = new Set(existingTables.map(t => (t.label || '').trim().toLowerCase()));
+
+      const patioTables = [
+        { label: 'P1', number: 101, capacity: 4 },
+        { label: 'P2', number: 102, capacity: 4 },
+        { label: 'P3', number: 103, capacity: 4 },
+        { label: 'P4', number: 104, capacity: 4 },
+        { label: 'P5', number: 105, capacity: 6 },
+        { label: 'P6', number: 106, capacity: 6 },
+        { label: 'P7', number: 107, capacity: 6 },
+        { label: 'P8', number: 108, capacity: 6 },
+      ];
+
+      for (const pt of patioTables) {
+        if (!existingLabels.has(pt.label.toLowerCase()) && !existingLabels.has(`table ${pt.label.toLowerCase()}`)) {
+          await this.createTable({
+            restaurant_id: restaurant._id,
+            number: pt.number,
+            label: pt.label,
+            capacity: pt.capacity,
+            active: true,
+          });
+        }
+      }
+    } catch (e: any) {
+      console.warn('[Database] Non-fatal error ensuring default tables:', e.message);
+    }
   }
 
   static async ensureDefaultInventory(targetRestaurantId?: string): Promise<void> {
