@@ -1017,9 +1017,6 @@
             <span>🪑 Floor Table Overview</span>
             <span id="tablesLivePulseDot" style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #10b981; animation: pulseAlert 1.5s infinite ease-in-out;" title="Real-Time Stream Active"></span>
           </h2>
-          <div style="font-size: 13px; color: var(--muted); margin-top: 4px;">
-            Live table status, server assignments, and active orders. Instant updates without page refresh.
-          </div>
         </div>
 
         <!-- Quick Floor Statistics -->
@@ -1705,7 +1702,7 @@
   </div>
 
   <!-- Add Table Modal (Manager Action) -->
-  <div id="addTableModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+  <div id="addTableModal" onclick="if(event.target === this) closeAddTableModal()" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
       <h3 style="color: var(--gold); font-size: 18px; font-weight: 800; margin-bottom: 6px;">➕ Add Floor Table</h3>
       <div style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">Create a new table for guest orders and floor management.</div>
@@ -1726,14 +1723,14 @@
       </div>
 
       <div style="display: flex; gap: 10px; justify-content: flex-end;">
-        <button class="btn" onclick="closeAddTableModal()" style="padding: 10px 16px;">Cancel</button>
+        <button class="btn" type="button" onclick="closeAddTableModal()" style="padding: 10px 16px;">Cancel</button>
         <button class="btn btn-primary" onclick="submitAddTable()" style="background: var(--gold); color: #000; border-color: var(--gold); padding: 10px 18px; font-weight: 800;">Create Table</button>
       </div>
     </div>
   </div>
 
   <!-- Edit Table Modal (Manager Action) -->
-  <div id="editTableModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+  <div id="editTableModal" onclick="if(event.target === this) closeEditTableModal()" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
       <h3 style="color: var(--gold); font-size: 18px; font-weight: 800; margin-bottom: 6px;">✏️ Edit Floor Table</h3>
       <div id="editTableModalSub" style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">Modify table label, number, capacity, or remove table.</div>
@@ -1759,7 +1756,7 @@
           <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete Table
         </button>
         <div style="display: flex; gap: 8px;">
-          <button class="btn" onclick="closeEditTableModal()" style="padding: 10px 16px;">Cancel</button>
+          <button class="btn" type="button" onclick="closeEditTableModal()" style="padding: 10px 16px;">Cancel</button>
           <button class="btn btn-primary" onclick="submitEditTable()" style="background: #0066FF; padding: 10px 18px; font-weight: 800;">Save Changes</button>
         </div>
       </div>
@@ -3238,8 +3235,9 @@
 
     function closeAddTableModal() {
       const modal = document.getElementById('addTableModal');
-      if (!modal) modal.style.display = 'none';
+      if (modal) modal.style.display = 'none';
     }
+    window.closeAddTableModal = closeAddTableModal;
 
     async function submitAddTable() {
       const numInput = document.getElementById('addTableNumber');
@@ -3298,8 +3296,9 @@
 
     function closeEditTableModal() {
       const modal = document.getElementById('editTableModal');
-      if (!modal) modal.style.display = 'none';
+      if (modal) modal.style.display = 'none';
     }
+    window.closeEditTableModal = closeEditTableModal;
 
     async function submitEditTable() {
       const idInput = document.getElementById('editTableId');
