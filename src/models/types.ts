@@ -242,12 +242,14 @@ export interface InventoryTransaction {
 
 export interface RestaurantTable {
   _id: string;
+  id?: string;
   restaurant_id: string;
   number: number;
   label: string;              // e.g. "Patio 3", "VIP Booth"
   capacity: number;
   active: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface MenuCategory {

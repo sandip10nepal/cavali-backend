@@ -1056,6 +1056,10 @@
           <button class="btn" onclick="renderTablesPage(true)" title="Force Refresh Table State" style="padding: 8px 12px; font-size: 13px;">
             <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
           </button>
+          <button class="btn btn-primary" onclick="openAddTableModal()" style="background: var(--gold); border-color: var(--gold); color: #000; font-weight: 800; font-size: 13px; padding: 8px 14px; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+            <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
+            <span>+ Add Table</span>
+          </button>
         </div>
       </div>
 
@@ -1696,6 +1700,68 @@
       <div style="display: flex; gap: 10px; justify-content: flex-end;">
         <button class="btn" onclick="closeReassignModal()" style="padding: 10px 16px;">Cancel</button>
         <button class="btn btn-primary" onclick="submitReassignModal()" style="background: #0066FF; padding: 10px 18px; font-weight: 800;">Confirm Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Table Modal (Manager Action) -->
+  <div id="addTableModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+      <h3 style="color: var(--gold); font-size: 18px; font-weight: 800; margin-bottom: 6px;">➕ Add Floor Table</h3>
+      <div style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">Create a new table for guest orders and floor management.</div>
+      
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Table Number *</label>
+        <input type="number" id="addTableNumber" placeholder="e.g. 15" min="1" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Table Name / Label (Optional)</label>
+        <input type="text" id="addTableLabel" placeholder="e.g. Table 15, VIP Booth 2, Patio 1" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Seating Capacity</label>
+        <input type="number" id="addTableCapacity" value="4" min="1" max="50" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn" onclick="closeAddTableModal()" style="padding: 10px 16px;">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddTable()" style="background: var(--gold); color: #000; border-color: var(--gold); padding: 10px 18px; font-weight: 800;">Create Table</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Table Modal (Manager Action) -->
+  <div id="editTableModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+      <h3 style="color: var(--gold); font-size: 18px; font-weight: 800; margin-bottom: 6px;">✏️ Edit Floor Table</h3>
+      <div id="editTableModalSub" style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">Modify table label, number, capacity, or remove table.</div>
+      <input type="hidden" id="editTableId" value="">
+
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Table Number *</label>
+        <input type="number" id="editTableNumber" min="1" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Table Name / Label</label>
+        <input type="text" id="editTableLabel" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Seating Capacity</label>
+        <input type="number" id="editTableCapacity" min="1" max="50" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: space-between; align-items: center;">
+        <button class="btn btn-danger" onclick="submitDeleteTableFromModal()" style="padding: 10px 14px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px;">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Delete Table
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" onclick="closeEditTableModal()" style="padding: 10px 16px;">Cancel</button>
+          <button class="btn btn-primary" onclick="submitEditTable()" style="background: #0066FF; padding: 10px 18px; font-weight: 800;">Save Changes</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2878,7 +2944,14 @@
                 <div style="font-size: 11px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; color: var(--gold);">TABLE</div>
                 <h3 style="font-size: 20px; font-weight: 900; margin: 0; color: var(--cream);">${escapeHtml(t.label)}</h3>
               </div>
-              <span class="${statusPillClass}">${statusLabel}</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="${statusPillClass}">${statusLabel}</span>
+                ${isManager && t.table_id && !t.table_id.startsWith('dynamic-') ? `
+                  <button class="btn" onclick="openEditTableModal('${escapeJs(t.table_id)}', '${escapeJs(t.label)}', ${t.table_number || 0}, ${t.capacity || 4})" style="padding: 4px 8px; font-size: 11px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--muted);" title="Edit Table Details">
+                    <i data-lucide="edit-2" style="width: 11px; height: 11px;"></i>
+                  </button>
+                ` : ''}
+              </div>
             </div>
 
             ${isAvailable ? `
@@ -2886,6 +2959,13 @@
                 <i data-lucide="check-circle-2" style="width: 28px; height: 28px; margin-bottom: 6px; opacity: 0.35;"></i>
                 <div style="font-weight: 700; color: var(--cream);">Available</div>
                 <div style="font-size: 11px; opacity: 0.6; margin-top: 2px;">Table is clean and open for guests</div>
+                ${isManager && t.table_id && !t.table_id.startsWith('dynamic-') ? `
+                  <div style="margin-top: 10px;">
+                    <button class="btn" onclick="openEditTableModal('${escapeJs(t.table_id)}', '${escapeJs(t.label)}', ${t.table_number || 0}, ${t.capacity || 4})" style="padding: 4px 10px; font-size: 11px; border-radius: 6px; color: var(--gold); border-color: rgba(229,177,58,0.3);">
+                      ⚙️ Manage Table
+                    </button>
+                  </div>
+                ` : ''}
               </div>
             ` : `
               <div style="background: rgba(0,0,0,0.25); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; border: 1px solid var(--border);">
@@ -3126,6 +3206,153 @@
 
       closeReassignModal();
       await assignTableOrder(orderId, serverId, serverName);
+    }
+
+    // ── TABLE MANAGEMENT (ADD, EDIT, REMOVE TABLES) ──
+    function openAddTableModal() {
+      const modal = document.getElementById('addTableModal');
+      if (!modal) return;
+      let nextNum = 1;
+      if (Array.isArray(tablesList) && tablesList.length > 0) {
+        const maxNum = tablesList.reduce((m, t) => Math.max(m, t.table_number || t.number || 0), 0);
+        nextNum = maxNum + 1;
+      }
+      const numInput = document.getElementById('addTableNumber');
+      const labelInput = document.getElementById('addTableLabel');
+      const capInput = document.getElementById('addTableCapacity');
+      if (numInput) numInput.value = nextNum;
+      if (labelInput) labelInput.value = `Table ${nextNum}`;
+      if (capInput) capInput.value = '4';
+      modal.style.display = 'flex';
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeAddTableModal() {
+      const modal = document.getElementById('addTableModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function submitAddTable() {
+      const numInput = document.getElementById('addTableNumber');
+      const labelInput = document.getElementById('addTableLabel');
+      const capInput = document.getElementById('addTableCapacity');
+
+      const number = parseInt(numInput?.value, 10);
+      const label = (labelInput?.value || '').trim() || (number ? `Table ${number}` : '');
+      const capacity = parseInt(capInput?.value, 10) || 4;
+
+      if (!number || number <= 0) {
+        alert('Please enter a valid table number (e.g. 15).');
+        return;
+      }
+
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/tables`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ number, label, capacity })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(`Could not create table: ${data.message || data.error || 'Server error'}`);
+          return;
+        }
+        closeAddTableModal();
+        await renderTablesPage(true);
+      } catch (err) {
+        alert('Error creating table: ' + err.message);
+      }
+    }
+
+    function openEditTableModal(tableId, label, number, capacity) {
+      const modal = document.getElementById('editTableModal');
+      const idInput = document.getElementById('editTableId');
+      const numInput = document.getElementById('editTableNumber');
+      const labelInput = document.getElementById('editTableLabel');
+      const capInput = document.getElementById('editTableCapacity');
+      const sub = document.getElementById('editTableModalSub');
+      if (!modal) return;
+
+      if (idInput) idInput.value = tableId;
+      if (numInput) numInput.value = number || '';
+      if (labelInput) labelInput.value = label || '';
+      if (capInput) capInput.value = capacity || 4;
+      if (sub) sub.innerText = `Editing ${label || 'Table ' + number}`;
+
+      modal.style.display = 'flex';
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeEditTableModal() {
+      const modal = document.getElementById('editTableModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function submitEditTable() {
+      const idInput = document.getElementById('editTableId');
+      const numInput = document.getElementById('editTableNumber');
+      const labelInput = document.getElementById('editTableLabel');
+      const capInput = document.getElementById('editTableCapacity');
+
+      const tableId = idInput?.value;
+      if (!tableId) return;
+
+      const number = parseInt(numInput?.value, 10);
+      const label = (labelInput?.value || '').trim();
+      const capacity = parseInt(capInput?.value, 10) || 4;
+
+      if (!number || number <= 0) {
+        alert('Please enter a valid table number.');
+        return;
+      }
+
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/tables/${tableId}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ number, label, capacity })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(`Could not update table: ${data.message || data.error || 'Server error'}`);
+          return;
+        }
+        closeEditTableModal();
+        await renderTablesPage(true);
+      } catch (err) {
+        alert('Error updating table: ' + err.message);
+      }
+    }
+
+    async function submitDeleteTableFromModal() {
+      const idInput = document.getElementById('editTableId');
+      const labelInput = document.getElementById('editTableLabel');
+      const tableId = idInput?.value;
+      const label = labelInput?.value || 'this table';
+      if (!tableId) return;
+
+      if (!confirm(`Are you sure you want to delete ${label}?\n\nThis will remove it from the floor.`)) {
+        return;
+      }
+
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/tables/${tableId}`, {
+          method: 'DELETE',
+          headers
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(`Could not delete table: ${data.message || data.error || 'Server error'}`);
+          return;
+        }
+        closeEditTableModal();
+        await renderTablesPage(true);
+      } catch (err) {
+        alert('Error deleting table: ' + err.message);
+      }
     }
 
     // ── HOOKAH STATION COAL REFILL QUEUE ──
@@ -5816,6 +6043,9 @@
             data.type === 'table_assigned' ||
             data.type === 'table_unassigned' ||
             data.type === 'table_reset' ||
+            data.type === 'table_created' ||
+            data.type === 'table_updated' ||
+            data.type === 'table_deleted' ||
             data.type === 'server_request' || 
             data.kind === 'server_request' ||
             data.type === 'coal_refill_request' ||

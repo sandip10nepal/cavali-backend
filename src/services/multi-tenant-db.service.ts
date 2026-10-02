@@ -1869,6 +1869,61 @@ export class MultiTenantDbService {
     return this.getCollection('tables').filter(t => t.restaurant_id === restaurantId);
   }
 
+  static async updateTable(id: string, restaurantId: string, updates: Partial<RestaurantTable>): Promise<RestaurantTable | null> {
+    if (!id) return null;
+
+    if (env.isMongoMode) {
+      const db = await this.ensureReady();
+      const query: any = { $or: [{ _id: id }, { id: id }] };
+      if (restaurantId) query.restaurant_id = restaurantId;
+
+      const updateDoc: any = {};
+      if (updates.number !== undefined) updateDoc.number = updates.number;
+      if (updates.label !== undefined) updateDoc.label = updates.label;
+      if (updates.capacity !== undefined) updateDoc.capacity = updates.capacity;
+      if (updates.active !== undefined) updateDoc.active = updates.active;
+      updateDoc.updated_at = new Date().toISOString();
+
+      const res = await db.collection<any>(COLLECTIONS.tables).findOneAndUpdate(
+        query,
+        { $set: updateDoc },
+        { returnDocument: 'after' }
+      );
+      if (!res) return null;
+      return {
+        ...res,
+        _id: (res._id as any).toString(),
+        id: (res._id as any).toString(),
+      } as unknown as RestaurantTable;
+    }
+
+    const list = this.getCollection('tables');
+    const idx = list.findIndex(t => t._id === id && (!restaurantId || t.restaurant_id === restaurantId));
+    if (idx === -1) return null;
+    list[idx] = { ...list[idx], ...updates, updated_at: new Date().toISOString() };
+    this.saveCollection('tables', list);
+    return list[idx];
+  }
+
+  static async deleteTable(id: string, restaurantId: string): Promise<boolean> {
+    if (!id) return false;
+
+    if (env.isMongoMode) {
+      const db = await this.ensureReady();
+      const query: any = { $or: [{ _id: id }, { id: id }] };
+      if (restaurantId) query.restaurant_id = restaurantId;
+      const res = await db.collection<any>(COLLECTIONS.tables).deleteOne(query);
+      return res.deletedCount > 0;
+    }
+
+    const list = this.getCollection('tables');
+    const prevLen = list.length;
+    const filtered = list.filter(t => !(t._id === id && (!restaurantId || t.restaurant_id === restaurantId)));
+    if (filtered.length === prevLen) return false;
+    this.saveCollection('tables', filtered);
+    return true;
+  }
+
   static async createDevice(data: any): Promise<Device> {
     return this.registerOrUpdateDevice({
       restaurant_id: data.restaurant_id,

@@ -16,6 +16,8 @@ import menuV2Router from './routes/menu-v2';
 import serviceRequestsRouter from './routes/service-requests';
 import { MultiTenantDbService } from './services/multi-tenant-db.service';
 
+import tablesRouter from './routes/tables';
+
 import { env } from './config/env';
 
 const app = express();
@@ -34,6 +36,7 @@ app.get('/api/sse', (req, res, next) => {
   req.url = '/live';
   return ordersRouter(req, res, next);
 });
+app.use('/api/tables', tablesRouter);
 app.use('/api/service-requests', serviceRequestsRouter);
 app.use('/api/payment-sessions', paymentsRouter);
 app.use('/api/employees', employeesRouter);
