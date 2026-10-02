@@ -2427,7 +2427,7 @@
     }
 
     function renderTicketCard(order, isFulfilled = false) {
-      const isFulfilledOrder = order.status === 'fulfilled' || order.status === 'completed' || order.closedSession;
+      const isFulfilledOrder = Boolean(isFulfilled || order.status === 'fulfilled' || order.status === 'completed' || order.closedSession || (order.fulfilledDepartments && order.fulfilledDepartments.length > 0));
       const orderId = order.id || order._id || 'ORD-000';
       const displayId = String(orderId).slice(-6).toUpperCase();
       const timeStr = order.createdAt ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
@@ -2443,6 +2443,7 @@
           check: 'Bill / Check Requested 💳',
         };
         const reqTitle = order.notes || order.note || reqLabels[order.requestType] || 'Server Assistance Needed 🛎️';
+        const assignedName = order.assigned_server_name || order.assignedServerName || order.server_name || order.serverName || (order.metadata && order.metadata.server_name);
         return `
           <div class="ticket-card server-call-ticket ${isFulfilledOrder ? 'fulfilled' : ''}" style="border: 2px solid ${isFulfilledOrder ? 'var(--border)' : '#e11d48'}; box-shadow: ${isFulfilledOrder ? 'none' : '0 0 24px rgba(225,29,72,0.28)'};">
             <div class="ticket-header" style="background: ${isFulfilledOrder ? 'transparent' : 'rgba(225,29,72,0.12)'}; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px;">
@@ -2450,12 +2451,20 @@
                 <div class="ticket-title" style="color: ${isFulfilledOrder ? 'var(--muted)' : '#f43f5e'}; font-size: 19px; font-weight: 900; letter-spacing: 0.5px;">
                   🛎️ Table ${cleanTable} <span style="font-size:12px; color:var(--muted);">#${displayId}</span>
                 </div>
-                <div class="ticket-meta">👤 Table ${cleanTable} • 🕒 ${timeStr}</div>
+                <div class="ticket-meta">👤 Table ${cleanTable} • 🕒 ${timeStr}${assignedName ? ` • 🍽️ Served by: <strong style="color:var(--cream);">${escapeHtml(assignedName)}</strong>` : ''}</div>
               </div>
               <span class="ticket-badge" style="background: ${isFulfilledOrder ? 'var(--muted)' : '#e11d48'}; color: #fff; font-weight: 900; padding: 4px 10px; border-radius: 6px; font-size: 11px;">
                 ${isFulfilledOrder ? 'DISMISSED' : 'CALL SERVER'}
               </span>
             </div>
+            ${isFulfilledOrder ? `
+              <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); border-radius:8px; padding:6px 12px; font-size:12px;">
+                <span style="color:var(--success); font-weight:800; display:flex; align-items:center; gap:6px;">
+                  <i data-lucide="user-check" style="width:14px; height:14px;"></i> Served by: <strong style="color:var(--cream); font-size:13px; font-weight:900;">${escapeHtml(assignedName || 'Staff')}</strong>
+                </span>
+                <span style="font-size:10px; background:rgba(34,197,94,0.2); color:var(--success); border:1px solid rgba(34,197,94,0.4); padding:2px 7px; border-radius:10px; font-weight:800; text-transform:uppercase;">Archived</span>
+              </div>
+            ` : ''}
             <div style="background: rgba(255,255,255,0.03); border: 1.5px solid ${isFulfilledOrder ? 'rgba(255,255,255,0.08)' : 'rgba(225,29,72,0.3)'}; border-radius: 12px; padding: 18px 14px; text-align: center; margin-bottom: 14px;">
               <div style="font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 6px;">${reqTitle}</div>
               <div style="font-size: 13px; color: var(--gold); font-weight: 700;">Customer at Table ${cleanTable} is waiting for staff</div>
@@ -2466,7 +2475,7 @@
                   <i data-lucide="check-circle" style="width:18px;height:18px;"></i> Complete / Dismiss
                 </button>
               ` : `
-                <div style="color:var(--muted); font-size:12px; text-align:center; width:100%; padding:6px 0; font-weight:700;">✓ Request Completed</div>
+                <div style="color:var(--muted); font-size:12px; text-align:center; width:100%; padding:6px 0; font-weight:700;">✓ Request Completed • Handled by: <strong>${escapeHtml(assignedName || 'Staff')}</strong></div>
               `}
             </div>
           </div>
@@ -2606,8 +2615,8 @@
         });
       }
 
-      const assignedName = order.assigned_server_name || order.assignedServerName;
-      const assignedId = order.assigned_server_id || order.assignedServerId;
+      const assignedName = order.assigned_server_name || order.assignedServerName || order.server_name || order.serverName || (order.metadata && order.metadata.server_name);
+      const assignedId = order.assigned_server_id || order.assignedServerId || order.server_id || order.serverId;
       const myId = localStorage.getItem('benzin_user_id') || '';
       const myName = localStorage.getItem('benzin_user_name') || 'Me';
       const myRole = (localStorage.getItem('benzin_user_role') || 'server').toLowerCase();
@@ -2625,15 +2634,36 @@
         } else if (assignedId === myId || assignedName === myName) {
           serverBadgeHtml = `
             <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.15); border:1px solid #10B981; border-radius:8px; padding:4px 10px; font-size:11px;">
-              <span style="color:#10B981; font-weight:800;">✓ Assigned to me (${assignedName})</span>
+              <span style="color:#10B981; font-weight:800;">✓ Assigned to me (${escapeHtml(assignedName)})</span>
               <button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding:2px 8px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.3); min-height:unset;">Release</button>
             </div>
           `;
         } else {
           serverBadgeHtml = `
             <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:4px 10px; font-size:11px;">
-              <span style="color:var(--cream); font-weight:800;">👤 Server: <strong>${assignedName}</strong></span>
+              <span style="color:var(--cream); font-weight:800;">👤 Server: <strong>${escapeHtml(assignedName)}</strong></span>
               ${isMgr ? `<button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding:2px 8px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.3); min-height:unset;">Unassign</button>` : `<span style="font-size:11px; color:var(--muted); font-weight:700;">Assigned</span>`}
+            </div>
+          `;
+        }
+      } else {
+        // FULFILLED / ARCHIVED TICKET: Display server who served clearly
+        if (assignedName) {
+          serverBadgeHtml = `
+            <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.3); border-radius:8px; padding:6px 12px; font-size:12px;">
+              <span style="color:var(--success); font-weight:800; display:flex; align-items:center; gap:6px;">
+                <i data-lucide="user-check" style="width:14px; height:14px;"></i> Served by: <strong style="color:var(--cream); font-size:13px; font-weight:900;">${escapeHtml(assignedName)}</strong>
+              </span>
+              <span style="font-size:10px; background:rgba(34,197,94,0.2); color:var(--success); border:1px solid rgba(34,197,94,0.4); padding:2px 7px; border-radius:10px; font-weight:800; text-transform:uppercase;">Archived</span>
+            </div>
+          `;
+        } else {
+          serverBadgeHtml = `
+            <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:6px 12px; font-size:12px;">
+              <span style="color:#f59e0b; font-weight:800; display:flex; align-items:center; gap:6px;">
+                <i data-lucide="user" style="width:14px; height:14px;"></i> Served by: <strong style="color:var(--cream); font-size:13px; font-weight:900;">Staff</strong>
+              </span>
+              <button class="btn btn-primary" onclick="assignTableOrder('${orderId}')" style="background:#0066FF; padding:3px 9px; font-size:11px; font-weight:800; border-radius:6px; min-height:unset;">Assign Server</button>
             </div>
           `;
         }
@@ -2644,7 +2674,7 @@
           <div class="ticket-header">
             <div>
               <div class="ticket-title">Table ${cleanTable} <span style="font-size:12px; color:var(--muted);">#${displayId}</span></div>
-              <div class="ticket-meta">👤 ${order.customerNickname || order.customerName || 'Guest'} • 🕒 ${timeStr}</div>
+              <div class="ticket-meta">👤 ${escapeHtml(order.customerNickname || order.customerName || 'Guest')} • 🕒 ${timeStr}${assignedName ? ` • 🍽️ Served by: <strong style="color:var(--cream);">${escapeHtml(assignedName)}</strong>` : ''}</div>
             </div>
             <span class="ticket-badge ${isFulfilledOrder ? 'badge-fulfilled' : order.status === 'ready' ? 'badge-ready' : order.status === 'preparing' ? 'badge-preparing' : 'badge-pending'}">${(order.status || 'PENDING').toUpperCase()}</span>
           </div>
@@ -2710,7 +2740,7 @@
             <div>No active live tickets. New orders will appear here automatically in real time!</div>
           </div>`;
         } else {
-          kdsContainer.innerHTML = activeOrders.map(o => renderTicketCard(o)).join('');
+          kdsContainer.innerHTML = activeOrders.map(o => renderTicketCard(o, false)).join('');
         }
       }
 
@@ -2721,7 +2751,7 @@
             <div>Archive is currently empty. Fulfilled tickets will be stored here.</div>
           </div>`;
         } else {
-          archiveContainer.innerHTML = archivedOrders.map(o => renderTicketCard(o)).join('');
+          archiveContainer.innerHTML = archivedOrders.map(o => renderTicketCard(o, true)).join('');
         }
       }
 
@@ -2731,10 +2761,17 @@
     async function fulfillOrder(orderId) {
       try {
         const headers = getAuthHeaders();
+        const myId = localStorage.getItem('benzin_user_id') || '';
+        const myName = localStorage.getItem('benzin_user_name') || '';
         const res = await fetch(`${API_URL}/api/orders/fulfill`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ orderId, department: 'all' })
+          body: JSON.stringify({ 
+            orderId, 
+            department: 'all',
+            server_id: myId,
+            server_name: myName
+          })
         });
         const data = await res.json();
         if (data.success) {
@@ -2751,10 +2788,16 @@
     async function updateOrderStatus(orderId, status) {
       try {
         const headers = getAuthHeaders();
+        const myId = localStorage.getItem('benzin_user_id') || '';
+        const myName = localStorage.getItem('benzin_user_name') || '';
         const res = await fetch(`${API_URL}/api/orders/${orderId}/status`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ status })
+          body: JSON.stringify({ 
+            status,
+            server_id: myId,
+            server_name: myName
+          })
         });
         const data = await res.json();
         if (data.success) {
@@ -3503,6 +3546,7 @@
           <hr style="border-top: 1px dashed #000; margin: 5px 0;">
           <div><strong>Table:</strong> Table ${String(order.table || order.table_id || '?').replace(/^table[\s-_]*/i, '').trim() || '?'}</div>
           <div><strong>Guest:</strong> ${order.customerName || 'Guest'}</div>
+          ${(order.assigned_server_name || order.assignedServerName) ? `<div><strong>Server:</strong> ${escapeHtml(order.assigned_server_name || order.assignedServerName)}</div>` : ''}
           <hr style="border-top: 1px dashed #000; margin: 5px 0;">
           ${(order.items || []).map(i => `<div>${i.qty || 1}x ${i.name} - $${((i.price || 0) * (i.qty || 1)).toFixed(2)}</div>`).join('')}
           <hr style="border-top: 1px dashed #000; margin: 5px 0;">
@@ -5913,7 +5957,7 @@
             );
 
             // Fast structural change comparison
-            const serializeState = (arr) => arr.map(o => `${o.id || o._id}:${o.status}:${o.paymentStatus}:${o.assigned_server_id || ''}:${(o.fulfilledDepartments || []).join(',')}`).join('|');
+            const serializeState = (arr) => arr.map(o => `${o.id || o._id}:${o.status}:${o.paymentStatus}:${o.assigned_server_id || ''}:${o.assigned_server_name || o.assignedServerName || ''}:${(o.fulfilledDepartments || []).join(',')}`).join('|');
             const stateChanged = incomingOrders.length !== orders.length || serializeState(incomingOrders) !== serializeState(orders);
 
             if (stateChanged || orders.length === 0) {

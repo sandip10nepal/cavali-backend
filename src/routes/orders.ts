@@ -479,10 +479,10 @@ function mapOrderForClient(o: any): any {
     customer_nickname: o.customer_nickname || o.customerNickname || o.customer_name || o.customerName || 'Guest',
     trackingExpiresAt: o.tracking_expires_at || o.trackingExpiresAt || null,
     tracking_expires_at: o.tracking_expires_at || o.trackingExpiresAt || null,
-    assigned_server_id: o.assigned_server_id || o.assignedServerId || null,
-    assignedServerId: o.assigned_server_id || o.assignedServerId || null,
-    assigned_server_name: o.assigned_server_name || o.assignedServerName || null,
-    assignedServerName: o.assigned_server_name || o.assignedServerName || null,
+    assigned_server_id: o.assigned_server_id || o.assignedServerId || o.server_id || o.serverId || (o.metadata && o.metadata.server_id) || null,
+    assignedServerId: o.assigned_server_id || o.assignedServerId || o.server_id || o.serverId || (o.metadata && o.metadata.server_id) || null,
+    assigned_server_name: o.assigned_server_name || o.assignedServerName || o.server_name || o.serverName || (o.metadata && o.metadata.server_name) || null,
+    assignedServerName: o.assigned_server_name || o.assignedServerName || o.server_name || o.serverName || (o.metadata && o.metadata.server_name) || null,
     assigned_at: o.assigned_at || o.assignedAt || null,
     assignedAt: o.assigned_at || o.assignedAt || null,
     closedSession: Boolean(o.closedSession || o.closed_session),
@@ -716,6 +716,13 @@ router.post('/:orderId/status', async (req, res) => {
     }
     if (status === 'fulfilled' || status === 'served' || status === 'completed') {
       updateFields.completed_at = new Date().toISOString();
+      const statusServerName = req.body.server_name || req.body.serverName || (req as any).user?.name || '';
+      const statusServerId = req.body.server_id || req.body.serverId || (req as any).user?.id || (req as any).user?._id || '';
+      if (statusServerName && !found.order.assigned_server_name && !found.order.assignedServerName) {
+        updateFields.assigned_server_name = statusServerName;
+        updateFields.assigned_server_id = statusServerId;
+        updateFields.assigned_at = new Date();
+      }
     }
 
     const updated = await updateUnifiedOrder(orderId, updateFields, restaurantId);
@@ -1493,6 +1500,18 @@ const handleFulfillOrder = async (req: any, res: Response) => {
     return res.status(400).json({ success: false, message: 'Missing orderId' });
   }
 
+  // Caller server identity attribution
+  let effectiveServerId = req.body.server_id || req.body.serverId || req.headers['x-user-id'] || '';
+  let effectiveServerName = req.body.server_name || req.body.serverName || req.headers['x-user-name'] || '';
+  const authHeader = req.headers?.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const payload = AuthService.verifyToken(authHeader.substring(7));
+    if (payload) {
+      if (!effectiveServerId) effectiveServerId = payload.sub || '';
+      if (!effectiveServerName) effectiveServerName = (payload as any).name || '';
+    }
+  }
+
   const restaurantId = await resolveTenantRestaurantId(req);
 
   // If orderId is a service request ID (e.g. req-...), handle via ServiceRequestRepository & sync orders collection
@@ -1501,7 +1520,13 @@ const handleFulfillOrder = async (req: any, res: Response) => {
       await ServiceRequestRepository.updateStatus(orderId, 'COMPLETED', restaurantId || undefined);
       let updatedClientOrder = null;
       try {
-        updatedClientOrder = await updateUnifiedOrder(orderId, { status: 'fulfilled', completed_at: new Date() }, restaurantId || undefined);
+        const extraUpdates: any = { status: 'fulfilled', completed_at: new Date() };
+        if (effectiveServerName) {
+          extraUpdates.assigned_server_name = effectiveServerName;
+          extraUpdates.assigned_server_id = effectiveServerId;
+          extraUpdates.assigned_at = new Date();
+        }
+        updatedClientOrder = await updateUnifiedOrder(orderId, extraUpdates, restaurantId || undefined);
       } catch (orderUpdateErr) {
         // May not exist in orders collection
       }
@@ -1540,7 +1565,13 @@ const handleFulfillOrder = async (req: any, res: Response) => {
     } catch (e) {
       console.warn('Could not update ServiceRequest status:', e);
     }
-    const updatedClientOrder = await updateUnifiedOrder(targetId, { status: 'fulfilled', completed_at: new Date() }, restId);
+    const extraUpdates: any = { status: 'fulfilled', completed_at: new Date() };
+    if (!order.assigned_server_name && !order.assignedServerName && effectiveServerName) {
+      extraUpdates.assigned_server_name = effectiveServerName;
+      extraUpdates.assigned_server_id = effectiveServerId;
+      extraUpdates.assigned_at = new Date();
+    }
+    const updatedClientOrder = await updateUnifiedOrder(targetId, extraUpdates, restId);
     sseService.broadcast({ type: 'order_fulfilled', orderId: targetId, order: updatedClientOrder }, restId);
     return res.status(200).json({
       success: true,
@@ -1586,8 +1617,38 @@ const handleFulfillOrder = async (req: any, res: Response) => {
       }
     }
 
-    // 2. Mark order status as fulfilled
-    const updatedClientOrder = await updateUnifiedOrder(targetId, { status: 'fulfilled', fulfilledDepartments: fulfilledDeps }, restId);
+    // 2. Mark order status as fulfilled and record serving staff
+    const updatePayload: any = { 
+      status: 'fulfilled', 
+      fulfilledDepartments: fulfilledDeps,
+      completed_at: new Date()
+    };
+    if (!order.assigned_server_name && !order.assignedServerName && effectiveServerName) {
+      updatePayload.assigned_server_name = effectiveServerName;
+      updatePayload.assigned_server_id = effectiveServerId;
+      updatePayload.assigned_at = new Date();
+    } else if (!order.assigned_server_name && !order.assignedServerName) {
+      try {
+        const tableNumber = order.table || order.table_id;
+        if (tableNumber && restId) {
+          const tableOrders = await OrderRepository.listByRestaurant(restId);
+          const sibling = tableOrders.find((to: any) =>
+            (to._id !== targetId && to.id !== targetId) &&
+            String(to.table || to.table_id) === String(tableNumber) &&
+            (to.assigned_server_name || to.assignedServerName)
+          );
+          if (sibling) {
+            updatePayload.assigned_server_name = sibling.assigned_server_name || sibling.assignedServerName;
+            updatePayload.assigned_server_id = sibling.assigned_server_id || sibling.assignedServerId;
+            updatePayload.assigned_at = sibling.assigned_at || new Date();
+          }
+        }
+      } catch (sibErr) {
+        // Safe fallback
+      }
+    }
+
+    const updatedClientOrder = await updateUnifiedOrder(targetId, updatePayload, restId);
 
     // 3. Broadcast fulfillment to update KDS screens & inventory stock levels
     sseService.broadcast({ type: 'order_fulfilled', orderId: targetId, order: updatedClientOrder });

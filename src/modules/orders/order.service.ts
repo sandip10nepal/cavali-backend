@@ -265,6 +265,11 @@ export class OrderService {
       trackingTokenHash: trackingTokenHash,
       tracking_expires_at: trackingExpiresAt,
       trackingExpiresAt: trackingExpiresAt,
+      assigned_server_id: orderData.assigned_server_id || orderData.assignedServerId || null,
+      assignedServerId: orderData.assigned_server_id || orderData.assignedServerId || null,
+      assigned_server_name: orderData.assigned_server_name || orderData.assignedServerName || null,
+      assignedServerName: orderData.assigned_server_name || orderData.assignedServerName || null,
+      assigned_at: orderData.assigned_at || orderData.assignedAt || (orderData.assigned_server_name || orderData.assignedServerName ? new Date().toISOString() : null),
     };
 
     const created = await OrderRepository.create(payload);
@@ -353,7 +358,7 @@ export class OrderService {
   /**
    * Fulfill order or specific department
    */
-  static async fulfillOrder(restaurantId: string, orderId: string, department?: string): Promise<Order> {
+  static async fulfillOrder(restaurantId: string, orderId: string, department?: string, assignedServer?: { id?: string; name?: string }): Promise<Order> {
     const order = await OrderRepository.findById(orderId, restaurantId);
     if (!order) {
       throw new NotFoundError(`Order #${orderId} not found`);
@@ -376,7 +381,17 @@ export class OrderService {
 
     // Full order fulfillment
     RecipeService.processOrderDeductions(order).catch(e => console.warn('[OrderService] Recipe deduction note:', e.message));
-    const updated = await OrderRepository.update(orderId, restaurantId, { status: 'fulfilled' as any, fulfilledDepartments: ['food', 'drinks', 'hookah'] });
+    const extraUpdates: any = { 
+      status: 'fulfilled' as any, 
+      fulfilledDepartments: ['food', 'drinks', 'hookah'],
+      completed_at: new Date().toISOString()
+    };
+    if (!order.assigned_server_name && !order.assignedServerName && assignedServer?.name) {
+      extraUpdates.assigned_server_name = assignedServer.name;
+      extraUpdates.assigned_server_id = assignedServer.id || null;
+      extraUpdates.assigned_at = new Date().toISOString();
+    }
+    const updated = await OrderRepository.update(orderId, restaurantId, extraUpdates);
     sseService.broadcast({ type: 'order_fulfilled', orderId, order: updated }, restaurantId);
     return updated;
   }
