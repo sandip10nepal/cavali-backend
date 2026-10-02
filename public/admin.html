@@ -2541,6 +2541,8 @@
           itemsHtml += `<div class="ticket-item-line" style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-bottom:4px;"><span>💨 <strong>${item.name}</strong> ${qtyTag}</span> ${enhancementPills}</div>`;
           if (item.notes) itemsHtml += `<div class="ticket-item-note" style="color:#FBBF24; font-weight:700; margin-bottom:6px;">📝 Note: ${item.notes}</div>`;
         });
+      }
+
       const assignedName = order.assigned_server_name || order.assignedServerName;
       const assignedId = order.assigned_server_id || order.assignedServerId;
       const myId = localStorage.getItem('benzin_user_id') || '';
