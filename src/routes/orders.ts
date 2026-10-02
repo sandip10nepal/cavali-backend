@@ -475,6 +475,13 @@ function mapOrderForClient(o: any): any {
     customer_nickname: o.customer_nickname || o.customerNickname || o.customer_name || o.customerName || 'Guest',
     trackingExpiresAt: o.tracking_expires_at || o.trackingExpiresAt || null,
     tracking_expires_at: o.tracking_expires_at || o.trackingExpiresAt || null,
+    assigned_server_id: o.assigned_server_id || o.assignedServerId || null,
+    assignedServerId: o.assigned_server_id || o.assignedServerId || null,
+    assigned_server_name: o.assigned_server_name || o.assignedServerName || null,
+    assignedServerName: o.assigned_server_name || o.assignedServerName || null,
+    assigned_at: o.assigned_at || o.assignedAt || null,
+    assignedAt: o.assigned_at || o.assignedAt || null,
+    closedSession: Boolean(o.closedSession || o.closed_session),
   };
 }
 
@@ -734,6 +741,488 @@ router.post('/:orderId/status', async (req, res) => {
   } catch (err: any) {
     console.error('Error updating order status:', err);
     return res.status(500).json({ success: false, message: 'Failed to update order status' });
+  }
+});
+
+// POST /api/orders/:orderId/assign
+// Server or Manager assigns table order to staff member
+router.post('/:orderId/assign', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    let { server_id, server_name } = req.body;
+    const restaurantId = await resolveTenantRestaurantId(req);
+
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
+
+    // Resolve caller identity and permissions
+    let callerId: string | null = null;
+    let callerName: string | null = null;
+    let callerRole: string = 'server';
+
+    const authHeader = req.headers?.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const payload = AuthService.verifyToken(token);
+      if (payload) {
+        callerId = payload.sub || null;
+        callerName = (payload as any).name || null;
+        if (payload.role) callerRole = payload.role;
+      }
+    }
+
+    // Header/body fallbacks
+    if (!callerId && req.headers['x-user-id']) callerId = String(req.headers['x-user-id']);
+    if (!callerName && req.headers['x-user-name']) callerName = String(req.headers['x-user-name']);
+    if (req.headers['x-user-role']) callerRole = String(req.headers['x-user-role']);
+    if (req.body.caller_id) callerId = req.body.caller_id;
+    if (req.body.caller_name) callerName = req.body.caller_name;
+    if (req.body.caller_role) callerRole = req.body.caller_role;
+
+    const isManager = ['owner', 'manager', 'platform_admin', 'admin'].includes(callerRole.toLowerCase()) || (await isManagerOrOwner(req));
+
+    const found = await findUnifiedOrder(orderId, restaurantId);
+    if (!found || !found.order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const order = found.order;
+
+    // Determine target server to assign
+    const targetServerId = String(server_id || callerId || 'USR_SERVER').trim();
+    const targetServerName = String(server_name || callerName || 'Server').trim();
+
+    // Prevent accidental duplicate assignment if already assigned to someone else (unless Manager)
+    const existingServerId = order.assigned_server_id || (order as any).assignedServerId;
+    const existingServerName = order.assigned_server_name || (order as any).assignedServerName || 'another server';
+
+    if (existingServerId && existingServerId !== targetServerId && !isManager) {
+      return res.status(409).json({
+        success: false,
+        code: 'ALREADY_ASSIGNED',
+        message: `This table is already assigned to ${existingServerName}. Only managers can reassign active tables.`,
+        assigned_server_id: existingServerId,
+        assigned_server_name: existingServerName
+      });
+    }
+
+    const now = new Date().toISOString();
+    const updateFields: any = {
+      assigned_server_id: targetServerId,
+      assigned_server_name: targetServerName,
+      assigned_at: now,
+      updated_at: now
+    };
+
+    // When server assigns, advance order to 'preparing' (In Progress)
+    if (order.status !== 'ready' && order.status !== 'fulfilled' && order.status !== 'completed' && order.status !== 'served') {
+      updateFields.status = 'preparing';
+      if (!order.accepted_at) {
+        updateFields.accepted_at = now;
+      }
+    }
+
+    const updated = await updateUnifiedOrder(orderId, updateFields, restaurantId);
+    const clientOrder = mapOrderForClient(updated);
+
+    // Broadcast SSE update so manager and all servers see assignment in real-time
+    sseService.broadcast({
+      type: 'table_assigned',
+      orderId,
+      table: clientOrder.table,
+      server_id: targetServerId,
+      server_name: targetServerName,
+      order: clientOrder
+    }, restaurantId);
+
+    sseService.broadcast({
+      type: 'order_updated',
+      orderId,
+      order: clientOrder
+    }, restaurantId);
+
+    return res.status(200).json({
+      success: true,
+      message: `Table ${clientOrder.table} assigned to ${targetServerName}`,
+      order: clientOrder
+    });
+  } catch (err: any) {
+    console.error('Error assigning table order:', err);
+    return res.status(500).json({ success: false, message: 'Failed to assign table order' });
+  }
+});
+
+// POST /api/orders/:orderId/unassign
+// Server releases table or Manager unassigns server
+router.post('/:orderId/unassign', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const restaurantId = await resolveTenantRestaurantId(req);
+
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
+
+    // Resolve caller identity and permissions
+    let callerId: string | null = null;
+    let callerRole: string = 'server';
+
+    const authHeader = req.headers?.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const payload = AuthService.verifyToken(token);
+      if (payload) {
+        callerId = payload.sub || null;
+        if (payload.role) callerRole = payload.role;
+      }
+    }
+
+    if (!callerId && req.headers['x-user-id']) callerId = String(req.headers['x-user-id']);
+    if (req.headers['x-user-role']) callerRole = String(req.headers['x-user-role']);
+    if (req.body.caller_id) callerId = req.body.caller_id;
+    if (req.body.caller_role) callerRole = req.body.caller_role;
+
+    const isManager = ['owner', 'manager', 'platform_admin', 'admin'].includes(callerRole.toLowerCase()) || (await isManagerOrOwner(req));
+
+    const found = await findUnifiedOrder(orderId, restaurantId);
+    if (!found || !found.order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const order = found.order;
+    const currentAssignedId = order.assigned_server_id || (order as any).assignedServerId;
+
+    // Servers can only unassign their own tables
+    if (!isManager && currentAssignedId && callerId && currentAssignedId !== callerId) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only unassign tables that are assigned to you.'
+      });
+    }
+
+    const now = new Date().toISOString();
+    const updateFields: any = {
+      assigned_server_id: null,
+      assigned_server_name: null,
+      assigned_at: null,
+      updated_at: now
+    };
+
+    const updated = await updateUnifiedOrder(orderId, updateFields, restaurantId);
+    const clientOrder = mapOrderForClient(updated);
+
+    sseService.broadcast({
+      type: 'table_unassigned',
+      orderId,
+      table: clientOrder.table,
+      order: clientOrder
+    }, restaurantId);
+
+    sseService.broadcast({
+      type: 'order_updated',
+      orderId,
+      order: clientOrder
+    }, restaurantId);
+
+    return res.status(200).json({
+      success: true,
+      message: `Table ${clientOrder.table} is now unassigned`,
+      order: clientOrder
+    });
+  } catch (err: any) {
+    console.error('Error unassigning table order:', err);
+    return res.status(500).json({ success: false, message: 'Failed to unassign table order' });
+  }
+});
+
+// POST /api/orders/:orderId/reset-table
+// Free up the table by closing out / archiving the completed table session
+router.post('/:orderId/reset-table', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
+
+    const found = await findUnifiedOrder(orderId, restaurantId);
+    if (!found || !found.order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const updateFields: any = {
+      closedSession: true,
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const updated = await updateUnifiedOrder(orderId, updateFields, restaurantId);
+    const clientOrder = mapOrderForClient(updated);
+
+    // Also close any previous completed orders for this table to guarantee clean table state
+    try {
+      const tblStr = String(clientOrder.table || '').trim();
+      if (tblStr) {
+        const allTblOrders = await OrderRepository.listByRestaurant(restaurantId);
+        for (const other of allTblOrders) {
+          const oTable = String(other.table || other.table_id || '').replace(/^table[\s-_]*/i, '').trim();
+          if (other._id !== orderId && oTable.toLowerCase() === tblStr.toLowerCase() && !other.closedSession) {
+            await MultiTenantDbService.updateOrderStatus(other._id, restaurantId, other.status, { closedSession: true } as any);
+          }
+        }
+      }
+    } catch (_) {}
+
+    sseService.broadcast({
+      type: 'table_reset',
+      orderId,
+      table: clientOrder.table,
+      order: clientOrder
+    }, restaurantId);
+
+    sseService.broadcast({
+      type: 'order_updated',
+      orderId,
+      order: clientOrder
+    }, restaurantId);
+
+    return res.status(200).json({
+      success: true,
+      message: `Table ${clientOrder.table} is now reset and available`,
+      order: clientOrder
+    });
+  } catch (err: any) {
+    console.error('Error resetting table:', err);
+    return res.status(500).json({ success: false, message: 'Failed to reset table' });
+  }
+});
+
+// GET /api/orders/tables/overview
+// Complete restaurant table overview: all tables, current status, active orders, assigned servers
+router.get('/tables/overview', async (req, res) => {
+  try {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
+
+    const [configuredTables, rawOrders] = await Promise.all([
+      MultiTenantDbService.listTables(restaurantId),
+      OrderRepository.listByRestaurant(restaurantId)
+    ]);
+
+    const allOrders = rawOrders.map(mapOrderForClient);
+
+    // Active floor orders: not cancelled, voided, or closed session.
+    // Completed orders are only retained on the floor for 2 hours before freeing the table.
+    const twoHoursAgo = Date.now() - (2 * 60 * 60 * 1000);
+    const activeCandidateOrders = allOrders.filter((o: any) => {
+      if (o.status === 'cancelled' || o.status === 'voided' || o.closedSession) return false;
+      const isCompleted = o.status === 'fulfilled' || o.status === 'completed' || o.status === 'served';
+      if (isCompleted) {
+        const orderTime = new Date(o.completed_at || o.createdAt || o.created_at || 0).getTime();
+        if (orderTime < twoHoursAgo) return false;
+      }
+      return true;
+    });
+
+    // Helper: Normalize table string for matching
+    const normalizeTable = (val: any): string => {
+      return String(val || '')
+        .replace(/^tbl[_-]*/i, '')
+        .replace(/^table[\s-_]*/i, '')
+        .trim()
+        .toLowerCase();
+    };
+
+    // Table matcher
+    const matchesTable = (tableObj: any, orderTableStr: any): boolean => {
+      const oClean = normalizeTable(orderTableStr);
+      if (!oClean) return false;
+      const numStr = String(tableObj.number || '');
+      const labelClean = normalizeTable(tableObj.label || '');
+      return oClean === labelClean || oClean === numStr || `table ${oClean}` === String(tableObj.label || '').toLowerCase();
+    };
+
+    // Build map of configured tables
+    const tableCards: any[] = [];
+    const matchedOrderIds = new Set<string>();
+
+    for (const tbl of configuredTables) {
+      // Find orders belonging to this table
+      const tblOrders = activeCandidateOrders.filter((o: any) => {
+        const matches = matchesTable(tbl, o.table || o.table_id);
+        if (matches) matchedOrderIds.add(o.id || o._id);
+        return matches;
+      });
+
+      // Sort: open active orders first, then completed, newest created first
+      tblOrders.sort((a: any, b: any) => {
+        const aOpen = a.status !== 'fulfilled' && a.status !== 'completed' ? 1 : 0;
+        const bOpen = b.status !== 'fulfilled' && b.status !== 'completed' ? 1 : 0;
+        if (aOpen !== bOpen) return bOpen - aOpen;
+        return new Date(b.createdAt || b.created_at || 0).getTime() - new Date(a.createdAt || a.created_at || 0).getTime();
+      });
+
+      const primaryOrder = tblOrders[0] || null;
+
+      let tableStatus: 'available' | 'new_order' | 'in_progress' | 'ready' | 'completed' = 'available';
+      let statusDisplay = 'Available';
+
+      if (primaryOrder) {
+        const st = String(primaryOrder.status || '').toLowerCase();
+        if (st === 'fulfilled' || st === 'completed' || st === 'served') {
+          tableStatus = 'completed';
+          statusDisplay = 'Completed';
+        } else if (st === 'ready' || st === 'partially_ready') {
+          tableStatus = 'ready';
+          statusDisplay = 'Ready';
+        } else if (st === 'preparing' || st === 'accepted') {
+          tableStatus = 'in_progress';
+          statusDisplay = 'In Progress';
+        } else {
+          tableStatus = 'new_order';
+          statusDisplay = 'New Order';
+        }
+      }
+
+      // Format items summary
+      let itemsSummary = '';
+      if (primaryOrder) {
+        const items = primaryOrder.items || [];
+        if (items.length > 0) {
+          const names = items.slice(0, 3).map((it: any) => `${it.qty > 1 ? `${it.qty}x ` : ''}${it.name || 'Item'}`);
+          itemsSummary = names.join(' + ') + (items.length > 3 ? ` + ${items.length - 3} more` : '');
+        } else if (primaryOrder.food?.length || primaryOrder.drinks?.length || primaryOrder.hookahs?.length) {
+          const parts: string[] = [];
+          if (primaryOrder.hookahs?.length) parts.push(`${primaryOrder.hookahs.length} Hookah`);
+          if (primaryOrder.food?.length) parts.push(`${primaryOrder.food.length} Food`);
+          if (primaryOrder.drinks?.length) parts.push(`${primaryOrder.drinks.length} Drinks`);
+          itemsSummary = parts.join(' + ');
+        } else {
+          itemsSummary = primaryOrder.note || primaryOrder.notes || 'Order Placed';
+        }
+      }
+
+      const createdTime = primaryOrder ? (primaryOrder.createdAt || primaryOrder.created_at) : null;
+      const elapsedMinutes = createdTime ? Math.max(0, Math.floor((Date.now() - new Date(createdTime).getTime()) / 60000)) : 0;
+
+      tableCards.push({
+        table_id: tbl._id,
+        table_number: tbl.number,
+        table_label: tbl.label || `Table ${tbl.number}`,
+        label: tbl.label || `Table ${tbl.number}`,
+        capacity: tbl.capacity || 4,
+        status: tableStatus,
+        status_display: statusDisplay,
+        has_active_order: Boolean(primaryOrder),
+        active_order_id: primaryOrder ? (primaryOrder.id || primaryOrder._id) : null,
+        customer_nickname: primaryOrder ? (primaryOrder.customerNickname || primaryOrder.customer_nickname || primaryOrder.customerName || 'Guest') : null,
+        items_summary: itemsSummary,
+        order_placed_at: createdTime,
+        assigned_server_id: primaryOrder ? (primaryOrder.assigned_server_id || null) : null,
+        assigned_server_name: primaryOrder ? (primaryOrder.assigned_server_name || null) : null,
+        assigned_at: primaryOrder ? (primaryOrder.assigned_at || null) : null,
+        active_order: primaryOrder ? {
+          id: primaryOrder.id || primaryOrder._id,
+          _id: primaryOrder.id || primaryOrder._id,
+          status: primaryOrder.status,
+          customer_name: primaryOrder.customerName || primaryOrder.customer_name || 'Guest',
+          customer_nickname: primaryOrder.customerNickname || primaryOrder.customer_nickname || primaryOrder.customerName || 'Guest',
+          created_at: createdTime,
+          elapsed_minutes: elapsedMinutes,
+          items_summary: itemsSummary,
+          subtotal: primaryOrder.subtotal || 0,
+          total: primaryOrder.grandTotal || primaryOrder.grand_total || primaryOrder.total || 0,
+          payment_status: primaryOrder.paymentStatus || primaryOrder.payment_status || 'unpaid',
+          assigned_server_id: primaryOrder.assigned_server_id || null,
+          assigned_server_name: primaryOrder.assigned_server_name || null,
+          assigned_at: primaryOrder.assigned_at || null,
+        } : null,
+        all_table_orders: tblOrders.map((o: any) => ({
+          id: o.id || o._id,
+          status: o.status,
+          total: o.grandTotal || o.total || 0,
+          created_at: o.createdAt || o.created_at
+        }))
+      });
+    }
+
+    // Include any open active orders whose table was not in configuredTables
+    for (const o of activeCandidateOrders) {
+      const orderId = o.id || o._id;
+      if (!matchedOrderIds.has(orderId) && o.status !== 'fulfilled' && o.status !== 'completed') {
+        const cleanTbl = normalizeTable(o.table || o.table_id || 'Other');
+        const st = String(o.status || '').toLowerCase();
+        let tableStatus: any = 'new_order';
+        let statusDisplay = 'New Order';
+        if (st === 'preparing' || st === 'accepted') {
+          tableStatus = 'in_progress';
+          statusDisplay = 'In Progress';
+        } else if (st === 'ready' || st === 'partially_ready') {
+          tableStatus = 'ready';
+          statusDisplay = 'Ready';
+        }
+
+        const items = o.items || [];
+        const itemsSummary = items.length > 0 
+          ? items.slice(0, 3).map((it: any) => `${it.qty > 1 ? `${it.qty}x ` : ''}${it.name || 'Item'}`).join(' + ')
+          : (o.note || 'Order Placed');
+        const createdTime = o.createdAt || o.created_at;
+        const elapsedMinutes = createdTime ? Math.max(0, Math.floor((Date.now() - new Date(createdTime).getTime()) / 60000)) : 0;
+        const displayLabel = cleanTbl.toUpperCase().startsWith('TABLE') ? cleanTbl : `Table ${cleanTbl.toUpperCase()}`;
+
+        tableCards.push({
+          table_id: `dynamic-${cleanTbl}`,
+          table_number: parseInt(cleanTbl, 10) || 999,
+          table_label: displayLabel,
+          label: displayLabel,
+          capacity: 4,
+          status: tableStatus,
+          status_display: statusDisplay,
+          has_active_order: true,
+          active_order_id: orderId,
+          customer_nickname: o.customerNickname || o.customerName || 'Guest',
+          items_summary: itemsSummary,
+          order_placed_at: createdTime,
+          assigned_server_id: o.assigned_server_id || null,
+          assigned_server_name: o.assigned_server_name || null,
+          assigned_at: o.assigned_at || null,
+          active_order: {
+            id: orderId,
+            _id: orderId,
+            status: o.status,
+            customer_name: o.customerName || 'Guest',
+            customer_nickname: o.customerNickname || o.customerName || 'Guest',
+            created_at: createdTime,
+            elapsed_minutes: elapsedMinutes,
+            items_summary: itemsSummary,
+            subtotal: o.subtotal || 0,
+            total: o.grandTotal || o.total || 0,
+            payment_status: o.paymentStatus || 'unpaid',
+            assigned_server_id: o.assigned_server_id || null,
+            assigned_server_name: o.assigned_server_name || null,
+            assigned_at: o.assigned_at || null,
+          },
+          all_table_orders: [{ id: orderId, status: o.status, total: o.grandTotal || o.total || 0, created_at: createdTime }]
+        });
+      }
+    }
+
+    // Sort table cards cleanly by table number
+    tableCards.sort((a, b) => (a.table_number || 0) - (b.table_number || 0));
+
+    return res.status(200).json({
+      success: true,
+      restaurant_id: restaurantId,
+      tables: tableCards
+    });
+  } catch (err: any) {
+    console.error('Error fetching table overview:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch table overview' });
   }
 });
 
@@ -1072,6 +1561,11 @@ const handleFulfillOrder = async (req: any, res: Response) => {
     // 3. Broadcast fulfillment to update KDS screens & inventory stock levels
     sseService.broadcast({ type: 'order_fulfilled', orderId: targetId, order: updatedClientOrder });
 
+    return res.status(200).json({
+      success: true,
+      message: 'Order fulfilled successfully',
+      order: updatedClientOrder
+    });
   }
 };
 

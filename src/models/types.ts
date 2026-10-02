@@ -361,6 +361,9 @@ export interface Order {
   updated_at: string;
   accepted_at: string | null;
   completed_at: string | null;
+  assigned_server_id?: string | null;
+  assigned_server_name?: string | null;
+  assigned_at?: string | null;
 }
 
 export interface InventoryItem {

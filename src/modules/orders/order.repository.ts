@@ -115,6 +115,9 @@ export class OrderRepository {
       trackingTokenHash: orderData.tracking_token_hash || orderData.trackingTokenHash || null,
       tracking_expires_at: orderData.tracking_expires_at || orderData.trackingExpiresAt || null,
       trackingExpiresAt: orderData.tracking_expires_at || orderData.trackingExpiresAt || null,
+      assigned_server_id: orderData.assigned_server_id || orderData.assignedServerId || null,
+      assigned_server_name: orderData.assigned_server_name || orderData.assignedServerName || null,
+      assigned_at: orderData.assigned_at || orderData.assignedAt || null,
     };
 
     return await MultiTenantDbService.createOrder(payload as any);

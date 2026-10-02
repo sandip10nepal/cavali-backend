@@ -104,4 +104,10 @@ export interface Order {
   hookahs?: any[];
   food?: any[];
   drinks?: any[];
+  assigned_server_id?: string | null;
+  assignedServerId?: string | null;
+  assigned_server_name?: string | null;
+  assignedServerName?: string | null;
+  assigned_at?: string | null;
+  assignedAt?: string | null;
 }

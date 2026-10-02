@@ -404,6 +404,100 @@
       justify-content: center;
     }
 
+    /* ── TABLE OVERVIEW STYLES ── */
+    .tables-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .table-card {
+      background-color: var(--card);
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 230px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      position: relative;
+    }
+
+    .table-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .table-card.state-new_order {
+      border-color: #f59e0b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.18);
+    }
+
+    .table-card.state-in_progress {
+      border-color: #3b82f6;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.15);
+    }
+
+    .table-card.state-ready {
+      border-color: #10b981;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.18);
+    }
+
+    .table-card.state-completed {
+      border-color: #8b5cf6;
+      box-shadow: 0 0 16px rgba(139, 92, 246, 0.15);
+    }
+
+    .table-card.state-available {
+      border-color: var(--line);
+      opacity: 0.92;
+    }
+
+    .table-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .table-pill-available {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    .table-pill-new_order {
+      background: rgba(245, 158, 11, 0.18);
+      color: #f59e0b;
+      border: 1px solid #f59e0b;
+      animation: pulseAlert 2s infinite ease-in-out;
+    }
+
+    .table-pill-in_progress {
+      background: rgba(59, 130, 246, 0.18);
+      color: #3b82f6;
+      border: 1px solid #3b82f6;
+    }
+
+    .table-pill-ready {
+      background: rgba(16, 185, 129, 0.18);
+      color: #10b981;
+      border: 1px solid #10b981;
+    }
+
+    .table-pill-completed {
+      background: rgba(139, 92, 246, 0.18);
+      color: #a78bfa;
+      border: 1px solid #8b5cf6;
+    }
+
     .inventory-grid-square {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -745,6 +839,10 @@
         <i data-lucide="layout-grid" style="width: 15px; height: 15px;"></i>
         <span>Live Tickets</span>
       </button>
+      <button class="nav-tab" id="navTab-tables" onclick="switchTab('tables')">
+        <i data-lucide="table-properties" style="width: 15px; height: 15px;"></i>
+        <span>Tables Overview</span>
+      </button>
       <button class="nav-tab" id="navTab-archive" onclick="switchTab('archive')">
         <i data-lucide="archive" style="width: 15px; height: 15px;"></i>
         <span>Archive Tickets</span>
@@ -837,6 +935,10 @@
           <i data-lucide="layout-grid" style="width: 18px; height: 18px; margin-right: 10px;"></i>
           <span>Live Tickets</span>
         </button>
+        <button class="nav-tab" id="drawerNavTab-tables" onclick="switchTab('tables'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
+          <i data-lucide="table-properties" style="width: 18px; height: 18px; margin-right: 10px;"></i>
+          <span>Tables Overview</span>
+        </button>
         <button class="nav-tab" id="drawerNavTab-archive" onclick="switchTab('archive'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
           <i data-lucide="archive" style="width: 18px; height: 18px; margin-right: 10px;"></i>
           <span>Archive Tickets</span>
@@ -904,6 +1006,63 @@
         </h2>
         <div class="tickets-grid" id="ticketsGrid"></div>
       </section>
+    </div>
+
+    <!-- PAGE: TABLE OVERVIEW -->
+    <div id="tablesPageLayout" style="display: none; padding: 20px 24px 60px 24px;">
+      <!-- Top Floor Controls & Metrics Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <h2 style="font-size: 22px; font-weight: 800; color: var(--cream); margin: 0; display: flex; align-items: center; gap: 10px;">
+            <span>🪑 Floor Table Overview</span>
+            <span id="tablesLivePulseDot" style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #10b981; animation: pulseAlert 1.5s infinite ease-in-out;" title="Real-Time Stream Active"></span>
+          </h2>
+          <div style="font-size: 13px; color: var(--muted); margin-top: 4px;">
+            Live table status, server assignments, and active orders. Instant updates without page refresh.
+          </div>
+        </div>
+
+        <!-- Quick Floor Statistics -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 10px; padding: 7px 14px; font-size: 12px; font-weight: 700;">
+            <span style="color: var(--muted);">Total:</span> <span id="statTotalTables" style="color: var(--cream); font-weight: 900; margin-left: 4px;">0</span>
+          </div>
+          <div style="background: rgba(245,158,11,0.12); border: 1.5px solid rgba(245,158,11,0.4); border-radius: 10px; padding: 7px 14px; font-size: 12px; font-weight: 700; color: #f59e0b;">
+            <span>New Orders:</span> <span id="statNewOrders" style="font-weight: 900; margin-left: 4px;">0</span>
+          </div>
+          <div style="background: rgba(59,130,246,0.12); border: 1.5px solid rgba(59,130,246,0.4); border-radius: 10px; padding: 7px 14px; font-size: 12px; font-weight: 700; color: #3b82f6;">
+            <span>In Progress:</span> <span id="statInProgress" style="font-weight: 900; margin-left: 4px;">0</span>
+          </div>
+          <div style="background: rgba(16,185,129,0.12); border: 1.5px solid rgba(16,185,129,0.4); border-radius: 10px; padding: 7px 14px; font-size: 12px; font-weight: 700; color: #10b981;">
+            <span>Ready:</span> <span id="statReady" style="font-weight: 900; margin-left: 4px;">0</span>
+          </div>
+          <div style="background: var(--card2); border: 1.5px solid var(--line); border-radius: 10px; padding: 7px 14px; font-size: 12px; font-weight: 700; color: var(--muted);">
+            <span>Available:</span> <span id="statAvailable" style="font-weight: 900; color: var(--cream); margin-left: 4px;">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Controls & Search Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 16px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <button class="sub-tab active" id="tblFilterBtn-all" onclick="setTablesFilter('all')">All Tables (<span id="tblFilterCount-all">0</span>)</button>
+          <button class="sub-tab" id="tblFilterBtn-active" onclick="setTablesFilter('active')">Active Orders (<span id="tblFilterCount-active">0</span>)</button>
+          <button class="sub-tab" id="tblFilterBtn-my" onclick="setTablesFilter('my')">My Assigned Tables (<span id="tblFilterCount-my">0</span>)</button>
+          <button class="sub-tab" id="tblFilterBtn-available" onclick="setTablesFilter('available')">Available (<span id="tblFilterCount-available">0</span>)</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center; flex: 1; max-width: 340px;">
+          <input type="text" id="tableSearchInput" placeholder="🔍 Search table, customer, server..." style="width: 100%; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;" oninput="renderTablesPage()">
+          <button class="btn" onclick="renderTablesPage(true)" title="Force Refresh Table State" style="padding: 8px 12px; font-size: 13px;">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Tables Grid -->
+      <div class="tables-grid" id="tablesGridContainer">
+        <!-- Rendered dynamically -->
+      </div>
     </div>
 
     <!-- PAGE 2: ARCHIVE TICKETS -->
@@ -1522,6 +1681,25 @@
     </div>
   </div>
 
+  <!-- Reassign Server Modal (Manager Action) -->
+  <div id="reassignTableModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 24px; width: 100%; max-width: 440px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+      <h3 style="color: var(--gold); font-size: 18px; font-weight: 800; margin-bottom: 6px;">Assign / Reassign Table Server</h3>
+      <div id="reassignModalSub" style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">Select the staff member responsible for this table.</div>
+      <input type="hidden" id="reassignOrderId" value="">
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; text-transform: uppercase;">Assign To Staff Member</label>
+        <select id="reassignServerSelect" style="width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 600;">
+          <!-- Dynamically populated -->
+        </select>
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn" onclick="closeReassignModal()" style="padding: 10px 16px;">Cancel</button>
+        <button class="btn btn-primary" onclick="submitReassignModal()" style="background: #0066FF; padding: 10px 18px; font-weight: 800;">Confirm Assignment</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ════════════════ SINGLE SCRIPT ENGINE ════════════════ -->
   <script>
     const API_URL = window.location.origin;
@@ -1541,6 +1719,8 @@
     let inventory = {};
     let menuItems = [];
     let employeesList = [];
+    let tablesList = [];
+    let activeTableFilter = 'all';
     let activeTab = 'kds';
     let activeInventorySubTab = 'hookah';
     let activeMenuCat = 'all';
@@ -1555,6 +1735,12 @@
       const restCode = localStorage.getItem('benzin_restaurant_code') || '4821';
       headers['x-restaurant-id'] = restId;
       headers['x-restaurant-code'] = restCode;
+      const uId = localStorage.getItem('benzin_user_id');
+      const uName = localStorage.getItem('benzin_user_name');
+      const uRole = localStorage.getItem('benzin_user_role');
+      if (uId) headers['x-user-id'] = uId;
+      if (uName) headers['x-user-name'] = uName;
+      if (uRole) headers['x-user-role'] = uRole;
       return headers;
     }
 
@@ -2039,7 +2225,7 @@
 
     function switchTab(tab) {
       const role = (localStorage.getItem('benzin_user_role') || 'server').toLowerCase();
-      const isManager = ['owner', 'manager', 'platform_admin'].includes(role);
+      const isManager = ['owner', 'manager', 'platform_admin', 'admin'].includes(role);
 
       if (!isManager && ['inventory', 'menu', 'sales', 'staff'].includes(tab)) {
         alert(`🔒 Manager Authorization Required\n\nThe "${tab.toUpperCase()}" tab is restricted to Managers and Owners. Please log in with a Manager PIN.`);
@@ -2048,7 +2234,7 @@
       }
 
       activeTab = tab;
-      const pages = ['kdsPageLayout', 'archivePageLayout', 'inventoryPageLayout', 'menuPageLayout', 'salesPageLayout', 'staffPageLayout'];
+      const pages = ['kdsPageLayout', 'tablesPageLayout', 'archivePageLayout', 'inventoryPageLayout', 'menuPageLayout', 'salesPageLayout', 'staffPageLayout'];
       pages.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -2057,11 +2243,14 @@
       document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
       const activeBtn = document.getElementById(`navTab-${tab}`);
       if (activeBtn) activeBtn.classList.add('active');
+      const drawerBtn = document.getElementById(`drawerNavTab-${tab}`);
+      if (drawerBtn) drawerBtn.classList.add('active');
 
       const activePage = document.getElementById(`${tab}PageLayout`);
       if (activePage) activePage.style.display = 'block';
 
       if (tab === 'kds' || tab === 'archive') renderOrders();
+      else if (tab === 'tables') renderTablesPage();
       else if (tab === 'inventory') renderInventoryPage();
       else if (tab === 'menu') renderMenuPage();
       else if (tab === 'sales') renderSalesPage();
@@ -2073,6 +2262,7 @@
 
       // Auto-collapse mobile navigation menu after tab selection
       toggleMobileAdminMenu(false);
+      if (window.lucide) lucide.createIcons();
     }
 
     // ── KDS LOGIC & DEDUPARATION ──
@@ -2351,6 +2541,37 @@
           itemsHtml += `<div class="ticket-item-line" style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-bottom:4px;"><span>💨 <strong>${item.name}</strong> ${qtyTag}</span> ${enhancementPills}</div>`;
           if (item.notes) itemsHtml += `<div class="ticket-item-note" style="color:#FBBF24; font-weight:700; margin-bottom:6px;">📝 Note: ${item.notes}</div>`;
         });
+      const assignedName = order.assigned_server_name || order.assignedServerName;
+      const assignedId = order.assigned_server_id || order.assignedServerId;
+      const myId = localStorage.getItem('benzin_user_id') || '';
+      const myName = localStorage.getItem('benzin_user_name') || 'Me';
+      const myRole = (localStorage.getItem('benzin_user_role') || 'server').toLowerCase();
+      const isMgr = ['owner', 'manager', 'platform_admin', 'admin'].includes(myRole);
+
+      let serverBadgeHtml = '';
+      if (!isFulfilledOrder) {
+        if (!assignedName) {
+          serverBadgeHtml = `
+            <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:rgba(245,158,11,0.12); border:1px dashed #f59e0b; border-radius:8px; padding:4px 10px; font-size:11px;">
+              <span style="color:#f59e0b; font-weight:800;">👤 Server: <em>Unassigned</em></span>
+              <button class="btn btn-primary" onclick="assignTableOrder('${orderId}')" style="background:#0066FF; padding:3px 9px; font-size:11px; font-weight:800; border-radius:6px; min-height:unset;">Assign to me</button>
+            </div>
+          `;
+        } else if (assignedId === myId || assignedName === myName) {
+          serverBadgeHtml = `
+            <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.15); border:1px solid #10B981; border-radius:8px; padding:4px 10px; font-size:11px;">
+              <span style="color:#10B981; font-weight:800;">✓ Assigned to me (${assignedName})</span>
+              <button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding:2px 8px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.3); min-height:unset;">Release</button>
+            </div>
+          `;
+        } else {
+          serverBadgeHtml = `
+            <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:4px 10px; font-size:11px;">
+              <span style="color:var(--cream); font-weight:800;">👤 Server: <strong>${assignedName}</strong></span>
+              ${isMgr ? `<button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding:2px 8px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.3); min-height:unset;">Unassign</button>` : `<span style="font-size:11px; color:var(--muted); font-weight:700;">Assigned</span>`}
+            </div>
+          `;
+        }
       }
 
       return `
@@ -2362,6 +2583,7 @@
             </div>
             <span class="ticket-badge ${isFulfilledOrder ? 'badge-fulfilled' : order.status === 'ready' ? 'badge-ready' : order.status === 'preparing' ? 'badge-preparing' : 'badge-pending'}">${(order.status || 'PENDING').toUpperCase()}</span>
           </div>
+          ${serverBadgeHtml}
           <div style="margin-bottom:6px; display:flex; gap:4px; flex-wrap:wrap; align-items:center;">
             ${readinessBadges}
             ${billingStatusBadge}
@@ -2478,6 +2700,430 @@
       } catch (err) {
         alert('Error updating order status: ' + err.message);
       }
+    }
+
+    // ── TABLE OVERVIEW & SERVER ASSIGNMENT ──
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    function escapeJs(str) {
+      if (!str) return '';
+      return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+
+    let isFetchingTables = false;
+    async function renderTablesPage(force = false) {
+      if (isFetchingTables) return;
+      isFetchingTables = true;
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/orders/tables/overview?_t=${Date.now()}`, {
+          headers,
+          cache: 'no-store'
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.tables)) {
+            tablesList = data.tables;
+          }
+        }
+      } catch (err) {
+        console.warn('Error fetching tables overview:', err);
+      } finally {
+        isFetchingTables = false;
+        updateTablesStatsAndFilters();
+        renderTablesGrid();
+      }
+    }
+
+    function updateTablesStatsAndFilters() {
+      const myId = localStorage.getItem('benzin_user_id') || '';
+      const myName = (localStorage.getItem('benzin_user_name') || '').toLowerCase();
+
+      const total = tablesList.length;
+      const newOrders = tablesList.filter(t => t.status === 'new_order').length;
+      const inProgress = tablesList.filter(t => t.status === 'in_progress').length;
+      const ready = tablesList.filter(t => t.status === 'ready').length;
+      const available = tablesList.filter(t => t.status === 'available').length;
+      const activeOrders = tablesList.filter(t => t.status !== 'available').length;
+      const myAssigned = tablesList.filter(t => {
+        if (t.status === 'available') return false;
+        if (myId && t.assigned_server_id === myId) return true;
+        if (myName && t.assigned_server_name && t.assigned_server_name.toLowerCase() === myName) return true;
+        return false;
+      }).length;
+
+      const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = val;
+      };
+
+      setEl('statTotalTables', total);
+      setEl('statNewOrders', newOrders);
+      setEl('statInProgress', inProgress);
+      setEl('statReady', ready);
+      setEl('statAvailable', available);
+
+      setEl('tblFilterCount-all', total);
+      setEl('tblFilterCount-active', activeOrders);
+      setEl('tblFilterCount-my', myAssigned);
+      setEl('tblFilterCount-available', available);
+    }
+
+    function setTablesFilter(filter) {
+      activeTableFilter = filter;
+      ['all', 'active', 'my', 'available'].forEach(f => {
+        const btn = document.getElementById(`tblFilterBtn-${f}`);
+        if (btn) {
+          if (f === filter) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+      renderTablesGrid();
+    }
+
+    function renderTablesGrid() {
+      const container = document.getElementById('tablesGridContainer');
+      if (!container) return;
+
+      const myId = localStorage.getItem('benzin_user_id') || '';
+      const myName = (localStorage.getItem('benzin_user_name') || '').trim();
+      const myRole = (localStorage.getItem('benzin_user_role') || 'server').toLowerCase();
+      const isManager = myRole === 'owner' || myRole === 'manager' || myRole === 'platform_admin' || myRole === 'admin';
+
+      const searchInput = document.getElementById('tableSearchInput');
+      const query = (searchInput?.value || '').toLowerCase().trim();
+
+      const filtered = tablesList.filter(t => {
+        // Filter by tab
+        if (activeTableFilter === 'active') {
+          if (t.status === 'available') return false;
+        } else if (activeTableFilter === 'my') {
+          if (t.status === 'available') return false;
+          const isMine = (myId && t.assigned_server_id === myId) || 
+                         (myName && t.assigned_server_name && t.assigned_server_name.toLowerCase() === myName.toLowerCase());
+          if (!isMine) return false;
+        } else if (activeTableFilter === 'available') {
+          if (t.status !== 'available') return false;
+        }
+
+        // Filter by search query
+        if (query) {
+          const matchLabel = (t.label || '').toLowerCase().includes(query);
+          const matchServer = (t.assigned_server_name || '').toLowerCase().includes(query);
+          const matchNick = (t.customer_nickname || (t.active_order?.customerName) || '').toLowerCase().includes(query);
+          const matchItems = (t.items_summary || '').toLowerCase().includes(query);
+          if (!matchLabel && !matchServer && !matchNick && !matchItems) return false;
+        }
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; padding: 60px 20px; text-align: center; color: var(--muted); background: var(--card); border: 1.5px dashed var(--line); border-radius: 16px;">
+            <i data-lucide="layout-grid" style="width: 44px; height: 44px; margin-bottom: 12px; opacity: 0.4;"></i>
+            <div style="font-size: 16px; font-weight: 700; color: var(--cream); margin-bottom: 4px;">No Tables Found</div>
+            <div style="font-size: 13px;">No tables match the selected filter "${escapeHtml(activeTableFilter)}".</div>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(t => {
+        const isAvailable = t.status === 'available';
+        const orderId = t.active_order_id || (t.active_order?.id || t.active_order?._id);
+        const serverName = t.assigned_server_name || '';
+        const isAssignedToMe = (myId && t.assigned_server_id === myId) || 
+                               (myName && serverName && serverName.toLowerCase() === myName.toLowerCase());
+
+        let statusPillClass = 'table-pill-available';
+        let statusLabel = '🟢 Available';
+        if (t.status === 'new_order') {
+          statusPillClass = 'table-pill-new';
+          statusLabel = '🔥 New Order';
+        } else if (t.status === 'in_progress') {
+          statusPillClass = 'table-pill-progress';
+          statusLabel = '👨‍🍳 In Progress';
+        } else if (t.status === 'ready') {
+          statusPillClass = 'table-pill-ready';
+          statusLabel = '🔔 Ready';
+        } else if (t.status === 'completed') {
+          statusPillClass = 'table-pill-completed';
+          statusLabel = '✅ Completed';
+        }
+
+        let timeDisplay = '';
+        if (t.order_placed_at) {
+          try {
+            const d = new Date(t.order_placed_at);
+            const hours = d.getHours();
+            const mins = d.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const formattedH = (hours % 12 || 12).toString().padStart(2, '0');
+            const diffMins = Math.max(0, Math.floor((Date.now() - d.getTime()) / 60000));
+            timeDisplay = `${formattedH}:${mins} ${ampm} (${diffMins}m ago)`;
+          } catch (_) {}
+        }
+
+        return `
+          <div class="table-card ${!isAvailable ? 'has-order' : ''}">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+              <div>
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; color: var(--gold);">TABLE</div>
+                <h3 style="font-size: 20px; font-weight: 900; margin: 0; color: var(--cream);">${escapeHtml(t.label)}</h3>
+              </div>
+              <span class="${statusPillClass}">${statusLabel}</span>
+            </div>
+
+            ${isAvailable ? `
+              <div style="padding: 24px 10px; text-align: center; color: var(--muted); font-size: 13px;">
+                <i data-lucide="check-circle-2" style="width: 28px; height: 28px; margin-bottom: 6px; opacity: 0.35;"></i>
+                <div style="font-weight: 700; color: var(--cream);">Available</div>
+                <div style="font-size: 11px; opacity: 0.6; margin-top: 2px;">Table is clean and open for guests</div>
+              </div>
+            ` : `
+              <div style="background: rgba(0,0,0,0.25); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; border: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-size: 12px; font-weight: 800; color: var(--cream);">
+                    👤 ${escapeHtml(t.customer_nickname || (t.active_order?.customerName) || 'Guest')}
+                  </span>
+                  ${timeDisplay ? `
+                    <span style="font-size: 11px; color: var(--muted); font-weight: 600;">
+                      🕒 ${escapeHtml(timeDisplay)}
+                    </span>
+                  ` : ''}
+                </div>
+
+                <div style="font-size: 12px; font-weight: 700; color: #f3f4f6; margin-bottom: 6px; line-height: 1.4;">
+                  🍽️ ${escapeHtml(t.items_summary || 'Customer order active')}
+                </div>
+
+                ${t.active_order?.grandTotal !== undefined ? `
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 5px; margin-top: 5px;">
+                    <span>Total: $${Number(t.active_order.grandTotal).toFixed(2)}</span>
+                    <span style="font-weight: 800; color: ${Number(t.active_order.totalDue || 0) <= 0 ? 'var(--success)' : 'var(--gold)'};">
+                      ${Number(t.active_order.totalDue || 0) <= 0 ? 'PAID' : `Due: $${Number(t.active_order.totalDue).toFixed(2)}`}
+                    </span>
+                  </div>
+                ` : ''}
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 10px; background: var(--card2); border-radius: 8px; border: 1px solid var(--border);">
+                <span style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Server</span>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  ${serverName ? `
+                    <span style="font-size: 13px; font-weight: 800; color: ${isAssignedToMe ? 'var(--success)' : 'var(--cream)'}; display: flex; align-items: center; gap: 4px;">
+                      👤 ${escapeHtml(serverName)}
+                      ${isAssignedToMe ? '<span style="font-size: 10px; background: rgba(34,197,94,0.2); border: 1px solid var(--success); padding: 1px 6px; border-radius: 10px; margin-left: 2px;">YOU</span>' : ''}
+                    </span>
+                  ` : `
+                    <span style="font-size: 12px; font-weight: 800; color: #f59e0b; display: flex; align-items: center; gap: 4px;">
+                      ⚠️ Unassigned
+                    </span>
+                  `}
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; gap: 6px;">
+                  ${!serverName ? `
+                    <button class="btn btn-primary" onclick="assignTableOrder('${orderId}', '${escapeJs(myId)}', '${escapeJs(myName)}')" style="flex: 1; background: #0066FF; font-weight: 800; font-size: 12px; padding: 8px; border-radius: 8px;">
+                      <i data-lucide="user-plus" style="width: 13px; height: 13px; margin-right: 4px;"></i> Assign to me
+                    </button>
+                    ${isManager ? `
+                      <button class="btn" onclick="openReassignModal('${orderId}', '${escapeJs(t.label)}', '', 'Unassigned')" style="padding: 8px 10px; font-size: 12px;" title="Manager: Assign staff">
+                        <i data-lucide="users" style="width: 13px; height: 13px;"></i>
+                      </button>
+                    ` : ''}
+                  ` : isAssignedToMe ? `
+                    <button class="btn" style="flex: 1; background: rgba(34,197,94,0.15); border: 1.5px solid var(--success); color: var(--success); font-weight: 800; font-size: 12px; padding: 8px; cursor: default; border-radius: 8px;">
+                      <i data-lucide="check" style="width: 13px; height: 13px; margin-right: 4px;"></i> Assigned to me
+                    </button>
+                    <button class="btn" onclick="unassignTableOrder('${orderId}')" style="background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #f87171; font-size: 11px; font-weight: 700; padding: 8px 10px; border-radius: 8px;" title="Release / Unassign table">
+                      Release
+                    </button>
+                    ${isManager ? `
+                      <button class="btn" onclick="openReassignModal('${orderId}', '${escapeJs(t.label)}', '${escapeJs(t.assigned_server_id)}', '${escapeJs(serverName)}')" style="padding: 8px 10px; font-size: 12px;" title="Reassign to another staff">
+                        <i data-lucide="users" style="width: 13px; height: 13px;"></i>
+                      </button>
+                    ` : ''}
+                  ` : `
+                    <div style="flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--muted); text-align: center; font-weight: 700;">
+                      Assigned to ${escapeHtml(serverName)}
+                    </div>
+                    ${isManager ? `
+                      <button class="btn" onclick="openReassignModal('${orderId}', '${escapeJs(t.label)}', '${escapeJs(t.assigned_server_id)}', '${escapeJs(serverName)}')" style="padding: 8px 10px; font-size: 12px; background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; color: #60a5fa;" title="Manager: Reassign to staff">
+                        Reassign
+                      </button>
+                      <button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding: 8px 8px; font-size: 11px; color: #f87171; border: 1px solid #ef4444;" title="Manager: Unassign server">
+                        ✕
+                      </button>
+                    ` : ''}
+                  `}
+                </div>
+
+                <div style="display: flex; gap: 6px;">
+                  ${t.status === 'new_order' ? `
+                    <button class="btn" onclick="quickUpdateTableStatus('${orderId}', 'preparing')" style="flex: 1; background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; color: #60a5fa; font-weight: 800; font-size: 11px; padding: 6px;">
+                      👨‍🍳 Start Prep
+                    </button>
+                  ` : t.status === 'in_progress' ? `
+                    <button class="btn" onclick="quickUpdateTableStatus('${orderId}', 'ready')" style="flex: 1; background: rgba(245,158,11,0.15); border: 1px solid #f59e0b; color: #fbbf24; font-weight: 800; font-size: 11px; padding: 6px;">
+                      🔔 Mark Ready
+                    </button>
+                  ` : t.status === 'ready' ? `
+                    <button class="btn btn-primary" onclick="quickFulfillTableOrder('${orderId}')" style="flex: 1; background: var(--success); border-color: var(--success); font-weight: 800; font-size: 11px; padding: 6px;">
+                      ✅ Mark Served
+                    </button>
+                  ` : `
+                    <button class="btn" onclick="quickResetTable('${orderId}')" style="flex: 1; background: rgba(16,185,129,0.15); border: 1px solid var(--success); color: #34d399; font-weight: 800; font-size: 11px; padding: 6px;" title="Reset table to Available">
+                      🔄 Reset Table
+                    </button>
+                  `}
+                </div>
+              </div>
+            `}
+          </div>
+        `;
+      }).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function assignTableOrder(orderId, targetId, targetName) {
+      if (!orderId) return;
+      try {
+        const myId = localStorage.getItem('benzin_user_id') || '';
+        const myName = localStorage.getItem('benzin_user_name') || 'Server';
+        const server_id = targetId || myId;
+        const server_name = targetName || myName;
+
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/orders/${orderId}/assign`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ server_id, server_name })
+        });
+        const data = await res.json();
+        if (res.status === 409) {
+          alert(`⚠️ ${data.message || 'This table is already assigned to another server.'}`);
+        } else if (!res.ok || !data.success) {
+          alert(`Could not assign table: ${data.message || data.error || 'Server error'}`);
+        }
+        await renderTablesPage(true);
+        await fetchOrders(true);
+      } catch (err) {
+        alert('Error assigning table: ' + err.message);
+      }
+    }
+
+    async function unassignTableOrder(orderId) {
+      if (!orderId) return;
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/orders/${orderId}/unassign`, {
+          method: 'POST',
+          headers
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(`Could not unassign table: ${data.message || data.error || 'Server error'}`);
+        }
+        await renderTablesPage(true);
+        await fetchOrders(true);
+      } catch (err) {
+        alert('Error unassigning table: ' + err.message);
+      }
+    }
+
+    async function quickResetTable(orderId) {
+      if (!orderId) return;
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/orders/${orderId}/reset-table`, {
+          method: 'POST',
+          headers
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(`Could not reset table: ${data.message || data.error || 'Server error'}`);
+        }
+        await renderTablesPage(true);
+        await fetchOrders(true);
+      } catch (err) {
+        alert('Error resetting table: ' + err.message);
+      }
+    }
+
+    async function quickUpdateTableStatus(orderId, status) {
+      if (!orderId) return;
+      await updateOrderStatus(orderId, status);
+      await renderTablesPage(true);
+    }
+
+    async function quickFulfillTableOrder(orderId) {
+      if (!orderId) return;
+      await fulfillOrder(orderId);
+      await renderTablesPage(true);
+    }
+
+    async function openReassignModal(orderId, tableLabel, currentServerId, currentServerName) {
+      const modal = document.getElementById('reassignTableModal');
+      const sub = document.getElementById('reassignModalSub');
+      const orderIdInput = document.getElementById('reassignOrderId');
+      const select = document.getElementById('reassignServerSelect');
+      if (!modal || !select) return;
+
+      orderIdInput.value = orderId;
+      if (sub) {
+        sub.innerText = `Assign staff to ${tableLabel} (Currently: ${currentServerName || 'Unassigned'})`;
+      }
+
+      if (employeesList.length === 0) {
+        try {
+          const restCode = localStorage.getItem('benzin_restaurant_code') || '4821';
+          const r = await fetch(`${API_URL}/api/auth/staff-roster`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ restaurant_code: restCode })
+          });
+          const d = await r.json();
+          if (d.success && Array.isArray(d.staff)) {
+            employeesList = d.staff;
+          }
+        } catch (_) {}
+      }
+
+      select.innerHTML = employeesList.map(e => {
+        const eid = e.id || e._id;
+        const isSelected = (currentServerId && eid === currentServerId) || 
+                           (currentServerName && e.name && e.name.toLowerCase() === currentServerName.toLowerCase());
+        return `<option value="${eid}" ${isSelected ? 'selected' : ''}>${escapeHtml(e.name)} (${e.role || 'Staff'})</option>`;
+      }).join('');
+
+      modal.style.display = 'flex';
+    }
+
+    function closeReassignModal() {
+      const modal = document.getElementById('reassignTableModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function submitReassignModal() {
+      const orderIdInput = document.getElementById('reassignOrderId');
+      const select = document.getElementById('reassignServerSelect');
+      if (!orderIdInput || !select) return;
+
+      const orderId = orderIdInput.value;
+      const serverId = select.value;
+      const serverName = select.options[select.selectedIndex]?.text?.split(' (')[0] || select.value;
+
+      closeReassignModal();
+      await assignTableOrder(orderId, serverId, serverName);
     }
 
     // ── HOOKAH STATION COAL REFILL QUEUE ──
@@ -5027,12 +5673,15 @@
             );
 
             // Fast structural change comparison
-            const serializeState = (arr) => arr.map(o => `${o.id || o._id}:${o.status}:${o.paymentStatus}:${(o.fulfilledDepartments || []).join(',')}`).join('|');
+            const serializeState = (arr) => arr.map(o => `${o.id || o._id}:${o.status}:${o.paymentStatus}:${o.assigned_server_id || ''}:${(o.fulfilledDepartments || []).join(',')}`).join('|');
             const stateChanged = incomingOrders.length !== orders.length || serializeState(incomingOrders) !== serializeState(orders);
 
             if (stateChanged || orders.length === 0) {
               orders = incomingOrders;
               renderOrders();
+              if (activeTab === 'tables') {
+                renderTablesPage();
+              }
 
               if (hasNewUnfulfilled && silent) {
                 playOrderChime();
@@ -5140,6 +5789,7 @@
           if (data.type === 'archive_cleared') {
             orders = orders.filter(o => o.status !== 'fulfilled' && o.status !== 'completed' && !o.closedSession);
             renderOrders();
+            if (activeTab === 'tables') renderTablesPage();
             fetchOrders(true);
             return;
           }
@@ -5156,15 +5806,20 @@
               playOrderChime();
             }
             renderOrders();
+            if (activeTab === 'tables') renderTablesPage();
           } else if (
             data.type === 'order_created' || 
             data.type === 'new_order' || 
             data.type === 'order_updated' || 
+            data.type === 'table_assigned' ||
+            data.type === 'table_unassigned' ||
+            data.type === 'table_reset' ||
             data.type === 'server_request' || 
             data.kind === 'server_request' ||
             data.type === 'coal_refill_request' ||
             data.type === 'coal_refill_updated'
           ) {
+            if (activeTab === 'tables') renderTablesPage();
             playOrderChime();
           }
 
