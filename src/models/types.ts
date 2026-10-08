@@ -8,7 +8,7 @@
 /*                              ENUMS & CONSTANTS                              */
 /* ═══════════════════════════════════════════════════════════════════════════ */
 
-export type UserRole = 'platform_admin' | 'owner' | 'manager' | 'cashier' | 'kitchen' | 'server' | 'chef' | 'bartender' | 'hookah_maker';
+export type UserRole = 'platform_admin' | 'owner' | 'manager' | 'host' | 'cashier' | 'kitchen' | 'server' | 'chef' | 'bartender' | 'hookah_maker';
 
 export type DeviceStatus = 'paired' | 'unpaired' | 'disabled';
 
@@ -112,6 +112,79 @@ export interface TaxConfig {
   category_rates: Record<string, number>;  // category_id → rate override
 }
 
+export interface HookahFlavorConfig {
+  id: string;
+  name: string;
+  brand?: string;
+  category?: string;
+  description?: string;
+  price?: number;
+  active: boolean;
+  color?: string;
+  emoji?: string;
+  tags?: string[];
+}
+
+export interface HookahBaseConfig {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  active: boolean;
+}
+
+export interface HookahAddonConfig {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  active: boolean;
+}
+
+export interface HookahPackageConfig {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  active: boolean;
+  includes_unlimited_refills?: boolean;
+}
+
+export interface HookahConfig {
+  flavors: HookahFlavorConfig[];
+  bases: HookahBaseConfig[];
+  addons: HookahAddonConfig[];
+  packages: HookahPackageConfig[];
+}
+
+export const DEFAULT_HOOKAH_CONFIG: HookahConfig = {
+  flavors: [
+    { id: 'flv_cavali_crush', name: 'Cavalli Crush', active: true, emoji: '💨', description: 'Sweet exotic house blend' },
+    { id: 'flv_lady_killer', name: 'Lady Killer', active: true, emoji: '🍓', description: 'Melon, mango, berries & mint' },
+    { id: 'flv_love_66', name: 'Love 66', active: true, emoji: '💖', description: 'Passion fruit, honeydew, watermelon & mint' },
+    { id: 'flv_blue_mist', name: 'Blue Mist', active: true, emoji: '🫐', description: 'Sweet blueberry with cool mint sensation' },
+    { id: 'flv_double_apple', name: 'Double Apple', active: true, emoji: '🍏', description: 'Classic anise and sweet double apple' },
+    { id: 'flv_mint', name: 'Mint', active: true, emoji: '🌿', description: 'Crisp refreshing cooling mint' },
+    { id: 'flv_paan', name: 'Bombay Paan', active: true, emoji: '🍃', description: 'Traditional aromatic herbal betel blend' },
+    { id: 'flv_watermelon', name: 'Watermelon Chill', active: true, emoji: '🍉', description: 'Juicy summer melon with icy finish' },
+    { id: 'flv_peach', name: 'White Peach', active: true, emoji: '🍑', description: 'Ripe sweet orchard peach' },
+    { id: 'flv_grape_mint', name: 'Grape Mint', active: true, emoji: '🍇', description: 'Rich dark grape with refreshing mint' },
+  ],
+  bases: [
+    { id: 'base_water', name: 'Standard Water Base', price: 0, description: 'Clean crisp purified ice water', active: true },
+    { id: 'base_rooh_afza', name: 'Rooh Afza Base', price: 5, description: 'Rose & herbal cooling refreshment', active: true },
+    { id: 'base_watermelon', name: 'Watermelon Syrup Base', price: 5, description: 'Sweet concentrated watermelon nectar', active: true },
+    { id: 'base_milk', name: 'Cream / Milk Base', price: 6, description: 'Extra thick and silky clouds', active: true },
+  ],
+  addons: [
+    { id: 'addon_ice_base', name: 'Ice Base', price: 2, description: 'Chilled icy base reservoir', active: true },
+    { id: 'addon_ice_hose', name: 'Ice Hose', price: 6, description: 'Sub-zero frozen freeze-tip hose', active: true },
+  ],
+  packages: [
+    { id: 'pkg_daku', name: 'Daku', price: 65, description: 'Unlimited head refill included', includes_unlimited_refills: true, active: true },
+  ],
+};
+
 export interface RestaurantSettings {
   currency: string;           // e.g. "USD"
   timezone: string;           // e.g. "America/Chicago"
@@ -125,6 +198,8 @@ export interface RestaurantSettings {
   capabilities?: RestaurantCapability[];
   payment_provider: 'square' | 'stripe' | 'none';
   payment_credentials: Record<string, string>;  // encrypted provider keys
+  hookah_config?: HookahConfig;
+  specials?: string[];
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -325,6 +400,9 @@ export interface MenuItemModel {
   recipe?: MenuRecipeIngredient[] | any[];
   ingredient_id?: string;
   ingredient_amount?: number;
+  is_special?: boolean;
+  special_sort_order?: number;
+  category_overrides?: Record<string, { price?: number; description?: string; modifier_groups?: MenuItemModifierGroup[] | ModifierGroup[]; available?: boolean; sort_order?: number }>;
   created_at: string;
   updated_at: string;
 }

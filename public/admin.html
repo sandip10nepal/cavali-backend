@@ -1129,6 +1129,14 @@
             <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; opacity: 0.6;">🔍</span>
           </div>
           <div style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;">
+            <button class="btn touch-target" onclick="openHookahConfigModal()" style="background: rgba(229,177,58,0.12); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Configure Hookah Flavors, Bases, Add-ons & Packages">
+              <i data-lucide="flame" style="width: 14px; height: 14px;"></i>
+              <span>💨 Hookah Config</span>
+            </button>
+            <button class="btn touch-target" onclick="openSpecialsModal()" style="background: rgba(168,85,247,0.12); color: #c084fc; border: 1.5px solid #a855f7; font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Configure Restaurant Specials">
+              <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+              <span>⭐ Specials</span>
+            </button>
             <button class="btn touch-target" onclick="openAddMenuCategoryModal()" style="background: var(--card2); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Add Category">
               <i data-lucide="folder-plus" style="width: 14px; height: 14px;"></i>
               <span>+ Category</span>
@@ -1267,6 +1275,10 @@
     <div style="width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; background: var(--card); border: 1.5px solid var(--gold); border-radius: 20px; padding: 24px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
       <h3 id="menuModalTitle" style="color: var(--gold); font-size: 18px; font-weight: 800; margin-bottom: 16px;">Add Menu Item</h3>
       <input type="hidden" id="menuEditId">
+      <input type="hidden" id="menuEditScopedCategory">
+      <div id="menuEditCategoryScopeNotice" style="display: none; background: rgba(229,177,58,0.12); border: 1px dashed var(--gold); border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; font-size: 11px; color: var(--gold); font-weight: 700;">
+        🏷️ Editing within category: <span id="menuEditScopedCategoryName" style="color: var(--cream);"></span> (Changes here are isolated to this category)
+      </div>
       
       <div style="margin-bottom: 12px;">
         <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Item Name *</label>
@@ -1657,6 +1669,7 @@
         <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Role *</label>
         <select id="empRole" onchange="handleEmpRoleChange()" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 14px;">
           <option value="cashier">Server / Cashier</option>
+          <option value="host">Host / Greeter</option>
           <option value="bartender">Bartender</option>
           <option value="chef">Chef / Kitchen</option>
           <option value="hookah_maker">Hookah Maker</option>
@@ -1763,6 +1776,145 @@
     </div>
   </div>
 
+  <!-- Hookah Configuration Modal (Flavors, Bases, Add-ons & Packages) -->
+  <div id="hookahConfigModal" onclick="if(event.target === this) closeHookahConfigModal()" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--card); border: 1.5px solid var(--gold); border-radius: 20px; padding: 24px; width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div>
+          <h3 style="color: var(--gold); font-size: 20px; font-weight: 800; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+            <span>💨</span> Hookah Configuration
+          </h3>
+          <div style="font-size: 13px; color: var(--muted);">Configure bases, flavors, add-ons, and packages for customer ordering.</div>
+        </div>
+        <button class="btn" onclick="closeHookahConfigModal()" style="padding: 6px 10px; font-size: 12px; border-radius: 8px;">✕</button>
+      </div>
+
+      <!-- Tabs Bar -->
+      <div style="display: flex; gap: 6px; border-bottom: 1.5px solid var(--line); padding-bottom: 10px; margin-bottom: 16px;">
+        <button class="sub-tab active" id="hkTabBtn-bases" onclick="switchHookahTab('bases')" style="padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 12px;">🍯 Bases</button>
+        <button class="sub-tab" id="hkTabBtn-flavors" onclick="switchHookahTab('flavors')" style="padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 12px;">🌿 Flavors</button>
+        <button class="sub-tab" id="hkTabBtn-addons" onclick="switchHookahTab('addons')" style="padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 12px;">🧊 Add-ons</button>
+        <button class="sub-tab" id="hkTabBtn-packages" onclick="switchHookahTab('packages')" style="padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 12px;">👑 Daku / Packages</button>
+      </div>
+
+      <!-- BASES TAB -->
+      <div id="hkTab-bases">
+        <div style="background: rgba(229,177,58,0.06); border: 1px dashed rgba(229,177,58,0.3); border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+          <div style="font-size: 12px; font-weight: 800; color: var(--gold); margin-bottom: 8px;">➕ ADD NEW HOOKAH BASE</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <input type="text" id="newHkBaseName" placeholder="Base name (e.g. Rooh Afza, Watermelon Syrup)" style="flex: 2; min-width: 180px; padding: 8px 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+            <input type="number" step="0.5" id="newHkBasePrice" placeholder="Price ($0.00)" style="flex: 1; min-width: 100px; padding: 8px 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+            <button class="btn btn-primary" onclick="addHookahBaseRow()" style="padding: 8px 16px; font-weight: 800; font-size: 12px; background: var(--gold); color: #000;">Add Base</button>
+          </div>
+        </div>
+        <div id="hkBasesListContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- FLAVORS TAB -->
+      <div id="hkTab-flavors" style="display: none;">
+        <div style="background: rgba(20,184,166,0.06); border: 1px dashed rgba(20,184,166,0.3); border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+          <div style="font-size: 12px; font-weight: 800; color: var(--teal); margin-bottom: 8px;">➕ ADD NEW HOOKAH FLAVOR</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <input type="text" id="newHkFlavorName" placeholder="Flavor name (e.g. Love 66, Blue Mist)" style="flex: 2; min-width: 180px; padding: 8px 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+            <input type="text" id="newHkFlavorCategory" placeholder="Category (e.g. Al Fakher, Starbuzz)" style="flex: 1; min-width: 120px; padding: 8px 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+            <button class="btn btn-primary" onclick="addHookahFlavorRow()" style="padding: 8px 16px; font-weight: 800; font-size: 12px; background: var(--teal); color: #000;">Add Flavor</button>
+          </div>
+        </div>
+        <div id="hkFlavorsListContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- ADDONS TAB -->
+      <div id="hkTab-addons" style="display: none;">
+        <div style="font-size: 11px; color: var(--gold); background: rgba(229,177,58,0.1); border: 1px solid rgba(229,177,58,0.25); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; line-height: 1.4;">
+          ⚠️ <strong>Note:</strong> Ice Base and Ice Hose are selectable customer options. They are <strong>never</strong> automatically selected or charged by default.
+        </div>
+        <div style="background: rgba(0,102,255,0.06); border: 1px dashed rgba(0,102,255,0.3); border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+          <div style="font-size: 12px; font-weight: 800; color: #60a5fa; margin-bottom: 8px;">➕ ADD HOOKAH ADD-ON</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <input type="text" id="newHkAddonName" placeholder="Add-on name (e.g. Ice Base, Ice Hose)" style="flex: 2; min-width: 180px; padding: 8px 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+            <input type="number" step="0.5" id="newHkAddonPrice" placeholder="Price ($0.00)" style="flex: 1; min-width: 100px; padding: 8px 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+            <button class="btn btn-primary" onclick="addHookahAddonRow()" style="padding: 8px 16px; font-weight: 800; font-size: 12px; background: #0066FF;">Add Add-on</button>
+          </div>
+        </div>
+        <div id="hkAddonsListContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- PACKAGES TAB -->
+      <div id="hkTab-packages" style="display: none;">
+        <div style="background: var(--card2); border: 1.5px solid var(--gold); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-size: 15px; font-weight: 900; color: var(--gold); display: flex; align-items: center; gap: 6px;">
+              <span>👑</span> MAKE IT DAKU PACKAGE
+            </div>
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--cream); cursor: pointer;">
+              <input type="checkbox" id="hkDakuActive" checked style="accent-color: var(--gold); width: 16px; height: 16px;">
+              Active in Ordering
+            </label>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Package Name</label>
+              <input type="text" id="hkDakuName" value="Daku" style="width: 100%; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Price ($) *</label>
+              <input type="number" step="0.5" id="hkDakuPrice" value="65.00" style="width: 100%; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; color: var(--gold); font-size: 14px; font-weight: 800;">
+            </div>
+          </div>
+          <div>
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Description / Perks</label>
+            <input type="text" id="hkDakuDesc" value="Unlimited head refill" style="width: 100%; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1.5px solid var(--line); padding-top: 16px;">
+        <button class="btn" onclick="closeHookahConfigModal()" style="padding: 10px 16px;">Cancel</button>
+        <button class="btn btn-primary" onclick="saveHookahConfig()" style="background: var(--gold); color: #000; font-weight: 800; padding: 10px 20px;">Save Hookah Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Specials Management Modal (Replaces old Featured Dishes) -->
+  <div id="specialsModal" onclick="if(event.target === this) closeSpecialsModal()" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--card); border: 1.5px solid #a855f7; border-radius: 20px; padding: 24px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+        <div>
+          <h3 style="color: #c084fc; font-size: 20px; font-weight: 800; margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+            <span>⭐</span> Restaurant Specials
+          </h3>
+          <div style="font-size: 13px; color: var(--muted);">Choose existing menu items to feature as restaurant specials. Independent per venue without duplicate products.</div>
+        </div>
+        <button class="btn" onclick="closeSpecialsModal()" style="padding: 6px 10px; font-size: 12px; border-radius: 8px;">✕</button>
+      </div>
+
+      <!-- Add Existing Menu Item as Special -->
+      <div style="background: rgba(168,85,247,0.08); border: 1px dashed rgba(168,85,247,0.35); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+        <div style="font-size: 12px; font-weight: 800; color: #c084fc; margin-bottom: 8px;">➕ FEATURE AN EXISTING ITEM IN SPECIALS</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <select id="specialsCatalogSelect" style="width: 100%; padding: 9px 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px; font-weight: 600;">
+            <option value="">-- Select an item from Menu Catalog --</option>
+          </select>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="specialSubtitleInput" placeholder="Badge subtitle (e.g. Chef's Pick, Limited)" style="flex: 1; padding: 8px 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 12px;">
+            <button class="btn btn-primary" onclick="addSelectedMenuToSpecials()" style="background: #a855f7; color: #fff; font-weight: 800; padding: 8px 16px; font-size: 12px; white-space: nowrap;">+ Feature in Specials</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Specials List Container -->
+      <div style="font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 8px;">Currently Featured Specials</div>
+      <div id="specialsListContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto;"></div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1.5px solid var(--line); padding-top: 16px;">
+        <button class="btn" onclick="closeSpecialsModal()" style="padding: 10px 16px;">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSpecials()" style="background: #a855f7; color: #fff; font-weight: 800; padding: 10px 20px;">Save Specials</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ════════════════ SINGLE SCRIPT ENGINE ════════════════ -->
   <script>
     const API_URL = window.location.origin;
@@ -1770,6 +1922,7 @@
     const ROLE_BADGES = {
       owner: { label: 'Owner', color: 'var(--gold)' },
       manager: { label: 'Manager', color: 'var(--teal)' },
+      host: { label: 'Host / Greeter', color: '#a855f7' },
       server: { label: 'Server', color: 'var(--success)' },
       bartender: { label: 'Bartender', color: '#3b82f6' },
       chef: { label: 'Chef', color: 'var(--ember)' },
@@ -2620,7 +2773,7 @@
       const myId = localStorage.getItem('benzin_user_id') || '';
       const myName = localStorage.getItem('benzin_user_name') || 'Me';
       const myRole = (localStorage.getItem('benzin_user_role') || 'server').toLowerCase();
-      const isMgr = ['owner', 'manager', 'platform_admin', 'admin'].includes(myRole);
+      const canAssign = ['owner', 'manager', 'platform_admin', 'admin', 'host'].includes(myRole);
 
       let serverBadgeHtml = '';
       if (!isFulfilledOrder) {
@@ -2628,21 +2781,21 @@
           serverBadgeHtml = `
             <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:rgba(245,158,11,0.12); border:1px dashed #f59e0b; border-radius:8px; padding:4px 10px; font-size:11px;">
               <span style="color:#f59e0b; font-weight:800;">👤 Server: <em>Unassigned</em></span>
-              <button class="btn btn-primary" onclick="assignTableOrder('${orderId}')" style="background:#0066FF; padding:3px 9px; font-size:11px; font-weight:800; border-radius:6px; min-height:unset;">Assign to me</button>
+              ${canAssign ? `<button class="btn btn-primary" onclick="openReassignModal('${orderId}', '${cleanTable}', '', 'Unassigned')" style="background:#0066FF; padding:3px 9px; font-size:11px; font-weight:800; border-radius:6px; min-height:unset;">Assign Server</button>` : `<span style="font-size:11px; color:var(--muted); font-weight:700;">Awaiting Assignment</span>`}
             </div>
           `;
         } else if (assignedId === myId || assignedName === myName) {
           serverBadgeHtml = `
             <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:rgba(16,185,129,0.15); border:1px solid #10B981; border-radius:8px; padding:4px 10px; font-size:11px;">
               <span style="color:#10B981; font-weight:800;">✓ Assigned to me (${escapeHtml(assignedName)})</span>
-              <button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding:2px 8px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.3); min-height:unset;">Release</button>
+              ${canAssign ? `<button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding:2px 8px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.3); min-height:unset;">Release</button>` : ''}
             </div>
           `;
         } else {
           serverBadgeHtml = `
             <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:4px 10px; font-size:11px;">
               <span style="color:var(--cream); font-weight:800;">👤 Server: <strong>${escapeHtml(assignedName)}</strong></span>
-              ${isMgr ? `<button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding:2px 8px; font-size:11px; color:var(--danger); border-color:rgba(239,68,68,0.3); min-height:unset;">Unassign</button>` : `<span style="font-size:11px; color:var(--muted); font-weight:700;">Assigned</span>`}
+              ${canAssign ? `<button class="btn" onclick="openReassignModal('${orderId}', '${cleanTable}', '${escapeJs(assignedId)}', '${escapeJs(assignedName)}')" style="padding:2px 8px; font-size:11px; color:#60a5fa; border-color:rgba(59,130,246,0.3); min-height:unset;">Reassign</button>` : `<span style="font-size:11px; color:var(--muted); font-weight:700;">Assigned</span>`}
             </div>
           `;
         }
@@ -2900,6 +3053,7 @@
       const myName = (localStorage.getItem('benzin_user_name') || '').trim();
       const myRole = (localStorage.getItem('benzin_user_role') || 'server').toLowerCase();
       const isManager = myRole === 'owner' || myRole === 'manager' || myRole === 'platform_admin' || myRole === 'admin';
+      const canAssign = isManager || myRole === 'host';
 
       const searchInput = document.getElementById('tableSearchInput');
       const query = (searchInput?.value || '').toLowerCase().trim();
@@ -3059,22 +3213,23 @@
               <div style="display: flex; flex-direction: column; gap: 8px;">
                 <div style="display: flex; gap: 6px;">
                   ${!serverName ? `
-                    <button class="btn btn-primary" onclick="assignTableOrder('${orderId}', '${escapeJs(myId)}', '${escapeJs(myName)}')" style="flex: 1; background: #0066FF; font-weight: 800; font-size: 12px; padding: 8px; border-radius: 8px;">
-                      <i data-lucide="user-plus" style="width: 13px; height: 13px; margin-right: 4px;"></i> Assign to me
-                    </button>
-                    ${isManager ? `
-                      <button class="btn" onclick="openReassignModal('${orderId}', '${escapeJs(t.label)}', '', 'Unassigned')" style="padding: 8px 10px; font-size: 12px;" title="Manager: Assign staff">
-                        <i data-lucide="users" style="width: 13px; height: 13px;"></i>
+                    ${canAssign ? `
+                      <button class="btn btn-primary" onclick="openReassignModal('${orderId}', '${escapeJs(t.label)}', '', 'Unassigned')" style="flex: 1; background: #0066FF; font-weight: 800; font-size: 12px; padding: 8px; border-radius: 8px;" title="Manager/Host: Assign staff">
+                        <i data-lucide="user-plus" style="width: 13px; height: 13px; margin-right: 4px;"></i> Assign Staff
                       </button>
-                    ` : ''}
+                    ` : `
+                      <div style="flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--muted); text-align: center; font-weight: 700;">
+                        Unassigned (Staff will assign)
+                      </div>
+                    `}
                   ` : isAssignedToMe ? `
                     <button class="btn" style="flex: 1; background: rgba(34,197,94,0.15); border: 1.5px solid var(--success); color: var(--success); font-weight: 800; font-size: 12px; padding: 8px; cursor: default; border-radius: 8px;">
                       <i data-lucide="check" style="width: 13px; height: 13px; margin-right: 4px;"></i> Assigned to me
                     </button>
-                    <button class="btn" onclick="unassignTableOrder('${orderId}')" style="background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #f87171; font-size: 11px; font-weight: 700; padding: 8px 10px; border-radius: 8px;" title="Release / Unassign table">
-                      Release
-                    </button>
-                    ${isManager ? `
+                    ${canAssign ? `
+                      <button class="btn" onclick="unassignTableOrder('${orderId}')" style="background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #f87171; font-size: 11px; font-weight: 700; padding: 8px 10px; border-radius: 8px;" title="Release / Unassign table">
+                        Release
+                      </button>
                       <button class="btn" onclick="openReassignModal('${orderId}', '${escapeJs(t.label)}', '${escapeJs(t.assigned_server_id)}', '${escapeJs(serverName)}')" style="padding: 8px 10px; font-size: 12px;" title="Reassign to another staff">
                         <i data-lucide="users" style="width: 13px; height: 13px;"></i>
                       </button>
@@ -3083,11 +3238,11 @@
                     <div style="flex: 1; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 11px; color: var(--muted); text-align: center; font-weight: 700;">
                       Assigned to ${escapeHtml(serverName)}
                     </div>
-                    ${isManager ? `
-                      <button class="btn" onclick="openReassignModal('${orderId}', '${escapeJs(t.label)}', '${escapeJs(t.assigned_server_id)}', '${escapeJs(serverName)}')" style="padding: 8px 10px; font-size: 12px; background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; color: #60a5fa;" title="Manager: Reassign to staff">
+                    ${canAssign ? `
+                      <button class="btn" onclick="openReassignModal('${orderId}', '${escapeJs(t.label)}', '${escapeJs(t.assigned_server_id)}', '${escapeJs(serverName)}')" style="padding: 8px 10px; font-size: 12px; background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; color: #60a5fa;" title="Reassign to staff">
                         Reassign
                       </button>
-                      <button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding: 8px 8px; font-size: 11px; color: #f87171; border: 1px solid #ef4444;" title="Manager: Unassign server">
+                      <button class="btn" onclick="unassignTableOrder('${orderId}')" style="padding: 8px 8px; font-size: 11px; color: #f87171; border: 1px solid #ef4444;" title="Unassign server">
                         ✕
                       </button>
                     ` : ''}
@@ -4273,7 +4428,7 @@
                   </div>
 
                   <div style="display: flex; gap: 4px; margin-top: 10px;">
-                    <button class="btn" style="flex: 1; justify-content: center; padding: 4px 8px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}')">
+                    <button class="btn" style="flex: 1; justify-content: center; padding: 4px 8px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}', '${escapeJs(subKey)}')">
                       <i data-lucide="edit-2" style="width: 11px; height: 11px;"></i> Edit
                     </button>
                     <button class="btn" style="padding: 4px 8px; font-size: 11px; font-weight: 800; background: ${isAvail ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'}; border-color: ${isAvail ? 'var(--danger)' : 'var(--success)'}; color: ${isAvail ? 'var(--danger)' : 'var(--success)'};" onclick="toggleMenuItemStatus('${itemId}', ${!isAvail})">
@@ -4308,7 +4463,7 @@
                   </div>
 
                   <div style="display: flex; gap: 6px; margin-top: 16px; flex-wrap: wrap;">
-                    <button class="btn" style="flex: 1; justify-content: center; padding: 6px 10px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}')">
+                    <button class="btn" style="flex: 1; justify-content: center; padding: 6px 10px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}', '${escapeJs(subKey)}')">
                       <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Edit
                     </button>
                     <button class="btn" style="padding: 6px 10px; font-size: 11px; font-weight: 800; background: ${isAvail ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'}; border-color: ${isAvail ? 'var(--danger)' : 'var(--success)'}; color: ${isAvail ? 'var(--danger)' : 'var(--success)'};" onclick="toggleMenuItemStatus('${itemId}', ${!isAvail})">
@@ -4358,7 +4513,7 @@
                   </div>
 
                   <div style="display: flex; gap: 6px; margin-top: 16px; flex-wrap: wrap;">
-                    <button class="btn" style="flex: 1; justify-content: center; padding: 6px 10px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}')">
+                    <button class="btn" style="flex: 1; justify-content: center; padding: 6px 10px; font-size: 11px; font-weight: 800;" onclick="openEditMenuItemModalById('${itemId}', '${escapeJs(subKey)}')">
                       <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Edit
                     </button>
                     <button class="btn" style="padding: 6px 10px; font-size: 11px; font-weight: 800; background: ${isAvail ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'}; border-color: ${isAvail ? 'var(--danger)' : 'var(--success)'}; color: ${isAvail ? 'var(--danger)' : 'var(--success)'};" onclick="toggleMenuItemStatus('${itemId}', ${!isAvail})" title="${isAvail ? 'Disable item' : 'Enable item'}">
@@ -4384,6 +4539,11 @@
       if (title) title.innerText = 'Add New Menu Item';
       const editId = document.getElementById('menuEditId');
       if (editId) editId.value = '';
+      const scopedInput = document.getElementById('menuEditScopedCategory');
+      if (scopedInput) scopedInput.value = '';
+      const noticeEl = document.getElementById('menuEditCategoryScopeNotice');
+      if (noticeEl) noticeEl.style.display = 'none';
+
       const name = document.getElementById('menuItemName');
       if (name) name.value = '';
       const price = document.getElementById('menuItemPrice');
@@ -4408,7 +4568,7 @@
       if (modal) modal.style.display = 'flex';
     }
 
-    function openEditMenuItemModalById(itemId) {
+    function openEditMenuItemModalById(itemId, scopedCategory) {
       try {
         const item = (menuItems || []).find(i => String(i.id || i._id) === String(itemId));
         if (!item) return;
@@ -4417,10 +4577,31 @@
         if (title) title.innerText = 'Edit Menu Item';
         const editId = document.getElementById('menuEditId');
         if (editId) editId.value = item.id || item._id || '';
+
+        const scopedInput = document.getElementById('menuEditScopedCategory');
+        const noticeEl = document.getElementById('menuEditCategoryScopeNotice');
+        const noticeNameEl = document.getElementById('menuEditScopedCategoryName');
+
+        const isScoped = Boolean(scopedCategory && scopedCategory !== 'all');
+        if (scopedInput) scopedInput.value = isScoped ? scopedCategory : '';
+        if (noticeEl) {
+          if (isScoped) {
+            const allCats = getAllMenuCategoriesList();
+            const matched = allCats.find(c => String(c.id || c._id).toLowerCase() === String(scopedCategory).toLowerCase());
+            if (noticeNameEl) noticeNameEl.textContent = matched ? matched.title : String(scopedCategory).replace(/^CAT_/i, '').replace(/_/g, ' ');
+            noticeEl.style.display = 'block';
+          } else {
+            noticeEl.style.display = 'none';
+          }
+        }
+
         const name = document.getElementById('menuItemName');
         if (name) name.value = item.name || '';
+
+        const override = (isScoped && item.category_overrides && item.category_overrides[scopedCategory]) ? item.category_overrides[scopedCategory] : null;
+
         const price = document.getElementById('menuItemPrice');
-        if (price) price.value = item.price || '';
+        if (price) price.value = (override && override.price !== undefined) ? override.price : (item.price || '');
         const emoji = document.getElementById('menuItemEmoji');
         if (emoji) emoji.value = item.emoji || '🍽️';
         
@@ -4430,13 +4611,13 @@
         populateMenuCategorySelector(initialCats);
 
         const desc = document.getElementById('menuItemDesc');
-        if (desc) desc.value = item.desc || '';
+        if (desc) desc.value = (override && override.desc !== undefined) ? override.desc : (item.desc || '');
         const imgUrl = document.getElementById('menuItemImageUrl');
         if (imgUrl) imgUrl.value = item.image_url || item.imageUrl || '';
 
         const modContainer = document.getElementById('modifierGroupsContainer');
         if (modContainer) modContainer.innerHTML = '';
-        const mods = item.modifier_groups || item.modifierGroups || [];
+        const mods = (override && override.modifier_groups) ? override.modifier_groups : (item.modifier_groups || item.modifierGroups || []);
         if (Array.isArray(mods) && mods.length > 0) {
           mods.forEach(g => addModifierGroupBlock(g));
         }
@@ -4530,6 +4711,8 @@
         return;
       }
 
+      const scoped_category_id = document.getElementById('menuEditScopedCategory')?.value || undefined;
+
       try {
         const headers = getAuthHeaders();
         const method = id ? 'PATCH' : 'POST';
@@ -4544,6 +4727,7 @@
             emoji,
             category: primaryCategory,
             category_ids: category_ids.length > 0 ? category_ids : [primaryCategory],
+            scoped_category_id,
             desc,
             image_url,
             recipe,
@@ -4580,6 +4764,415 @@
         }
       } catch (err) {
         alert('Network error deleting item: ' + err.message);
+      }
+    }
+
+    // ── HOOKAH CONFIGURATION LOGIC ──
+    let activeHookahTab = 'bases';
+    let currentHookahConfig = {
+      flavors: [],
+      bases: [],
+      addons: [],
+      packages: []
+    };
+
+    function switchHookahTab(tab) {
+      activeHookahTab = tab;
+      ['bases', 'flavors', 'addons', 'packages'].forEach(t => {
+        const btn = document.getElementById(`hkTabBtn-${t}`);
+        const panel = document.getElementById(`hkTab-${t}`);
+        if (btn) {
+          if (t === tab) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+        if (panel) {
+          panel.style.display = (t === tab) ? 'block' : 'none';
+        }
+      });
+    }
+
+    async function openHookahConfigModal() {
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/menu/hookah-config`, { headers });
+        const data = await res.json();
+        if (data.success && data.hookah_config) {
+          currentHookahConfig = data.hookah_config;
+        }
+      } catch (err) {
+        console.warn('Could not fetch hookah config, using defaults:', err);
+      }
+      renderHookahConfigTabs();
+      switchHookahTab(activeHookahTab || 'bases');
+      const modal = document.getElementById('hookahConfigModal');
+      if (modal) modal.style.display = 'flex';
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeHookahConfigModal() {
+      const modal = document.getElementById('hookahConfigModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function renderHookahConfigTabs() {
+      // 1. Bases
+      const basesCont = document.getElementById('hkBasesListContainer');
+      if (basesCont) {
+        const bases = currentHookahConfig.bases || [];
+        if (bases.length === 0) {
+          basesCont.innerHTML = `<div style="text-align:center; padding:16px; color:var(--muted); font-size:12px;">No custom bases configured. Default bases will be used.</div>`;
+        } else {
+          basesCont.innerHTML = bases.map((b, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:10px 14px;">
+              <div style="flex:1;">
+                <div style="font-weight:800; font-size:13px; color:var(--cream);">${escapeHtml(b.name)}</div>
+                <div style="font-size:11px; color:var(--gold); font-weight:700;">${(b.price || 0) > 0 ? `+$${Number(b.price).toFixed(2)}` : 'Included ($0.00)'}</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--muted); cursor:pointer;">
+                  <input type="checkbox" ${b.available !== false ? 'checked' : ''} onchange="toggleHookahBaseAvail(${i}, this.checked)" style="accent-color:var(--gold);">
+                  Available
+                </label>
+                <button class="btn btn-danger" onclick="deleteHookahBase(${i})" style="padding:4px 8px; font-size:11px;">✕</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // 2. Flavors
+      const flavCont = document.getElementById('hkFlavorsListContainer');
+      if (flavCont) {
+        const flavors = currentHookahConfig.flavors || [];
+        if (flavors.length === 0) {
+          flavCont.innerHTML = `<div style="text-align:center; padding:16px; color:var(--muted); font-size:12px;">No flavors configured. Default catalog flavors will be used.</div>`;
+        } else {
+          flavCont.innerHTML = flavors.map((f, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:10px 14px;">
+              <div style="flex:1;">
+                <div style="font-weight:800; font-size:13px; color:var(--cream);">${escapeHtml(f.name)}</div>
+                <div style="font-size:11px; color:var(--teal); font-weight:700;">${escapeHtml(f.category || 'Standard')}</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--muted); cursor:pointer;">
+                  <input type="checkbox" ${f.available !== false ? 'checked' : ''} onchange="toggleHookahFlavorAvail(${i}, this.checked)" style="accent-color:var(--teal);">
+                  Available
+                </label>
+                <button class="btn btn-danger" onclick="deleteHookahFlavor(${i})" style="padding:4px 8px; font-size:11px;">✕</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // 3. Add-ons
+      const addonsCont = document.getElementById('hkAddonsListContainer');
+      if (addonsCont) {
+        const addons = currentHookahConfig.addons || [];
+        if (addons.length === 0) {
+          addonsCont.innerHTML = `<div style="text-align:center; padding:16px; color:var(--muted); font-size:12px;">No add-ons configured.</div>`;
+        } else {
+          addonsCont.innerHTML = addons.map((a, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:10px 14px;">
+              <div style="flex:1;">
+                <div style="font-weight:800; font-size:13px; color:var(--cream);">${escapeHtml(a.name)}</div>
+                <div style="font-size:11px; color:#60a5fa; font-weight:700;">+$${Number(a.price || 0).toFixed(2)} (Manual Customer Selection Only)</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--muted); cursor:pointer;">
+                  <input type="checkbox" ${a.available !== false ? 'checked' : ''} onchange="toggleHookahAddonAvail(${i}, this.checked)" style="accent-color:#0066FF;">
+                  Available
+                </label>
+                <button class="btn btn-danger" onclick="deleteHookahAddon(${i})" style="padding:4px 8px; font-size:11px;">✕</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // 4. Packages
+      const packages = currentHookahConfig.packages || [];
+      const dakuPkg = packages.find(p => p.id === 'daku' || (p.name && p.name.toLowerCase().includes('daku'))) || packages[0];
+      if (dakuPkg) {
+        const nameInput = document.getElementById('hkDakuName');
+        const priceInput = document.getElementById('hkDakuPrice');
+        const descInput = document.getElementById('hkDakuDesc');
+        const activeCheck = document.getElementById('hkDakuActive');
+        if (nameInput) nameInput.value = dakuPkg.name || 'Daku';
+        if (priceInput) priceInput.value = dakuPkg.price || 65;
+        if (descInput) descInput.value = dakuPkg.description || 'Unlimited head refill';
+        if (activeCheck) activeCheck.checked = dakuPkg.active !== false;
+      }
+    }
+
+    function toggleHookahBaseAvail(i, val) {
+      if (currentHookahConfig.bases && currentHookahConfig.bases[i]) {
+        currentHookahConfig.bases[i].available = val;
+      }
+    }
+
+    function toggleHookahFlavorAvail(i, val) {
+      if (currentHookahConfig.flavors && currentHookahConfig.flavors[i]) {
+        currentHookahConfig.flavors[i].available = val;
+      }
+    }
+
+    function toggleHookahAddonAvail(i, val) {
+      if (currentHookahConfig.addons && currentHookahConfig.addons[i]) {
+        currentHookahConfig.addons[i].available = val;
+      }
+    }
+
+    function addHookahBaseRow() {
+      const nameInput = document.getElementById('newHkBaseName');
+      const priceInput = document.getElementById('newHkBasePrice');
+      const name = (nameInput?.value || '').trim();
+      const price = parseFloat(priceInput?.value || '0') || 0;
+      if (!name) {
+        alert('Please enter a base name');
+        return;
+      }
+      if (!currentHookahConfig.bases) currentHookahConfig.bases = [];
+      const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      currentHookahConfig.bases.push({ id, name, price, available: true });
+      nameInput.value = '';
+      if (priceInput) priceInput.value = '';
+      renderHookahConfigTabs();
+    }
+
+    function deleteHookahBase(index) {
+      if (currentHookahConfig.bases) {
+        currentHookahConfig.bases.splice(index, 1);
+        renderHookahConfigTabs();
+      }
+    }
+
+    function addHookahFlavorRow() {
+      const nameInput = document.getElementById('newHkFlavorName');
+      const catInput = document.getElementById('newHkFlavorCategory');
+      const name = (nameInput?.value || '').trim();
+      const category = (catInput?.value || '').trim() || 'General';
+      if (!name) {
+        alert('Please enter a flavor name');
+        return;
+      }
+      if (!currentHookahConfig.flavors) currentHookahConfig.flavors = [];
+      const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      currentHookahConfig.flavors.push({ id, name, category, price: 0, available: true });
+      nameInput.value = '';
+      if (catInput) catInput.value = '';
+      renderHookahConfigTabs();
+    }
+
+    function deleteHookahFlavor(index) {
+      if (currentHookahConfig.flavors) {
+        currentHookahConfig.flavors.splice(index, 1);
+        renderHookahConfigTabs();
+      }
+    }
+
+    function addHookahAddonRow() {
+      const nameInput = document.getElementById('newHkAddonName');
+      const priceInput = document.getElementById('newHkAddonPrice');
+      const name = (nameInput?.value || '').trim();
+      const price = parseFloat(priceInput?.value || '0') || 0;
+      if (!name) {
+        alert('Please enter an add-on name');
+        return;
+      }
+      if (!currentHookahConfig.addons) currentHookahConfig.addons = [];
+      const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      currentHookahConfig.addons.push({ id, name, price, available: true });
+      nameInput.value = '';
+      if (priceInput) priceInput.value = '';
+      renderHookahConfigTabs();
+    }
+
+    function deleteHookahAddon(index) {
+      if (currentHookahConfig.addons) {
+        currentHookahConfig.addons.splice(index, 1);
+        renderHookahConfigTabs();
+      }
+    }
+
+    async function saveHookahConfig() {
+      try {
+        const name = document.getElementById('hkDakuName')?.value.trim() || 'Daku';
+        const price = parseFloat(document.getElementById('hkDakuPrice')?.value || '65') || 65;
+        const description = document.getElementById('hkDakuDesc')?.value.trim() || 'Unlimited head refill';
+        const active = document.getElementById('hkDakuActive')?.checked !== false;
+
+        currentHookahConfig.packages = [{
+          id: 'daku',
+          name,
+          price,
+          description,
+          includes_refill: true,
+          active
+        }];
+
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/menu/hookah-config`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(currentHookahConfig)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✓ Hookah configuration saved successfully!');
+          closeHookahConfigModal();
+        } else {
+          alert('Could not save hookah config: ' + (data.error || 'Server error'));
+        }
+      } catch (err) {
+        alert('Error saving hookah config: ' + err.message);
+      }
+    }
+
+    // ── RESTAURANT SPECIALS LOGIC ──
+    let currentSpecials = [];
+
+    async function openSpecialsModal() {
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/menu/specials`, { headers });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.specials)) {
+          currentSpecials = data.specials;
+        }
+      } catch (err) {
+        console.warn('Could not load specials:', err);
+      }
+
+      // Populate select with menu items
+      const select = document.getElementById('specialsCatalogSelect');
+      if (select) {
+        select.innerHTML = '<option value="">-- Select an item from Menu Catalog --</option>' +
+          (menuItems || []).map(item => `
+            <option value="${item.id || item._id}">${escapeHtml(item.name)} — $${(Number(item.price) || 0).toFixed(2)}</option>
+          `).join('');
+      }
+
+      renderSpecialsList();
+      const modal = document.getElementById('specialsModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeSpecialsModal() {
+      const modal = document.getElementById('specialsModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function renderSpecialsList() {
+      const cont = document.getElementById('specialsListContainer');
+      if (!cont) return;
+
+      if (!Array.isArray(currentSpecials) || currentSpecials.length === 0) {
+        cont.innerHTML = `
+          <div style="text-align:center; padding:24px; color:var(--muted); background:var(--card2); border:1.5px dashed var(--line); border-radius:12px;">
+            <div style="font-size:14px; font-weight:700; color:var(--cream); margin-bottom:4px;">No Specials Configured</div>
+            <div style="font-size:12px;">Select items from the catalog above to feature as restaurant specials.</div>
+          </div>
+        `;
+        return;
+      }
+
+      cont.innerHTML = currentSpecials.map((s, i) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:10px 14px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="display:flex; flex-direction:column; gap:2px;">
+              <button class="btn" onclick="moveSpecial(${i}, -1)" ${i === 0 ? 'disabled' : ''} style="padding:2px 6px; font-size:10px; min-height:unset;">▲</button>
+              <button class="btn" onclick="moveSpecial(${i}, 1)" ${i === currentSpecials.length - 1 ? 'disabled' : ''} style="padding:2px 6px; font-size:10px; min-height:unset;">▼</button>
+            </div>
+            <div>
+              <div style="font-weight:800; font-size:13px; color:var(--cream);">${escapeHtml(s.title || s.name || 'Special Item')}</div>
+              <div style="font-size:11px; color:#c084fc; font-weight:700;">${escapeHtml(s.subtitle || "Chef's Special")} • $${(Number(s.price) || 0).toFixed(2)}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <label style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--muted); cursor:pointer;">
+              <input type="checkbox" ${s.active !== false ? 'checked' : ''} onchange="toggleSpecialActive(${i}, this.checked)" style="accent-color:#a855f7;">
+              Active
+            </label>
+            <button class="btn btn-danger" onclick="removeSpecial(${i})" style="padding:4px 8px; font-size:11px;">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleSpecialActive(i, val) {
+      if (currentSpecials[i]) {
+        currentSpecials[i].active = val;
+      }
+    }
+
+    function moveSpecial(i, dir) {
+      const target = i + dir;
+      if (target < 0 || target >= currentSpecials.length) return;
+      const temp = currentSpecials[i];
+      currentSpecials[i] = currentSpecials[target];
+      currentSpecials[target] = temp;
+      currentSpecials.forEach((s, idx) => { s.sort_order = idx + 1; });
+      renderSpecialsList();
+    }
+
+    function removeSpecial(i) {
+      currentSpecials.splice(i, 1);
+      currentSpecials.forEach((s, idx) => { s.sort_order = idx + 1; });
+      renderSpecialsList();
+    }
+
+    function addSelectedMenuToSpecials() {
+      const select = document.getElementById('specialsCatalogSelect');
+      const subInput = document.getElementById('specialSubtitleInput');
+      const itemId = select?.value;
+      if (!itemId) {
+        alert('Please select a menu item to feature');
+        return;
+      }
+
+      const item = (menuItems || []).find(i => String(i.id || i._id) === String(itemId));
+      if (!item) {
+        alert('Selected item not found');
+        return;
+      }
+
+      const subtitle = (subInput?.value || '').trim() || "Chef's Special";
+      const id = `special_${Date.now()}`;
+      currentSpecials.push({
+        id,
+        item_id: item.id || item._id,
+        title: item.name,
+        subtitle,
+        price: item.price || 0,
+        image_url: item.image_url || item.imageUrl || '',
+        sort_order: currentSpecials.length + 1,
+        active: true
+      });
+
+      select.value = '';
+      if (subInput) subInput.value = '';
+      renderSpecialsList();
+    }
+
+    async function saveSpecials() {
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/menu/specials`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ specials: currentSpecials })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✓ Specials saved successfully!');
+          closeSpecialsModal();
+          await loadMenuItems();
+        } else {
+          alert('Could not save specials: ' + (data.error || 'Server error'));
+        }
+      } catch (err) {
+        alert('Error saving specials: ' + err.message);
       }
     }
 

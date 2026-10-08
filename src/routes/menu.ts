@@ -248,6 +248,60 @@ router.patch('/:id', optionalAuth, async (req, res, next) => {
       fields.is_available = fields.available;
     }
 
+    // Category Independence enforcement (Section 5):
+    // If the edit is scoped to a specific category, and this item currently belongs to multiple categories,
+    // detach this category into an independent menu item record so edits in Category A never mutate Category B!
+    const scopedCategoryId = fields.scoped_category_id || fields.scopedCategoryId || req.query.category_id || req.query.categoryId;
+    if (scopedCategoryId) {
+      const existing = await MenuRepository.getItem(id, restaurantId);
+      if (existing) {
+        const existingCats = Array.isArray(existing.category_ids) && existing.category_ids.length > 0
+          ? existing.category_ids
+          : (existing.category_id ? [existing.category_id] : []);
+
+        const isMultiCategory = existingCats.length > 1;
+        const matchesScoped = existingCats.some(c => String(c).toLowerCase() === String(scopedCategoryId).toLowerCase());
+
+        if (isMultiCategory && matchesScoped) {
+          // Remove scopedCategoryId from original item
+          const remainingCats = existingCats.filter(c => String(c).toLowerCase() !== String(scopedCategoryId).toLowerCase());
+          await MenuRepository.updateItem(id, restaurantId, {
+            category_ids: remainingCats,
+            category_id: remainingCats[0] || existing.category_id,
+          });
+
+          // Create new independent menu item record for scopedCategoryId
+          const newIndependentItem = await MenuRepository.createItem({
+            restaurant_id: restaurantId,
+            name: fields.name !== undefined ? fields.name : existing.name,
+            price: fields.price !== undefined ? Number(fields.price) : existing.price,
+            category_id: String(scopedCategoryId),
+            category_ids: [String(scopedCategoryId)],
+            category: fields.category || existing.category,
+            description: fields.description !== undefined ? fields.description : (fields.desc !== undefined ? fields.desc : existing.description),
+            desc: fields.desc !== undefined ? fields.desc : (fields.description !== undefined ? fields.description : existing.desc),
+            emoji: fields.emoji || existing.emoji || '🍽️',
+            image_url: fields.image_url !== undefined ? fields.image_url : existing.image_url,
+            available: fields.available !== undefined ? Boolean(fields.available) : (existing.available !== false),
+            modifier_groups: fields.modifier_groups !== undefined ? fields.modifier_groups : existing.modifier_groups,
+            sort_order: fields.sort_order !== undefined ? Number(fields.sort_order) : existing.sort_order,
+            recipe: fields.recipe !== undefined ? fields.recipe : existing.recipe,
+            is_special: fields.is_special !== undefined ? Boolean(fields.is_special) : existing.is_special,
+            special_sort_order: fields.special_sort_order ?? existing.special_sort_order,
+          });
+
+          sseService.broadcast({ 
+            type: 'menu_update', 
+            action: 'add', 
+            menuItem: newIndependentItem,
+            restaurant_id: restaurantId 
+          }, restaurantId);
+
+          return res.json({ success: true, menuItem: newIndependentItem, independentCloned: true });
+        }
+      }
+    }
+
     const updated = await MenuRepository.updateItem(id, restaurantId, fields);
 
     if (!updated) {
@@ -265,6 +319,12 @@ router.patch('/:id', optionalAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// PUT /api/menu/:id — alias for update
+router.put('/:id', optionalAuth, async (req, res, next) => {
+  // Delegate directly to PATCH handler logic
+  (router as any).handle({ ...req, method: 'PATCH' }, res, next);
 });
 
 // PATCH /api/menu/:id/availability — dedicated fast toggle for item availability
@@ -364,6 +424,51 @@ router.post('/bulk-sync', optionalAuth, async (req, res) => {
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// GET /api/menu/hookah-config — retrieve restaurant hookah configuration
+router.get('/hookah-config', async (req, res, next) => {
+  try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
+    const config = await MultiTenantDbService.getHookahConfig(restaurantId);
+    res.json({ success: true, hookah_config: config });
+  } catch (err) { next(err); }
+});
+
+// PUT /api/menu/hookah-config — update restaurant hookah configuration
+router.put('/hookah-config', optionalAuth, async (req, res, next) => {
+  try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
+    const config = req.body;
+    await MultiTenantDbService.updateHookahConfig(restaurantId, config);
+    sseService.broadcast({ type: 'hookah_config_updated', hookah_config: config, restaurant_id: restaurantId }, restaurantId);
+    res.json({ success: true, hookah_config: config });
+  } catch (err) { next(err); }
+});
+
+// GET /api/menu/specials — retrieve restaurant specials
+router.get('/specials', async (req, res, next) => {
+  try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
+    const specials = await MultiTenantDbService.getSpecials(restaurantId);
+    res.json({ success: true, specials });
+  } catch (err) { next(err); }
+});
+
+// PUT /api/menu/specials — update restaurant specials
+router.put('/specials', optionalAuth, async (req, res, next) => {
+  try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
+    const { specials } = req.body;
+    if (!Array.isArray(specials)) return res.status(400).json({ success: false, message: 'Specials must be an array' });
+    await MultiTenantDbService.updateSpecials(restaurantId, specials);
+    sseService.broadcast({ type: 'specials_updated', specials, restaurant_id: restaurantId }, restaurantId);
+    res.json({ success: true, specials });
+  } catch (err) { next(err); }
 });
 
 export default router;

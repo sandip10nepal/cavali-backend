@@ -31,6 +31,8 @@ import {
   CustomerSession,
   Credit,
   Timecard,
+  HookahConfig,
+  DEFAULT_HOOKAH_CONFIG,
 } from '../models/types';
 
 const DB_FILE = path.join(__dirname, '../../multi_tenant_db.json');
@@ -698,8 +700,12 @@ export class MultiTenantDbService {
           tip_options: restaurant.settings.tip_options,
           enable_split_payment: restaurant.settings.enable_split_payment,
           session_timeout_minutes: restaurant.settings.session_timeout_minutes,
+          hookah_config: restaurant.settings.hookah_config || DEFAULT_HOOKAH_CONFIG,
+          specials: restaurant.settings.specials || [],
         },
       },
+      hookah_config: restaurant.settings.hookah_config || DEFAULT_HOOKAH_CONFIG,
+      specials: restaurant.settings.specials || [],
       categories: categories.filter(c => c.active !== false).map(c => ({
         _id: c._id,
         id: c._id,
@@ -797,6 +803,9 @@ export class MultiTenantDbService {
           modifier_groups: sanitizedModGroups,
           modifierGroups: sanitizedModGroups,
           variants: item.variants || [],
+          is_special: Boolean(item.is_special),
+          special_sort_order: item.special_sort_order ?? 0,
+          category_overrides: item.category_overrides || {},
         };
       }).sort((a, b) => {
         const catOrderA = (a as any).category_sort_order ?? 9999;
@@ -848,6 +857,63 @@ export class MultiTenantDbService {
     list[idx] = { ...list[idx], ...update, updated_at: now };
     this.saveCollection('restaurants', list);
     return true;
+  }
+
+  static async getHookahConfig(restaurantId: string): Promise<HookahConfig> {
+    const restaurant = await this.getRestaurant(restaurantId);
+    const existing = restaurant?.settings?.hookah_config;
+    if (existing) {
+      return {
+        flavors: (Array.isArray(existing.flavors) && existing.flavors.length > 0) ? existing.flavors : DEFAULT_HOOKAH_CONFIG.flavors,
+        bases: (Array.isArray(existing.bases) && existing.bases.length > 0) ? existing.bases : DEFAULT_HOOKAH_CONFIG.bases,
+        addons: (Array.isArray(existing.addons) && existing.addons.length > 0) ? existing.addons : DEFAULT_HOOKAH_CONFIG.addons,
+        packages: (Array.isArray(existing.packages) && existing.packages.length > 0) ? existing.packages : DEFAULT_HOOKAH_CONFIG.packages,
+      };
+    }
+    return DEFAULT_HOOKAH_CONFIG;
+  }
+
+  static async updateHookahConfig(restaurantId: string, config: HookahConfig): Promise<boolean> {
+    const restaurant = await this.getRestaurant(restaurantId);
+    if (!restaurant) return false;
+    const settings = {
+      ...(restaurant.settings || {}),
+      hookah_config: config,
+    };
+    return await this.updateRestaurant(restaurant._id, { settings } as any);
+  }
+
+  static async getSpecials(restaurantId: string): Promise<any[]> {
+    const restaurant = await this.getRestaurant(restaurantId);
+    if (restaurant?.settings?.specials && Array.isArray(restaurant.settings.specials) && restaurant.settings.specials.length > 0) {
+      return restaurant.settings.specials;
+    }
+    const items = await this.listMenuItems(restaurantId);
+    return items
+      .filter(i => i.is_special && i.active !== false)
+      .sort((a, b) => (a.special_sort_order ?? 0) - (b.special_sort_order ?? 0));
+  }
+
+  static async updateSpecials(restaurantId: string, specials: any[]): Promise<boolean> {
+    const restaurant = await this.getRestaurant(restaurantId);
+    if (!restaurant) return false;
+    const settings = {
+      ...(restaurant.settings || {}),
+      specials,
+    };
+    const specialIds = new Set((specials || []).map((s: any) => String(s.item_id || s.id || s._id)));
+    const allItems = await this.listMenuItems(restaurantId);
+    for (const item of allItems) {
+      const isSpec = specialIds.has(String(item._id));
+      const specObj = specials.find((s: any) => String(s.item_id || s.id || s._id) === String(item._id));
+      if (Boolean(item.is_special) !== isSpec || (specObj && item.special_sort_order !== specObj.sort_order)) {
+        await this.updateMenuItem(item._id, restaurantId, {
+          is_special: isSpec,
+          special_sort_order: specObj?.sort_order ?? 0,
+        });
+      }
+    }
+    return await this.updateRestaurant(restaurant._id, { settings } as any);
   }
 
   /* ═══════════════════════════════════════════════════════════════════════════ */
@@ -2297,6 +2363,45 @@ export class MultiTenantDbService {
       const p = Number(update.price);
       if (!Number.isFinite(p) || p < 0) {
         throw new Error(`Invalid price "${update.price}": Price must be a finite non-negative number`);
+      }
+    }
+
+    // Category Independence enforcement (Section 5):
+    // If edit is scoped to a specific category, and item currently belongs to multiple categories,
+    // detach this category into an independent item so Category A edits never mutate Category B!
+    const scopedCat = (update as any).scoped_category_id;
+    if (scopedCat) {
+      const existing = await this.getMenuItem(id, targetId);
+      if (existing) {
+        const existingCats = Array.isArray(existing.category_ids) && existing.category_ids.length > 0
+          ? existing.category_ids
+          : (existing.category_id ? [existing.category_id] : []);
+
+        const isMultiCategory = existingCats.length > 1;
+        const matchesScoped = existingCats.some(c => String(c).toLowerCase() === String(scopedCat).toLowerCase());
+
+        if (isMultiCategory && matchesScoped) {
+          const remainingCats = existingCats.filter(c => String(c).toLowerCase() !== String(scopedCat).toLowerCase());
+          await this.updateMenuItem(id, targetId, {
+            category_ids: remainingCats,
+            category_id: remainingCats[0] || existing.category_id,
+          });
+
+          const cloneData: any = {
+            ...existing,
+            ...update,
+            restaurant_id: targetId,
+            category_ids: [String(scopedCat)],
+            category_id: String(scopedCat),
+            category: String(scopedCat),
+          };
+          delete cloneData._id;
+          delete cloneData.id;
+          delete cloneData.scoped_category_id;
+
+          await this.createMenuItem(cloneData);
+          return true;
+        }
       }
     }
 

@@ -248,20 +248,20 @@ export class AuthService {
 
     // Timecards & Shifts (Clock In / Clock Out)
     'timecards:read':           ['platform_admin', 'owner', 'manager'],
-    'timecards:clock':          ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'device'],
+    'timecards:clock':          ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'host', 'device'],
     'timecards:manage':         ['platform_admin', 'owner', 'manager'],
 
     // Menu management (Read for order taking; modify/availability strictly Manager/Owner)
-    'menu:read':                ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'device'],
+    'menu:read':                ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'host', 'device'],
     'menu:create':              ['platform_admin', 'owner', 'manager'],
     'menu:update':              ['platform_admin', 'owner', 'manager'],
     'menu:delete':              ['platform_admin', 'owner', 'manager'],
     'menu:availability':        ['platform_admin', 'owner', 'manager'],
 
     // Orders
-    'order:read':               ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'device'],
-    'order:create':             ['platform_admin', 'owner', 'manager', 'cashier', 'server', 'device'],
-    'order:update_status':      ['platform_admin', 'owner', 'manager', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker'],
+    'order:read':               ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'host', 'device'],
+    'order:create':             ['platform_admin', 'owner', 'manager', 'cashier', 'server', 'host', 'device'],
+    'order:update_status':      ['platform_admin', 'owner', 'manager', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'host'],
     'order:cancel':             ['platform_admin', 'owner', 'manager'],
     'order:refund':             ['platform_admin', 'owner', 'manager'],
 
@@ -289,16 +289,17 @@ export class AuthService {
     'device:create':            ['platform_admin', 'owner', 'manager'],
     'device:manage':            ['platform_admin', 'owner', 'manager'],
     'device:delete':            ['platform_admin', 'owner', 'manager'],
-    'table:read':               ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'device'],
-    'table:create':             ['platform_admin', 'owner', 'manager'],
-    'table:update':             ['platform_admin', 'owner', 'manager'],
+    'table:read':               ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'host', 'device'],
+    'table:create':             ['platform_admin', 'owner', 'manager', 'host'],
+    'table:update':             ['platform_admin', 'owner', 'manager', 'host'],
+    'table:assign':             ['platform_admin', 'owner', 'manager', 'host'],
 
     // Customer session
     'session:create':           ['device'],
-    'session:end':              ['device', 'owner', 'manager', 'server'],
+    'session:end':              ['device', 'owner', 'manager', 'server', 'host'],
 
     // Public config (no auth needed, but listed for documentation)
-    'config:read':              ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'device'],
+    'config:read':              ['platform_admin', 'owner', 'manager', 'cashier', 'kitchen', 'server', 'chef', 'bartender', 'hookah_maker', 'host', 'device'],
   };
 
   /**

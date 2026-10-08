@@ -380,6 +380,9 @@ function mapOrderForClient(o: any): any {
       if (!existing.price && i.price) existing.price = i.price;
       if (!existing.notes && (i.notes || i.note)) existing.notes = i.notes || i.note;
       if (i.flavor && !existing.flavor) existing.flavor = i.flavor;
+      if (i.base) existing.base = i.base;
+      if (i.isDaku || i.is_daku) existing.isDaku = true;
+      if (i.package) existing.package = i.package;
       if (i.iceHose) existing.iceHose = true;
       if (i.iceBase) existing.iceBase = true;
     } else {
@@ -389,6 +392,11 @@ function mapOrderForClient(o: any): any {
         qty: Number(i.qty || i.quantity || 1),
         price: i.price !== undefined ? Number(i.price) : (i.item && i.item.price !== undefined ? Number(i.item.price) : 0),
         notes: i.notes || i.note || '',
+        base: i.base || i.hookah_base || null,
+        iceBase: Boolean(i.iceBase),
+        iceHose: Boolean(i.iceHose),
+        isDaku: Boolean(i.isDaku || i.is_daku),
+        package: i.package || (i.isDaku || i.is_daku ? 'Daku ($65 Unlimited Refill)' : undefined),
       };
       nameMap.set(key, copy);
       uniqueItems.push(copy);
@@ -408,8 +416,11 @@ function mapOrderForClient(o: any): any {
         name: flavorName,
         price: i.price !== undefined && i.price > 0 ? Number(i.price) : (i.item && i.item.price !== undefined && i.item.price > 0 ? Number(i.item.price) : 18),
         qty: Number(i.qty || i.quantity || 1),
-        iceHose: i.iceHose,
-        iceBase: i.iceBase,
+        iceHose: Boolean(i.iceHose),
+        iceBase: Boolean(i.iceBase),
+        base: i.base || i.hookah_base || null,
+        isDaku: Boolean(i.isDaku || i.is_daku),
+        package: i.package || (i.isDaku || i.is_daku ? 'Daku ($65 Unlimited Refill)' : undefined),
         notes: i.notes || i.note || '',
       });
     } else if (kind === 'drinks') {
@@ -595,24 +606,45 @@ router.post('/lookup-tracking', async (req, res) => {
     const restaurantId = (await resolveTenantRestaurantId(req)) || req.body.restaurant_id || req.body.restaurantId;
     const { nickname, orderId, table, trackingToken } = req.body;
 
-    if (!nickname || (!orderId && !trackingToken)) {
+    if (!nickname && !orderId && !trackingToken) {
       return res.status(400).json({
         success: false,
-        error: 'Order nickname and Order ID/Code are required'
+        error: 'Order nickname or Order ID is required'
       });
     }
 
-    const targetOrderId = orderId || null;
-    if (!targetOrderId) {
-      return res.status(400).json({ success: false, error: 'Order ID is required for lookup' });
+    let order: any = null;
+
+    if (orderId) {
+      const found = await findUnifiedOrder(orderId, restaurantId);
+      if (found && found.order) {
+        order = found.order;
+      }
+    } else if (nickname) {
+      const allOrders = await OrderRepository.listByRestaurant(restaurantId);
+      const cleanNick = String(nickname).toLowerCase().trim();
+      const cleanTable = table ? String(table).replace(/^table[\s-_]*/i, '').trim().toLowerCase() : null;
+
+      const matches = allOrders.filter((o: any) => {
+        if (o.status === 'cancelled' || o.status === 'voided') return false;
+        const oNick = String(o.customer_nickname || o.customerNickname || o.customer_name || o.customerName || '').toLowerCase().trim();
+        if (oNick !== cleanNick) return false;
+        if (cleanTable) {
+          const oTable = String(o.table_id || o.table || '').replace(/^table[\s-_]*/i, '').trim().toLowerCase();
+          if (oTable && oTable !== cleanTable) return false;
+        }
+        return true;
+      });
+
+      matches.sort((a: any, b: any) => new Date(b.created_at || b.createdAt || 0).getTime() - new Date(a.created_at || a.createdAt || 0).getTime());
+      if (matches.length > 0) {
+        order = matches[0];
+      }
     }
 
-    const found = await findUnifiedOrder(targetOrderId, restaurantId);
-    if (!found || !found.order) {
-      return res.status(404).json({ success: false, error: 'Order not found' });
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'No active order found matching your details' });
     }
-
-    const order = found.order;
     const expiresAt = order.tracking_expires_at || order.trackingExpiresAt;
     if (expiresAt && Date.now() > new Date(expiresAt).getTime()) {
       return res.status(410).json({
@@ -791,7 +823,13 @@ router.post('/:orderId/assign', async (req, res) => {
     if (req.body.caller_name) callerName = req.body.caller_name;
     if (req.body.caller_role) callerRole = req.body.caller_role;
 
-    const isManager = ['owner', 'manager', 'platform_admin', 'admin'].includes(callerRole.toLowerCase()) || (await isManagerOrOwner(req));
+    const canAssign = ['owner', 'manager', 'platform_admin', 'admin', 'host'].includes(callerRole.toLowerCase()) || (await isManagerOrOwner(req));
+    if (!canAssign) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Only managers and hosts can assign tables. Regular servers cannot assign tables.'
+      });
+    }
 
     const found = await findUnifiedOrder(orderId, restaurantId);
     if (!found || !found.order) {
@@ -808,7 +846,7 @@ router.post('/:orderId/assign', async (req, res) => {
     const existingServerId = order.assigned_server_id || (order as any).assignedServerId;
     const existingServerName = order.assigned_server_name || (order as any).assignedServerName || 'another server';
 
-    if (existingServerId && existingServerId !== targetServerId && !isManager) {
+    if (existingServerId && existingServerId !== targetServerId && !canAssign) {
       return res.status(409).json({
         success: false,
         code: 'ALREADY_ASSIGNED',
@@ -1253,10 +1291,42 @@ router.get('/tables/overview', async (req, res) => {
     // Sort table cards cleanly using natural table sorting (1-21 dining tables, P1-P8 patio tables, etc.)
     tableCards.sort(sortTablesNaturally);
 
+    // Detect caller role and identity
+    let callerRole: string = 'manager';
+    let callerUserId: string | null = null;
+    let callerUserName: string | null = null;
+
+    const authHeader = req.headers?.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const payload = AuthService.verifyToken(token);
+      if (payload) {
+        if (payload.role) callerRole = payload.role;
+        callerUserId = payload.sub || null;
+        callerUserName = (payload as any).name || null;
+      }
+    }
+    if (req.headers['x-user-role']) callerRole = String(req.headers['x-user-role']);
+    if (req.query.role) callerRole = String(req.query.role);
+    if (req.headers['x-user-id']) callerUserId = String(req.headers['x-user-id']);
+    if (req.query.user_id) callerUserId = String(req.query.user_id);
+    if (req.headers['x-user-name']) callerUserName = String(req.headers['x-user-name']);
+    if (req.query.user_name) callerUserName = String(req.query.user_name);
+
+    // Server account -> only assigned tables. Manager / Host / Owner -> all tables.
+    let returnedTables = tableCards;
+    if (callerRole.toLowerCase() === 'server') {
+      returnedTables = tableCards.filter((t: any) => {
+        const matchesId = callerUserId && t.assigned_server_id && String(t.assigned_server_id).toLowerCase() === String(callerUserId).toLowerCase();
+        const matchesName = callerUserName && t.assigned_server_name && String(t.assigned_server_name).toLowerCase().trim() === String(callerUserName).toLowerCase().trim();
+        return Boolean(matchesId || matchesName);
+      });
+    }
+
     return res.status(200).json({
       success: true,
       restaurant_id: restaurantId,
-      tables: tableCards
+      tables: returnedTables
     });
   } catch (err: any) {
     console.error('Error fetching table overview:', err);

@@ -217,6 +217,11 @@ export class OrderService {
           ...h,
           name: h.name || h.flavor?.name || 'Hookah',
           flavor: h.flavor || { name: h.name || 'Hookah' },
+          base: h.base || matchingItem?.base || null,
+          iceBase: Boolean(h.iceBase || matchingItem?.iceBase),
+          iceHose: Boolean(h.iceHose || matchingItem?.iceHose),
+          isDaku: Boolean(h.isDaku || h.is_daku || matchingItem?.isDaku || matchingItem?.is_daku),
+          package: h.package || matchingItem?.package || (h.isDaku || h.is_daku ? 'Daku ($65 Unlimited Refill)' : undefined),
           modifiers: mods,
           notes: combinedNotes,
           note: combinedNotes,
@@ -229,6 +234,7 @@ export class OrderService {
     const nowMs = Date.now();
     const trackingExpiresAt = new Date(nowMs + 2 * 60 * 60 * 1000).toISOString();
     const nickname = String(orderData.customerNickname || orderData.customer_nickname || orderData.nickname || orderData.customerName || orderData.customer_name || 'Guest').trim();
+    const orderNotes = String(orderData.notes || orderData.note || '').trim();
 
     const payload = {
       ...orderData,
@@ -236,6 +242,8 @@ export class OrderService {
       restaurant_id: restaurantId,
       idempotencyKey: idempotencyKey || undefined,
       idempotency_key: idempotencyKey || undefined,
+      notes: orderNotes,
+      note: orderNotes,
       status: 'pending' as OrderStatus,
       paymentStatus: orderData.paymentStatus || 'unpaid',
       paymentMethod: orderData.paymentMethod || 'CASH',
