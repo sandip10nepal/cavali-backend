@@ -7181,6 +7181,9 @@
         }
       }, 1000);
 
+      switchTab('kds');
+    });
+
     // ═══════════════════════════════════════════════════════════════════════════
     //                 CAVALLI VIBE QUEST — DISCOVERY ADMIN ENGINE
     // ═══════════════════════════════════════════════════════════════════════════
@@ -8072,8 +8075,34 @@
       if (modal) modal.style.display = 'none';
     }
 
-    switchTab('kds');
-  });
+    // Explicitly bind all Vibe Quest functions to window for inline onclick handlers
+    window.switchMenuCatalogSubTab = switchMenuCatalogSubTab;
+    window.renderVibeQuestPage = renderVibeQuestPage;
+    window.updateVibeQuestHeaderBadges = updateVibeQuestHeaderBadges;
+    window.filterVibeQuestStage = filterVibeQuestStage;
+    window.renderVibeQuestQuestionsList = renderVibeQuestQuestionsList;
+    window.toggleVibeQuestEnabled = toggleVibeQuestEnabled;
+    window.validateVibeQuestDraft = validateVibeQuestDraft;
+    window.closeVibeQuestValidationModal = closeVibeQuestValidationModal;
+    window.publishVibeQuestDraft = publishVibeQuestDraft;
+    window.openEditVibeQuestQuestionModal = openEditVibeQuestQuestionModal;
+    window.closeVibeQuestQuestionModal = closeVibeQuestQuestionModal;
+    window.addVibeQuestAnswerRow = addVibeQuestAnswerRow;
+    window.removeVibeQuestAnswerRow = removeVibeQuestAnswerRow;
+    window.saveVibeQuestQuestionFromModal = saveVibeQuestQuestionFromModal;
+    window.duplicateVibeQuestQuestion = duplicateVibeQuestQuestion;
+    window.deleteVibeQuestQuestion = deleteVibeQuestQuestion;
+    window.moveVibeQuestQuestion = moveVibeQuestQuestion;
+    window.openVibeQuestSimulatorModal = openVibeQuestSimulatorModal;
+    window.closeVibeQuestSimulatorModal = closeVibeQuestSimulatorModal;
+    window.resetSimulation = resetSimulation;
+    window.setSimulatedStage = setSimulatedStage;
+    window.renderSimulationView = renderSimulationView;
+    window.simSelectAnswer = simSelectAnswer;
+    window.simSkipQuestion = simSkipQuestion;
+    window.renderSimulatedRecommendations = renderSimulatedRecommendations;
+    window.openVibeQuestAnalyticsModal = openVibeQuestAnalyticsModal;
+    window.closeVibeQuestAnalyticsModal = closeVibeQuestAnalyticsModal;
   </script>
 </body>
 </html>
