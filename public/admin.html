@@ -4813,6 +4813,30 @@
         const data = await res.json();
         if (data.success && data.hookah_config) {
           currentHookahConfig = data.hookah_config;
+          if (!currentHookahConfig.flavors) currentHookahConfig.flavors = [];
+          
+          // Merge existing hookah flavors from Menu Catalog
+          const hkItems = menuItems.filter(item => 
+            (item.category_id && String(item.category_id).includes('cat_hk_flavors')) || 
+            (item.category_ids && item.category_ids.some(c => String(c).includes('cat_hk_flavors') || String(c).includes('Hookah Flavors')))
+          );
+          
+          if (hkItems.length > 0) {
+             const existingIds = new Set(currentHookahConfig.flavors.map(f => f.id));
+             const existingNames = new Set(currentHookahConfig.flavors.map(f => f.name));
+             const mappedFlavors = hkItems
+               .filter(item => !existingIds.has(item.id) && !existingNames.has(item.name))
+               .map(item => ({
+                 id: item.id || item._id,
+                 name: item.name,
+                 category: item.brand || item.category || 'Standard',
+                 description: item.description || '',
+                 color: item.color || '#8B5CF6',
+                 emoji: item.emoji || '💨',
+                 available: item.active !== false
+               }));
+             currentHookahConfig.flavors.push(...mappedFlavors);
+          }
         }
       } catch (err) {
         console.warn('Could not fetch hookah config, using defaults:', err);

@@ -881,7 +881,51 @@ export class MultiTenantDbService {
       ...(restaurant.settings || {}),
       hookah_config: config,
     };
-    return await this.updateRestaurant(restaurant._id, { settings } as any);
+    const res = await this.updateRestaurant(restaurant._id, { settings } as any);
+
+    // Sync Hookah Flavors to Menu Items
+    if (config.flavors && Array.isArray(config.flavors)) {
+      const allItems = await this.listMenuItems(restaurantId);
+      const flavorNames = new Set(config.flavors.map((f: any) => f.name));
+      const existingHkItems = allItems.filter(item => 
+        (item.category_id && String(item.category_id).includes('cat_hk_flavors')) || 
+        (item.category_ids && item.category_ids.some(c => String(c).includes('cat_hk_flavors') || String(c).includes('Hookah Flavors')))
+      );
+
+      // 1. Delete removed flavors
+      for (const item of existingHkItems) {
+        if (!flavorNames.has(item.name)) {
+          await this.deleteMenuItem(restaurantId, item._id);
+        }
+      }
+
+      // 2. Upsert existing/new flavors
+      for (const f of config.flavors) {
+        const existing = existingHkItems.find(item => item._id === f.id || item.id === f.id || item.name === f.name);
+        const flavorItem = {
+          name: f.name,
+          description: f.description || '',
+          price: 0,
+          category_id: 'cat_hk_flavors',
+          category_ids: ['cat_hk_flavors'],
+          brand: f.category || 'Standard',
+          category: f.category || 'Standard',
+          color: f.color || '#8B5CF6',
+          emoji: f.emoji || '💨',
+          active: f.available !== false,
+        };
+        if (existing) {
+          await this.updateMenuItem(restaurantId, existing._id, flavorItem);
+        } else {
+          // ensure id if not set
+          await this.createMenuItem(restaurantId, {
+            ...flavorItem,
+            _id: f.id || `hk_flv_${Date.now()}_${Math.random().toString(36).substring(7)}`
+          } as any);
+        }
+      }
+    }
+    return res;
   }
 
   static async getSpecials(restaurantId: string): Promise<any[]> {
