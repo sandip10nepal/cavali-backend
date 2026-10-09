@@ -863,10 +863,6 @@
         <i data-lucide="users" style="width: 15px; height: 15px;"></i>
         <span>Staff &amp; Payroll</span>
       </button>
-      <button class="nav-tab" id="navTab-vibeQuest" onclick="switchTab('vibeQuest')">
-        <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
-        <span>✨ Vibe Quest</span>
-      </button>
     </div>
 
     <!-- Right Controls: Active Shift Timer, Profile Badge, Theme Switcher & Logout -->
@@ -962,10 +958,6 @@
         <button class="nav-tab" id="drawerNavTab-staff" onclick="switchTab('staff'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
           <i data-lucide="users" style="width: 18px; height: 18px; margin-right: 10px;"></i>
           <span>Staff &amp; Payroll</span>
-        </button>
-        <button class="nav-tab" id="drawerNavTab-vibeQuest" onclick="switchTab('vibeQuest'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
-          <i data-lucide="sparkles" style="width: 18px; height: 18px; margin-right: 10px;"></i>
-          <span>✨ Vibe Quest Discovery</span>
         </button>
       </div>
 
@@ -1122,49 +1114,145 @@
       <div class="inventory-grid-square" id="inventoryGridSquare"></div>
     </div>
 
-    <!-- PAGE 4: MENU CATALOG MANAGEMENT -->
+    <!-- PAGE 4: MENU CATALOG & VIBE QUEST DISCOVERY -->
     <div id="menuPageLayout" style="display: none;">
-      <!-- Row 1: Title & Toolbar (Search + Action Buttons) -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-        <h2 style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px; white-space: nowrap;">
-          Menu Catalog
-        </h2>
-
-        <!-- Integrated Compact Search & Action Toolbar -->
-        <div style="display: flex; gap: 8px; align-items: center; flex: 1; max-width: 520px; justify-content: flex-end; flex-wrap: wrap;">
-          <div style="position: relative; flex: 1; min-width: 160px;">
-            <input type="text" id="menuSearchInput" placeholder="🔍 Search menu items..." oninput="renderMenuCatalog()" style="width: 100%; box-sizing: border-box; padding: 8px 12px 8px 34px; background: var(--card); border: 1.5px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
-            <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; opacity: 0.6;">🔍</span>
-          </div>
-          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;">
-            <button class="btn touch-target" onclick="openHookahConfigModal()" style="background: rgba(229,177,58,0.12); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Configure Hookah Flavors, Bases, Add-ons & Packages">
-              <i data-lucide="flame" style="width: 14px; height: 14px;"></i>
-              <span>💨 Hookah Config</span>
-            </button>
-            <button class="btn touch-target" onclick="openSpecialsModal()" style="background: rgba(168,85,247,0.12); color: #c084fc; border: 1.5px solid #a855f7; font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Configure Restaurant Specials">
-              <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
-              <span>⭐ Specials</span>
-            </button>
-            <button class="btn touch-target" onclick="openAddMenuCategoryModal()" style="background: var(--card2); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Add Category">
-              <i data-lucide="folder-plus" style="width: 14px; height: 14px;"></i>
-              <span>+ Category</span>
-            </button>
-            <button class="btn btn-primary touch-target" onclick="openAddMenuItemModal()" style="font-weight: 800; padding: 6px 12px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Add Menu Item">
-              <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
-              <span>+ Add Item</span>
-            </button>
-          </div>
-        </div>
+      <!-- Menu Catalog Sub-Navigation (Items vs Vibe Quest) -->
+      <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1.5px solid var(--line); padding-bottom: 12px; align-items: center; flex-wrap: wrap;">
+        <button class="sub-tab active" id="menuSubTab-items" onclick="switchMenuCatalogSubTab('items')" style="font-weight: 800; font-size: 13px; padding: 8px 18px; border-radius: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <i data-lucide="book-open" style="width: 15px; height: 15px;"></i>
+          <span>Menu Items &amp; Categories</span>
+        </button>
+        <button class="sub-tab" id="menuSubTab-vibeQuest" onclick="switchMenuCatalogSubTab('vibeQuest')" style="font-weight: 800; font-size: 13px; padding: 8px 18px; border-radius: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <i data-lucide="sparkles" style="width: 15px; height: 15px; color: var(--gold);"></i>
+          <span>✨ Vibe Quest Discovery</span>
+        </button>
       </div>
 
-      <!-- Super-Category Tabs Bar (Hookah, Food, Drinks) -->
-      <div id="superCategoryHeaderNav" style="display: flex; gap: 10px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px;"></div>
+      <!-- VIEW A: Standard Menu Catalog Grid -->
+      <div id="menuCatalogItemsView">
+        <!-- Row 1: Title & Toolbar (Search + Action Buttons) -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <h2 style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px; white-space: nowrap;">
+            Menu Items
+          </h2>
 
-      <!-- Sub-Category Pill Filters Bar -->
-      <div id="subCategoryHeaderNav" style="margin-bottom: 20px;"></div>
+          <!-- Integrated Compact Search & Action Toolbar -->
+          <div style="display: flex; gap: 8px; align-items: center; flex: 1; max-width: 620px; justify-content: flex-end; flex-wrap: wrap;">
+            <div style="position: relative; flex: 1; min-width: 150px;">
+              <input type="text" id="menuSearchInput" placeholder="🔍 Search menu items..." oninput="renderMenuCatalog()" style="width: 100%; box-sizing: border-box; padding: 8px 12px 8px 34px; background: var(--card); border: 1.5px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+              <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; opacity: 0.6;">🔍</span>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;">
+              <button class="btn touch-target" onclick="switchMenuCatalogSubTab('vibeQuest')" style="background: rgba(245,158,11,0.14); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Switch to Vibe Quest Discovery">
+                <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+                <span>✨ Vibe Quest</span>
+              </button>
+              <button class="btn touch-target" onclick="openHookahConfigModal()" style="background: rgba(229,177,58,0.12); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Configure Hookah Flavors, Bases, Add-ons & Packages">
+                <i data-lucide="flame" style="width: 14px; height: 14px;"></i>
+                <span>💨 Hookah Config</span>
+              </button>
+              <button class="btn touch-target" onclick="openSpecialsModal()" style="background: rgba(168,85,247,0.12); color: #c084fc; border: 1.5px solid #a855f7; font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Configure Restaurant Specials">
+                <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+                <span>⭐ Specials</span>
+              </button>
+              <button class="btn touch-target" onclick="openAddMenuCategoryModal()" style="background: var(--card2); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Add Category">
+                <i data-lucide="folder-plus" style="width: 14px; height: 14px;"></i>
+                <span>+ Category</span>
+              </button>
+              <button class="btn btn-primary touch-target" onclick="openAddMenuItemModal()" style="font-weight: 800; padding: 6px 12px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Add Menu Item">
+                <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
+                <span>+ Add Item</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
-      <!-- Menu Grid -->
-      <div id="menuGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;"></div>
+        <!-- Super-Category Tabs Bar (Hookah, Food, Drinks) -->
+        <div id="superCategoryHeaderNav" style="display: flex; gap: 10px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px;"></div>
+
+        <!-- Sub-Category Pill Filters Bar -->
+        <div id="subCategoryHeaderNav" style="margin-bottom: 20px;"></div>
+
+        <!-- Menu Grid -->
+        <div id="menuGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;"></div>
+      </div>
+
+      <!-- VIEW B: Vibe Quest Discovery Manager -->
+      <div id="menuCatalogVibeQuestView" style="display: none;">
+        <!-- Header, Status Badges & Action Toolbar -->
+        <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <span style="font-size: 24px;">✨</span>
+                <h2 style="font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px;">
+                  Cavalli Vibe Quest Discovery Manager
+                </h2>
+              </div>
+              <p style="color: var(--muted); font-size: 13px; margin: 0; max-width: 650px;">
+                Curate the interactive, tap-based menu discovery tree for Cavalli Huqqa. Configure questions, answers, destinations, branching conditions, and product recommendation mappings without code redeployment.
+              </p>
+              <div style="display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap;">
+                <span id="vqStatusBadge" style="background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid var(--success); font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
+                  🟢 Active
+                </span>
+                <span id="vqVersionBadge" style="background: var(--card2); color: var(--cream); border: 1px solid var(--line); font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
+                  Version: Live v1
+                </span>
+                <span id="vqQuestionsCountBadge" style="background: var(--card2); color: var(--gold); border: 1px solid var(--line); font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
+                  12 Questions Configured
+                </span>
+                <span id="vqValidationBadge" style="background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid #3B82F6; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
+                  Draft Validated ✅
+                </span>
+              </div>
+            </div>
+
+            <!-- Action Buttons Toolbar -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+              <button class="btn" id="vqToggleBtn" onclick="toggleVibeQuestEnabled()" style="background: var(--card2); border: 1.5px solid var(--line); color: var(--cream); font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;">
+                <i data-lucide="power" style="width: 14px; height: 14px;"></i>
+                <span id="vqToggleText">Disable Discovery</span>
+              </button>
+              <button class="btn" onclick="validateVibeQuestDraft(true)" style="background: rgba(59,130,246,0.12); color: #60A5FA; border: 1.5px solid #3B82F6; font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="Check questions reachability, valid product IDs, and graph cycles">
+                <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                <span>Validate Draft</span>
+              </button>
+              <button class="btn" onclick="openVibeQuestSimulatorModal()" style="background: rgba(168,85,247,0.12); color: #c084fc; border: 1.5px solid #a855f7; font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="Interactive customer journey simulation">
+                <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                <span>Simulator</span>
+              </button>
+              <button class="btn btn-primary" onclick="publishVibeQuestDraft()" style="background: #10B981; border-color: #10B981; color: #FFF; font-weight: 800; font-size: 12px; padding: 8px 14px; border-radius: 8px;" title="Deploy draft to live customer ordering">
+                <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+                <span>Publish Live</span>
+              </button>
+              <button class="btn" onclick="openVibeQuestAnalyticsModal()" style="background: var(--card2); border: 1.5px solid var(--line); color: var(--cream); font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="View discovery engagement and conversions">
+                <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i>
+                <span>Analytics</span>
+              </button>
+              <button class="btn btn-primary" onclick="openEditVibeQuestQuestionModal(null)" style="background: var(--gold); border-color: var(--gold); color: #000; font-weight: 800; font-size: 12px; padding: 8px 14px; border-radius: 8px;">
+                <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
+                <span>+ New Question</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage Filter Pills -->
+        <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
+          <button class="sub-tab active" id="vqStageFilter-all" onclick="filterVibeQuestStage('all')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">All Stages</button>
+          <button class="sub-tab" id="vqStageFilter-hookah" onclick="filterVibeQuestStage('hookah')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">💨 Hookah</button>
+          <button class="sub-tab" id="vqStageFilter-food" onclick="filterVibeQuestStage('food')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍔 Food</button>
+          <button class="sub-tab" id="vqStageFilter-dessert" onclick="filterVibeQuestStage('dessert')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍨 Dessert (Cart-Conditional)</button>
+          <button class="sub-tab" id="vqStageFilter-drinks" onclick="filterVibeQuestStage('drinks')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍹 Drinks</button>
+          <button class="sub-tab" id="vqStageFilter-checkout" onclick="filterVibeQuestStage('checkout')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">📋 Checkout Nudge</button>
+        </div>
+
+        <!-- Question Cards List Container -->
+        <div id="vqQuestionsListContainer" style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="text-align: center; padding: 40px; color: var(--muted);">Loading Vibe Quest draft...</div>
+        </div>
+      </div>
     </div>
 
     <!-- PAGE 5: SALES, TAX & PAYMENT LOGS LEDGER -->
@@ -1260,82 +1348,6 @@
       </div>
     </div>
 
-    <!-- PAGE 7: CAVALLI VIBE QUEST DISCOVERY -->
-    <div id="vibeQuestPageLayout" style="display: none;">
-      <!-- Row 1: Header, Status Badges & Action Toolbar -->
-      <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-          <div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-              <span style="font-size: 24px;">✨</span>
-              <h2 style="font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px;">
-                Cavalli Vibe Quest Discovery Manager
-              </h2>
-            </div>
-            <p style="color: var(--muted); font-size: 13px; margin: 0; max-width: 650px;">
-              Curate the interactive, tap-based menu discovery tree for Cavalli Huqqa. Configure questions, answers, destinations, branching conditions, and product recommendation mappings without code redeployment.
-            </p>
-            <div style="display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap;">
-              <span id="vqStatusBadge" style="background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid var(--success); font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
-                🟢 Active
-              </span>
-              <span id="vqVersionBadge" style="background: var(--card2); color: var(--cream); border: 1px solid var(--line); font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
-                Version: Live v1
-              </span>
-              <span id="vqQuestionsCountBadge" style="background: var(--card2); color: var(--gold); border: 1px solid var(--line); font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
-                9 Questions Configured
-              </span>
-              <span id="vqValidationBadge" style="background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid #3B82F6; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
-                Draft Validated ✅
-              </span>
-            </div>
-          </div>
-
-          <!-- Action Buttons Toolbar -->
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <button class="btn" id="vqToggleBtn" onclick="toggleVibeQuestEnabled()" style="background: var(--card2); border: 1.5px solid var(--line); color: var(--cream); font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;">
-              <i data-lucide="power" style="width: 14px; height: 14px;"></i>
-              <span id="vqToggleText">Disable Discovery</span>
-            </button>
-            <button class="btn" onclick="validateVibeQuestDraft(true)" style="background: rgba(59,130,246,0.12); color: #60A5FA; border: 1.5px solid #3B82F6; font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="Check questions reachability, valid product IDs, and graph cycles">
-              <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
-              <span>Validate Draft</span>
-            </button>
-            <button class="btn" onclick="openVibeQuestSimulatorModal()" style="background: rgba(168,85,247,0.12); color: #c084fc; border: 1.5px solid #a855f7; font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="Interactive customer journey simulation">
-              <i data-lucide="play" style="width: 14px; height: 14px;"></i>
-              <span>Simulator</span>
-            </button>
-            <button class="btn btn-primary" onclick="publishVibeQuestDraft()" style="background: #10B981; border-color: #10B981; color: #FFF; font-weight: 800; font-size: 12px; padding: 8px 14px; border-radius: 8px;" title="Deploy draft to live customer ordering">
-              <i data-lucide="send" style="width: 14px; height: 14px;"></i>
-              <span>Publish Live</span>
-            </button>
-            <button class="btn" onclick="openVibeQuestAnalyticsModal()" style="background: var(--card2); border: 1.5px solid var(--line); color: var(--cream); font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="View discovery engagement and conversions">
-              <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i>
-              <span>Analytics</span>
-            </button>
-            <button class="btn btn-primary" onclick="openEditVibeQuestQuestionModal(null)" style="background: var(--gold); border-color: var(--gold); color: #000; font-weight: 800; font-size: 12px; padding: 8px 14px; border-radius: 8px;">
-              <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
-              <span>+ New Question</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stage Filter Pills -->
-      <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
-        <button class="sub-tab active" id="vqStageFilter-all" onclick="filterVibeQuestStage('all')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">All Stages</button>
-        <button class="sub-tab" id="vqStageFilter-hookah" onclick="filterVibeQuestStage('hookah')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">💨 Hookah</button>
-        <button class="sub-tab" id="vqStageFilter-food" onclick="filterVibeQuestStage('food')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍔 Food</button>
-        <button class="sub-tab" id="vqStageFilter-dessert" onclick="filterVibeQuestStage('dessert')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍨 Dessert (Cart-Conditional)</button>
-        <button class="sub-tab" id="vqStageFilter-drinks" onclick="filterVibeQuestStage('drinks')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍹 Drinks</button>
-        <button class="sub-tab" id="vqStageFilter-checkout" onclick="filterVibeQuestStage('checkout')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">📋 Checkout Nudge</button>
-      </div>
-
-      <!-- Question Cards List Container -->
-      <div id="vqQuestionsListContainer" style="display: flex; flex-direction: column; gap: 16px;">
-        <div style="text-align: center; padding: 40px; color: var(--muted);">Loading Vibe Quest draft...</div>
-      </div>
-    </div>
   </main>
 
   <!-- ════════════════ MODALS ════════════════ -->
@@ -2715,17 +2727,23 @@
     }
 
     function switchTab(tab) {
+      if (tab === 'vibeQuest') {
+        switchTab('menu');
+        switchMenuCatalogSubTab('vibeQuest');
+        return;
+      }
+
       const role = (localStorage.getItem('benzin_user_role') || 'server').toLowerCase();
       const isManager = ['owner', 'manager', 'platform_admin', 'admin'].includes(role);
 
-      if (!isManager && ['inventory', 'menu', 'sales', 'staff', 'vibeQuest'].includes(tab)) {
+      if (!isManager && ['inventory', 'menu', 'sales', 'staff'].includes(tab)) {
         alert(`🔒 Manager Authorization Required\n\nThe "${tab.toUpperCase()}" tab is restricted to Managers and Owners. Please log in with a Manager PIN.`);
         openStaffSwitchModal();
         return;
       }
 
       activeTab = tab;
-      const pages = ['kdsPageLayout', 'tablesPageLayout', 'archivePageLayout', 'inventoryPageLayout', 'menuPageLayout', 'salesPageLayout', 'staffPageLayout', 'vibeQuestPageLayout'];
+      const pages = ['kdsPageLayout', 'tablesPageLayout', 'archivePageLayout', 'inventoryPageLayout', 'menuPageLayout', 'salesPageLayout', 'staffPageLayout'];
       pages.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -2746,7 +2764,6 @@
       else if (tab === 'menu') renderMenuPage();
       else if (tab === 'sales') renderSalesPage();
       else if (tab === 'staff') renderStaffPage();
-      else if (tab === 'vibeQuest') renderVibeQuestPage();
 
       // Sync single mobile navigation dropdown button value
       const mobileSel = document.getElementById('mobileNavSelect');
@@ -4490,9 +4507,38 @@
       return groups;
     }
 
+    let activeMenuSubTab = 'items';
+
+    function switchMenuCatalogSubTab(subTab) {
+      activeMenuSubTab = subTab;
+      const itemsBtn = document.getElementById('menuSubTab-items');
+      const vqBtn = document.getElementById('menuSubTab-vibeQuest');
+      const itemsView = document.getElementById('menuCatalogItemsView');
+      const vqView = document.getElementById('menuCatalogVibeQuestView');
+
+      if (subTab === 'vibeQuest') {
+        if (itemsBtn) itemsBtn.classList.remove('active');
+        if (vqBtn) vqBtn.classList.add('active');
+        if (itemsView) itemsView.style.display = 'none';
+        if (vqView) vqView.style.display = 'block';
+        renderVibeQuestPage();
+      } else {
+        if (itemsBtn) itemsBtn.classList.add('active');
+        if (vqBtn) vqBtn.classList.remove('active');
+        if (itemsView) itemsView.style.display = 'block';
+        if (vqView) vqView.style.display = 'none';
+        renderMenuCategoryFilterBar();
+        renderMenuCatalog();
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
     function renderMenuPage() {
-      renderMenuCategoryFilterBar();
-      renderMenuCatalog();
+      if (activeMenuSubTab === 'vibeQuest') {
+        switchMenuCatalogSubTab('vibeQuest');
+      } else {
+        switchMenuCatalogSubTab('items');
+      }
     }
 
     function renderMenuCatalog() {
