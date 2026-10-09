@@ -17,6 +17,7 @@ import serviceRequestsRouter from './routes/service-requests';
 import { MultiTenantDbService } from './services/multi-tenant-db.service';
 
 import tablesRouter from './routes/tables';
+import vibeQuestRouter from './routes/vibe-quest';
 
 import { env } from './config/env';
 
@@ -41,6 +42,7 @@ app.use('/api/service-requests', serviceRequestsRouter);
 app.use('/api/payment-sessions', paymentsRouter);
 app.use('/api/employees', employeesRouter);
 app.use('/api/menu', menuRouter);
+app.use('/api/vibe-quest', vibeQuestRouter);
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 /*                   MULTI-TENANT v2 ROUTES                                    */

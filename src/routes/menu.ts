@@ -132,6 +132,91 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// POST /api/menu/bulk-sync — bulk update menu item image URLs or details directly to DB
+router.post('/bulk-sync', optionalAuth, async (req, res) => {
+  try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) {
+      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
+    }
+    const { items } = req.body;
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ success: false, message: 'Items array is required' });
+    }
+
+    let updatedCount = 0;
+    const existingItems = await MenuRepository.listItems(restaurantId);
+
+    for (const itemPayload of items) {
+      const targetId = itemPayload.id || itemPayload._id;
+      const targetName = (itemPayload.name || '').toLowerCase().trim();
+      const imageUrl = itemPayload.image_url || itemPayload.imageUrl;
+
+      let matched = existingItems.find(i => (targetId && (i._id === targetId || (i as any).id === targetId)));
+      if (!matched && targetName) {
+        matched = existingItems.find(i => i.name.toLowerCase().trim() === targetName);
+      }
+
+      if (matched && imageUrl) {
+        await MenuRepository.updateItem(matched._id, restaurantId, {
+          image_url: imageUrl
+        });
+        updatedCount++;
+      }
+    }
+
+    sseService.broadcast({ type: 'menu_update', action: 'bulk_sync' }, restaurantId);
+    res.json({ success: true, updatedCount });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/menu/hookah-config — retrieve restaurant hookah configuration
+router.get('/hookah-config', async (req, res, next) => {
+  try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
+    const config = await MultiTenantDbService.getHookahConfig(restaurantId);
+    res.json({ success: true, hookah_config: config });
+  } catch (err) { next(err); }
+});
+
+// PUT /api/menu/hookah-config — update restaurant hookah configuration
+router.put('/hookah-config', optionalAuth, async (req, res, next) => {
+  try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
+    const config = req.body;
+    await MultiTenantDbService.updateHookahConfig(restaurantId, config);
+    sseService.broadcast({ type: 'hookah_config_updated', hookah_config: config, restaurant_id: restaurantId }, restaurantId);
+    res.json({ success: true, hookah_config: config });
+  } catch (err) { next(err); }
+});
+
+// GET /api/menu/specials — retrieve restaurant specials
+router.get('/specials', async (req, res, next) => {
+  try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
+    const specials = await MultiTenantDbService.getSpecials(restaurantId);
+    res.json({ success: true, specials });
+  } catch (err) { next(err); }
+});
+
+// PUT /api/menu/specials — update restaurant specials
+router.put('/specials', optionalAuth, async (req, res, next) => {
+  try {
+    const restaurantId = await resolveTenantRestaurantId(req);
+    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
+    const { specials } = req.body;
+    if (!Array.isArray(specials)) return res.status(400).json({ success: false, message: 'Specials must be an array' });
+    await MultiTenantDbService.updateSpecials(restaurantId, specials);
+    sseService.broadcast({ type: 'specials_updated', specials, restaurant_id: restaurantId }, restaurantId);
+    res.json({ success: true, specials });
+  } catch (err) { next(err); }
+});
+
 // GET /api/menu/:id — get single item
 router.get('/:id', async (req, res, next) => {
   try {
@@ -171,7 +256,7 @@ router.post('/', optionalAuth, async (req, res, next) => {
   try {
     const { name, category, category_ids, categoryIds, price, emoji, image_url, desc, available, sort_order, recipe, ingredient_id, ingredient_amount, authPin, modifier_groups, modifierGroups } = req.body;
 
-    const isAuth = await isAuthorizedManager(authPin || req.headers['x-admin-pin'], req);
+    const isAuth = await isAuthorizedManager(authPin || req?.headers?.['x-admin-pin'], req);
     if (!isAuth) {
       return res.status(403).json({ success: false, message: 'Manager or Owner authorization required to add menu items' });
     }
@@ -232,7 +317,7 @@ router.patch('/:id', optionalAuth, async (req, res, next) => {
       }
     }
 
-    const pinHeader = Array.isArray(req.headers['x-admin-pin']) ? req.headers['x-admin-pin'][0] : req.headers['x-admin-pin'];
+    const pinHeader = Array.isArray(req?.headers?.['x-admin-pin']) ? req?.headers?.['x-admin-pin'][0] : req?.headers?.['x-admin-pin'];
     const isAuth = await isAuthorizedManager(authPin || pinHeader, req);
     if (!isAuth) {
       return res.status(403).json({ success: false, message: 'Manager or Owner authorization required to edit menu items' });
@@ -363,7 +448,7 @@ router.delete('/:id', optionalAuth, async (req, res, next) => {
     const id = String(req.params.id);
     const { authPin } = req.body || {};
 
-    const pinHeader = Array.isArray(req.headers['x-admin-pin']) ? req.headers['x-admin-pin'][0] : req.headers['x-admin-pin'];
+    const pinHeader = Array.isArray(req?.headers?.['x-admin-pin']) ? req?.headers?.['x-admin-pin'][0] : req?.headers?.['x-admin-pin'];
     const isAuth = await isAuthorizedManager(authPin || pinHeader, req);
     if (!isAuth) {
       return res.status(403).json({ success: false, message: 'Manager or Owner authorization required to remove menu items' });
@@ -384,91 +469,6 @@ router.delete('/:id', optionalAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
-
-// POST /api/menu/bulk-sync — bulk update menu item image URLs or details directly to DB
-router.post('/bulk-sync', optionalAuth, async (req, res) => {
-  try {
-    const restaurantId = await resolveTenantRestaurantId(req);
-    if (!restaurantId) {
-      return res.status(400).json({ success: false, message: 'Tenant restaurant ID is required' });
-    }
-    const { items } = req.body;
-    if (!Array.isArray(items)) {
-      return res.status(400).json({ success: false, message: 'Items array is required' });
-    }
-
-    let updatedCount = 0;
-    const existingItems = await MenuRepository.listItems(restaurantId);
-
-    for (const itemPayload of items) {
-      const targetId = itemPayload.id || itemPayload._id;
-      const targetName = (itemPayload.name || '').toLowerCase().trim();
-      const imageUrl = itemPayload.image_url || itemPayload.imageUrl;
-
-      let matched = existingItems.find(i => (targetId && (i._id === targetId || (i as any).id === targetId)));
-      if (!matched && targetName) {
-        matched = existingItems.find(i => i.name.toLowerCase().trim() === targetName);
-      }
-
-      if (matched && imageUrl) {
-        await MenuRepository.updateItem(matched._id, restaurantId, {
-          image_url: imageUrl
-        });
-        updatedCount++;
-      }
-    }
-
-    sseService.broadcast({ type: 'menu_update', action: 'bulk_sync' }, restaurantId);
-    res.json({ success: true, updatedCount });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// GET /api/menu/hookah-config — retrieve restaurant hookah configuration
-router.get('/hookah-config', async (req, res, next) => {
-  try {
-    const restaurantId = await resolveTenantRestaurantId(req);
-    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
-    const config = await MultiTenantDbService.getHookahConfig(restaurantId);
-    res.json({ success: true, hookah_config: config });
-  } catch (err) { next(err); }
-});
-
-// PUT /api/menu/hookah-config — update restaurant hookah configuration
-router.put('/hookah-config', optionalAuth, async (req, res, next) => {
-  try {
-    const restaurantId = await resolveTenantRestaurantId(req);
-    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
-    const config = req.body;
-    await MultiTenantDbService.updateHookahConfig(restaurantId, config);
-    sseService.broadcast({ type: 'hookah_config_updated', hookah_config: config, restaurant_id: restaurantId }, restaurantId);
-    res.json({ success: true, hookah_config: config });
-  } catch (err) { next(err); }
-});
-
-// GET /api/menu/specials — retrieve restaurant specials
-router.get('/specials', async (req, res, next) => {
-  try {
-    const restaurantId = await resolveTenantRestaurantId(req);
-    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
-    const specials = await MultiTenantDbService.getSpecials(restaurantId);
-    res.json({ success: true, specials });
-  } catch (err) { next(err); }
-});
-
-// PUT /api/menu/specials — update restaurant specials
-router.put('/specials', optionalAuth, async (req, res, next) => {
-  try {
-    const restaurantId = await resolveTenantRestaurantId(req);
-    if (!restaurantId) return res.status(400).json({ success: false, message: 'Tenant restaurant ID required' });
-    const { specials } = req.body;
-    if (!Array.isArray(specials)) return res.status(400).json({ success: false, message: 'Specials must be an array' });
-    await MultiTenantDbService.updateSpecials(restaurantId, specials);
-    sseService.broadcast({ type: 'specials_updated', specials, restaurant_id: restaurantId }, restaurantId);
-    res.json({ success: true, specials });
-  } catch (err) { next(err); }
 });
 
 export default router;

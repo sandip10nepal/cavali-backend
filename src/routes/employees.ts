@@ -166,7 +166,7 @@ router.get('/payroll/summary', optionalAuth, async (req, res) => {
 // POST /api/employees/payroll/fulfill — Manager/Owner fulfills weekly payroll for employees
 router.post('/payroll/fulfill', optionalAuth, async (req, res) => {
   try {
-    let isAuth = await isAuthorizedManagerOrOwner(req.body?.authPin || req.headers['x-admin-pin'] || req.query.authPin, req);
+    let isAuth = await isAuthorizedManagerOrOwner(req.body?.authPin || req?.headers?.['x-admin-pin'] || req.query.authPin, req);
     if (!isAuth && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       const token = req.headers.authorization.substring(7);
       const payload = AuthService.verifyToken(token);
@@ -641,7 +641,7 @@ const updateEmployeeHandler = async (req: any, res: any) => {
     const id = String(req.params.id);
     const { name, role, position, pin, email, phone, hourly_rate, active, authPin } = req.body || {};
 
-    const isAuth = await isAuthorizedManagerOrOwner(authPin || req.headers['x-admin-pin'] || req.headers['x-staff-pin'], req);
+    const isAuth = await isAuthorizedManagerOrOwner(authPin || req?.headers?.['x-admin-pin'] || req?.headers?.['x-staff-pin'], req);
     if (!isAuth) {
       return res.status(403).json({ success: false, message: 'Manager or Owner authorization required' });
     }
@@ -1033,7 +1033,7 @@ router.get('/clock-status', optionalAuth, async (req, res) => {
 // GET /api/employees/timecards — list timesheets / shift history (up to 6 months) (Manager/Owner only)
 router.get('/timecards', optionalAuth, async (req, res) => {
   try {
-    const isAuth = await isAuthorizedManagerOrOwner(req.query.authPin || req.headers['x-admin-pin'], req);
+    const isAuth = await isAuthorizedManagerOrOwner(req.query.authPin || req?.headers?.['x-admin-pin'], req);
     if (!isAuth) {
       return res.status(403).json({ success: false, message: 'Forbidden: Access to timesheets is restricted to Managers and Owners.' });
     }

@@ -684,6 +684,11 @@ export class MultiTenantDbService {
     const categories = await this.listMenuCategories(restaurant._id);
     const menuItems = await this.listMenuItems(restaurant._id);
     const tables = await this.listTables(restaurant._id);
+    const hookahConfig = this.normalizeHookahConfig(restaurant.settings.hookah_config || DEFAULT_HOOKAH_CONFIG);
+    // Mix Lab flavors live only in settings.hookah_config — never in the regular menu.
+    const isMixLabFlavorItem = (i: any) =>
+      String(i.category_id || '').includes('cat_hk_flavors') ||
+      (Array.isArray(i.category_ids) && i.category_ids.some((c: any) => String(c).includes('cat_hk_flavors') || String(c) === 'Hookah Flavors'));
 
     return {
       restaurant: {
@@ -701,11 +706,11 @@ export class MultiTenantDbService {
           tip_options: restaurant.settings.tip_options,
           enable_split_payment: restaurant.settings.enable_split_payment,
           session_timeout_minutes: restaurant.settings.session_timeout_minutes,
-          hookah_config: restaurant.settings.hookah_config || DEFAULT_HOOKAH_CONFIG,
+          hookah_config: hookahConfig,
           specials: restaurant.settings.specials || [],
         },
       },
-      hookah_config: restaurant.settings.hookah_config || DEFAULT_HOOKAH_CONFIG,
+      hookah_config: hookahConfig,
       specials: restaurant.settings.specials || [],
       categories: categories.filter(c => c.active !== false).map(c => ({
         _id: c._id,
@@ -720,7 +725,7 @@ export class MultiTenantDbService {
         sort_order: c.sort_order ?? 0,
         active: c.active !== false,
       })).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)),
-      menu_items: menuItems.filter(i => i.active !== false && i.available !== false && (i as any).is_available !== false).map(item => {
+      menu_items: menuItems.filter(i => i.active !== false && i.available !== false && (i as any).is_available !== false && !isMixLabFlavorItem(i)).map(item => {
         const cat = categories.find(c => c._id === item.category_id || (c as any).id === item.category_id);
         const catTitle = cat?.name || cat?.title || item.category_id || '';
         const catLower = (catTitle + ' ' + (item.category_id || '')).toLowerCase();
@@ -860,73 +865,81 @@ export class MultiTenantDbService {
     return true;
   }
 
-  static async getHookahConfig(restaurantId: string): Promise<HookahConfig> {
-    const restaurant = await this.getRestaurant(restaurantId);
-    const existing = restaurant?.settings?.hookah_config;
-    if (existing) {
-      return {
-        flavors: (Array.isArray(existing.flavors) && existing.flavors.length > 0) ? existing.flavors : DEFAULT_HOOKAH_CONFIG.flavors,
-        bases: (Array.isArray(existing.bases) && existing.bases.length > 0) ? existing.bases : DEFAULT_HOOKAH_CONFIG.bases,
-        addons: (Array.isArray(existing.addons) && existing.addons.length > 0) ? existing.addons : DEFAULT_HOOKAH_CONFIG.addons,
-        packages: (Array.isArray(existing.packages) && existing.packages.length > 0) ? existing.packages : DEFAULT_HOOKAH_CONFIG.packages,
-      };
-    }
-    return DEFAULT_HOOKAH_CONFIG;
+  /**
+   * Normalizes a hookah config so every entry carries a consistent `id`,
+   * `active` and `available` flag (admin UI uses `available`, older data uses `active`).
+   * Empty arrays are preserved so that deletions made in the admin panel persist.
+   */
+  static normalizeHookahConfig(raw: any): HookahConfig {
+    const slug = (s: string) => String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    const isOn = (x: any) => x?.active !== false && x?.available !== false;
+    const list = (arr: any, fallback: any[]) => (Array.isArray(arr) ? arr : fallback);
+
+    const flavors = list(raw?.flavors, DEFAULT_HOOKAH_CONFIG.flavors)
+      .filter((f: any) => f && String(f.name || '').trim())
+      .map((f: any) => {
+        const brand = String(f.brand || f.category || '').trim();
+        return {
+          ...f,
+          id: f.id || `flv_${slug(`${brand} ${f.name}`)}`,
+          name: String(f.name).trim(),
+          brand,
+          category: brand.toLowerCase(),
+          price: Number(f.price) || 0,
+          active: isOn(f),
+          available: isOn(f),
+        };
+      });
+
+    const priced = (arr: any[], prefix: string) => arr
+      .filter((x: any) => x && String(x.name || '').trim())
+      .map((x: any) => ({
+        ...x,
+        id: x.id || `${prefix}_${slug(x.name)}`,
+        name: String(x.name).trim(),
+        price: Number(x.price) || 0,
+        active: isOn(x),
+        available: isOn(x),
+      }));
+
+    return {
+      flavors,
+      bases: priced(list(raw?.bases, DEFAULT_HOOKAH_CONFIG.bases), 'base'),
+      addons: priced(list(raw?.addons, DEFAULT_HOOKAH_CONFIG.addons), 'addon'),
+      packages: priced(list(raw?.packages, DEFAULT_HOOKAH_CONFIG.packages), 'pkg') as any,
+    };
   }
 
+  static async getHookahConfig(restaurantId: string): Promise<HookahConfig> {
+    const restaurant = await this.getRestaurant(restaurantId);
+    return this.normalizeHookahConfig(restaurant?.settings?.hookah_config || DEFAULT_HOOKAH_CONFIG);
+  }
+
+  /**
+   * Hookah Mix Lab configuration is stored ONLY under `settings.hookah_config`.
+   * It is intentionally isolated from the regular menu: flavors, bases and add-ons
+   * are never written into `menu_items`. (Daku package is read by House Mix items too.)
+   */
   static async updateHookahConfig(restaurantId: string, config: HookahConfig): Promise<boolean> {
     const restaurant = await this.getRestaurant(restaurantId);
     if (!restaurant) return false;
+    const normalized = this.normalizeHookahConfig(config);
+    const now = new Date().toISOString();
+
+    if (env.isMongoMode) {
+      const db = this.assertDbReady();
+      const res = await db.collection<any>(COLLECTIONS.restaurants).updateOne(
+        { $or: [{ _id: restaurant._id }, { id: restaurant._id }] },
+        { $set: { 'settings.hookah_config': normalized, updated_at: now } }
+      );
+      return res.matchedCount > 0;
+    }
+
     const settings = {
       ...(restaurant.settings || {}),
-      hookah_config: config,
+      hookah_config: normalized,
     };
-    const res = await this.updateRestaurant(restaurant._id, { settings } as any);
-
-    // Sync Hookah Flavors to Menu Items
-    if (config.flavors && Array.isArray(config.flavors)) {
-      const allItems = await this.listMenuItems(restaurantId);
-      const flavorNames = new Set(config.flavors.map((f: any) => f.name));
-      const existingHkItems = allItems.filter(item => 
-        (item.category_id && String(item.category_id).includes('cat_hk_flavors')) || 
-        (item.category_ids && item.category_ids.some(c => String(c).includes('cat_hk_flavors') || String(c).includes('Hookah Flavors')))
-      );
-
-      // 1. Delete removed flavors
-      for (const item of existingHkItems) {
-        if (!flavorNames.has(item.name)) {
-          await this.deleteMenuItem(restaurantId, item._id);
-        }
-      }
-
-      // 2. Upsert existing/new flavors
-      for (const f of config.flavors as any[]) {
-        const existing = existingHkItems.find(item => item._id === f.id || (item as any).id === f.id || item.name === f.name);
-        const flavorItem = {
-          name: f.name,
-          description: f.description || '',
-          price: 0,
-          category_id: 'cat_hk_flavors',
-          category_ids: ['cat_hk_flavors'],
-          brand: f.category || 'Standard',
-          category: f.category || 'Standard',
-          color: f.color || '#8B5CF6',
-          emoji: f.emoji || '💨',
-          active: f.available !== false,
-        };
-        if (existing) {
-          await this.updateMenuItem(restaurantId, existing._id, flavorItem);
-        } else {
-          // ensure id if not set
-          await this.createMenuItem({
-            ...flavorItem,
-            restaurant_id: restaurantId,
-            _id: f.id || `hk_flv_${Date.now()}_${Math.random().toString(36).substring(7)}`
-          } as any);
-        }
-      }
-    }
-    return res;
+    return this.updateRestaurant(restaurant._id, { settings } as any);
   }
 
   static async getSpecials(restaurantId: string): Promise<any[]> {
@@ -950,12 +963,18 @@ export class MultiTenantDbService {
     const specialIds = new Set((specials || []).map((s: any) => String(s.item_id || s.id || s._id)));
     const allItems = await this.listMenuItems(restaurantId);
     for (const item of allItems) {
-      const isSpec = specialIds.has(String(item._id));
-      const specObj = specials.find((s: any) => String(s.item_id || s.id || s._id) === String(item._id));
-      if (Boolean(item.is_special) !== isSpec || (specObj && item.special_sort_order !== specObj.sort_order)) {
+      const idStr = String(item._id || (item as any).id);
+      const isSpec = specialIds.has(idStr) || specialIds.has(String(item._id)) || specialIds.has(String((item as any).id));
+      const specObj = (specials || []).find((s: any) => {
+        const sid = String(s.item_id || s.id || s._id);
+        return sid === idStr || sid === String(item._id) || sid === String((item as any).id);
+      });
+      const sortOrd = specObj ? (Number(specObj.sort_order) || 0) : 0;
+
+      if (Boolean(item.is_special) !== isSpec || (specObj && item.special_sort_order !== sortOrd)) {
         await this.updateMenuItem(item._id, restaurantId, {
           is_special: isSpec,
-          special_sort_order: specObj?.sort_order ?? 0,
+          special_sort_order: sortOrd,
         });
       }
     }

@@ -863,6 +863,10 @@
         <i data-lucide="users" style="width: 15px; height: 15px;"></i>
         <span>Staff &amp; Payroll</span>
       </button>
+      <button class="nav-tab" id="navTab-vibeQuest" onclick="switchTab('vibeQuest')">
+        <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
+        <span>✨ Vibe Quest</span>
+      </button>
     </div>
 
     <!-- Right Controls: Active Shift Timer, Profile Badge, Theme Switcher & Logout -->
@@ -958,6 +962,10 @@
         <button class="nav-tab" id="drawerNavTab-staff" onclick="switchTab('staff'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
           <i data-lucide="users" style="width: 18px; height: 18px; margin-right: 10px;"></i>
           <span>Staff &amp; Payroll</span>
+        </button>
+        <button class="nav-tab" id="drawerNavTab-vibeQuest" onclick="switchTab('vibeQuest'); toggleMobileAdminMenu(false);" style="width: 100%; justify-content: flex-start; padding: 12px 16px; font-size: 14px; font-weight: 800; border-radius: 10px;">
+          <i data-lucide="sparkles" style="width: 18px; height: 18px; margin-right: 10px;"></i>
+          <span>✨ Vibe Quest Discovery</span>
         </button>
       </div>
 
@@ -1249,6 +1257,83 @@
           </button>
         </div>
         <div id="employeeListBody" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 7: CAVALLI VIBE QUEST DISCOVERY -->
+    <div id="vibeQuestPageLayout" style="display: none;">
+      <!-- Row 1: Header, Status Badges & Action Toolbar -->
+      <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+              <span style="font-size: 24px;">✨</span>
+              <h2 style="font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px;">
+                Cavalli Vibe Quest Discovery Manager
+              </h2>
+            </div>
+            <p style="color: var(--muted); font-size: 13px; margin: 0; max-width: 650px;">
+              Curate the interactive, tap-based menu discovery tree for Cavalli Huqqa. Configure questions, answers, destinations, branching conditions, and product recommendation mappings without code redeployment.
+            </p>
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap;">
+              <span id="vqStatusBadge" style="background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid var(--success); font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
+                🟢 Active
+              </span>
+              <span id="vqVersionBadge" style="background: var(--card2); color: var(--cream); border: 1px solid var(--line); font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
+                Version: Live v1
+              </span>
+              <span id="vqQuestionsCountBadge" style="background: var(--card2); color: var(--gold); border: 1px solid var(--line); font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
+                9 Questions Configured
+              </span>
+              <span id="vqValidationBadge" style="background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid #3B82F6; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
+                Draft Validated ✅
+              </span>
+            </div>
+          </div>
+
+          <!-- Action Buttons Toolbar -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <button class="btn" id="vqToggleBtn" onclick="toggleVibeQuestEnabled()" style="background: var(--card2); border: 1.5px solid var(--line); color: var(--cream); font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;">
+              <i data-lucide="power" style="width: 14px; height: 14px;"></i>
+              <span id="vqToggleText">Disable Discovery</span>
+            </button>
+            <button class="btn" onclick="validateVibeQuestDraft(true)" style="background: rgba(59,130,246,0.12); color: #60A5FA; border: 1.5px solid #3B82F6; font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="Check questions reachability, valid product IDs, and graph cycles">
+              <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+              <span>Validate Draft</span>
+            </button>
+            <button class="btn" onclick="openVibeQuestSimulatorModal()" style="background: rgba(168,85,247,0.12); color: #c084fc; border: 1.5px solid #a855f7; font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="Interactive customer journey simulation">
+              <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+              <span>Simulator</span>
+            </button>
+            <button class="btn btn-primary" onclick="publishVibeQuestDraft()" style="background: #10B981; border-color: #10B981; color: #FFF; font-weight: 800; font-size: 12px; padding: 8px 14px; border-radius: 8px;" title="Deploy draft to live customer ordering">
+              <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+              <span>Publish Live</span>
+            </button>
+            <button class="btn" onclick="openVibeQuestAnalyticsModal()" style="background: var(--card2); border: 1.5px solid var(--line); color: var(--cream); font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="View discovery engagement and conversions">
+              <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i>
+              <span>Analytics</span>
+            </button>
+            <button class="btn btn-primary" onclick="openEditVibeQuestQuestionModal(null)" style="background: var(--gold); border-color: var(--gold); color: #000; font-weight: 800; font-size: 12px; padding: 8px 14px; border-radius: 8px;">
+              <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
+              <span>+ New Question</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage Filter Pills -->
+      <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
+        <button class="sub-tab active" id="vqStageFilter-all" onclick="filterVibeQuestStage('all')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">All Stages</button>
+        <button class="sub-tab" id="vqStageFilter-hookah" onclick="filterVibeQuestStage('hookah')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">💨 Hookah</button>
+        <button class="sub-tab" id="vqStageFilter-food" onclick="filterVibeQuestStage('food')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍔 Food</button>
+        <button class="sub-tab" id="vqStageFilter-dessert" onclick="filterVibeQuestStage('dessert')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍨 Dessert (Cart-Conditional)</button>
+        <button class="sub-tab" id="vqStageFilter-drinks" onclick="filterVibeQuestStage('drinks')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍹 Drinks</button>
+        <button class="sub-tab" id="vqStageFilter-checkout" onclick="filterVibeQuestStage('checkout')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">📋 Checkout Nudge</button>
+      </div>
+
+      <!-- Question Cards List Container -->
+      <div id="vqQuestionsListContainer" style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="text-align: center; padding: 40px; color: var(--muted);">Loading Vibe Quest draft...</div>
       </div>
     </div>
   </main>
@@ -1917,6 +2002,194 @@
     </div>
   </div>
 
+  <!-- ════════════════ VIBE QUEST MODALS ════════════════ -->
+
+  <!-- 1. Question & Answers Edit Modal -->
+  <div id="vqQuestionModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="width: 100%; max-width: 780px; max-height: 90vh; overflow-y: auto; background: var(--card); border: 1.5px solid var(--gold); border-radius: 20px; padding: 24px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 id="vqModalTitle" style="color: var(--gold); font-size: 18px; font-weight: 800; margin: 0;">Edit Vibe Quest Question</h3>
+        <button class="btn" onclick="closeVibeQuestQuestionModal()" style="padding: 4px 10px; font-size: 14px;">✕</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Question ID *</label>
+          <input type="text" id="vqFormId" required placeholder="e.g. H1_vibe_mood" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px; font-weight: 700;">
+        </div>
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Stage *</label>
+          <select id="vqFormStage" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px; font-weight: 700;">
+            <option value="hookah">💨 Hookah</option>
+            <option value="food">🍔 Food</option>
+            <option value="dessert">🍨 Dessert</option>
+            <option value="drinks">🍹 Drinks</option>
+            <option value="checkout">📋 Checkout</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Question Title *</label>
+          <input type="text" id="vqFormTitle" placeholder="e.g. What's the vibe tonight?" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+        </div>
+        <div>
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Display Order *</label>
+          <input type="number" id="vqFormOrder" value="1" min="1" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Customer Question Prompt *</label>
+        <input type="text" id="vqFormText" placeholder="e.g. ✨ What's the vibe tonight?" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 14px; font-weight: 600;">
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Helper Subtext (Optional)</label>
+        <input type="text" id="vqFormHelper" placeholder="e.g. Tap a flavor direction to narrow down our signature mixes" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+      </div>
+
+      <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px; background: var(--card2); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--line); flex-wrap: wrap;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+          <input type="checkbox" id="vqFormActive" checked style="width: 16px; height: 16px;"> Active in Discovery
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
+          <input type="checkbox" id="vqFormSkippable" checked style="width: 16px; height: 16px;"> Skippable
+        </label>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700;">
+          <span>Repeat Policy:</span>
+          <select id="vqFormRepeat" style="padding: 4px 8px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: var(--cream); font-size: 12px;">
+            <option value="once_per_session">Once Per Session</option>
+            <option value="always">Always Show</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Answers Section -->
+      <div style="border-top: 1.5px solid var(--line); padding-top: 16px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <h4 style="font-size: 14px; font-weight: 800; color: var(--gold); margin: 0;">Tap-to-Select Answer Options</h4>
+            <p style="font-size: 11px; color: var(--muted); margin: 2px 0 0 0;">Each option can trigger signals, branch to next question, curate recommended products, or navigate to a menu section.</p>
+          </div>
+          <button class="btn btn-primary" type="button" onclick="addVibeQuestAnswerRow()" style="padding: 6px 12px; font-size: 11px; font-weight: 800; background: var(--gold); color: #000;">
+            + Add Option
+          </button>
+        </div>
+
+        <div id="vqAnswersListContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1.5px solid var(--line); padding-top: 16px;">
+        <button class="btn" onclick="closeVibeQuestQuestionModal()" style="padding: 10px 18px;">Cancel</button>
+        <button class="btn btn-primary" onclick="saveVibeQuestQuestionFromModal()" style="padding: 10px 24px; font-weight: 800; background: var(--gold); color: #000;">Save Question</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Draft Validation Report Modal -->
+  <div id="vqValidationModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="width: 100%; max-width: 580px; background: var(--card); border: 1.5px solid var(--line); border-radius: 20px; padding: 24px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">🛡️</span>
+          <h3 style="font-size: 18px; font-weight: 800; color: var(--cream); margin: 0;">Discovery Configuration Validation</h3>
+        </div>
+        <button class="btn" onclick="closeVibeQuestValidationModal()" style="padding: 4px 10px; font-size: 14px;">✕</button>
+      </div>
+      <div id="vqValidationContent"></div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px;">
+        <button class="btn btn-primary" onclick="closeVibeQuestValidationModal()" style="padding: 8px 20px; font-weight: 800;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Interactive Customer Simulator Modal -->
+  <div id="vqSimulatorModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; background: var(--card); border: 1.5px solid var(--gold); border-radius: 20px; padding: 24px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 22px;">🧪</span>
+          <h3 style="font-size: 18px; font-weight: 800; color: var(--gold); margin: 0;">Customer Experience Simulator</h3>
+        </div>
+        <button class="btn" onclick="closeVibeQuestSimulatorModal()" style="padding: 4px 10px; font-size: 14px;">✕</button>
+      </div>
+
+      <!-- Stage Selector in Simulator -->
+      <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+        <button class="btn" id="simStage-hookah" onclick="setSimulatedStage('hookah')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">💨 Hookah</button>
+        <button class="btn" id="simStage-food" onclick="setSimulatedStage('food')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">🍔 Food</button>
+        <button class="btn" id="simStage-dessert" onclick="setSimulatedStage('dessert')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">🍨 Dessert</button>
+        <button class="btn" id="simStage-drinks" onclick="setSimulatedStage('drinks')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">🍹 Drinks</button>
+        <button class="btn" id="simStage-checkout" onclick="setSimulatedStage('checkout')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">📋 Checkout</button>
+      </div>
+
+      <!-- Cart Condition Toggles -->
+      <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+        <span style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Simulated Cart:</span>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
+          <input type="checkbox" id="simCartHasDessert" onchange="renderSimulationView()"> Contains Dessert (CAT_DESSERTS)
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
+          <input type="checkbox" id="simCartHasDaku" onchange="renderSimulationView()"> Contains Make It Daku
+        </label>
+      </div>
+
+      <!-- Simulated Customer Screen Preview Container -->
+      <div id="simScreenContainer" style="background: #18181B; border: 2px solid #F59E0B; border-radius: 16px; padding: 20px; margin-bottom: 16px;"></div>
+
+      <!-- Simulated Live Recommendations Output -->
+      <div id="simRecsContainer" style="margin-top: 16px;"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px;">
+        <button class="btn" onclick="resetSimulation()" style="padding: 8px 16px; font-size: 12px;">Reset Answers &amp; Signals</button>
+        <button class="btn btn-primary" onclick="closeVibeQuestSimulatorModal()" style="padding: 8px 20px; font-weight: 800;">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Analytics & Insights Modal -->
+  <div id="vqAnalyticsModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="width: 100%; max-width: 640px; background: var(--card); border: 1.5px solid var(--gold); border-radius: 20px; padding: 24px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 22px;">📊</span>
+          <h3 style="font-size: 18px; font-weight: 800; color: var(--gold); margin: 0;">Vibe Quest Engagement &amp; Funnel</h3>
+        </div>
+        <button class="btn" onclick="closeVibeQuestAnalyticsModal()" style="padding: 4px 10px; font-size: 14px;">✕</button>
+      </div>
+
+      <div id="vqAnalyticsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
+          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Questions Shown</div>
+          <div id="vqStatShown" style="font-size: 24px; font-weight: 900; color: var(--cream); margin-top: 4px;">0</div>
+        </div>
+        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
+          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Questions Answered</div>
+          <div id="vqStatAnswered" style="font-size: 24px; font-weight: 900; color: var(--gold); margin-top: 4px;">0</div>
+        </div>
+        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
+          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Skipped / Dismissed</div>
+          <div id="vqStatSkipped" style="font-size: 24px; font-weight: 900; color: var(--muted); margin-top: 4px;">0</div>
+        </div>
+        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
+          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Recs Selected</div>
+          <div id="vqStatSelected" style="font-size: 24px; font-weight: 900; color: #60A5FA; margin-top: 4px;">0</div>
+        </div>
+        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; border-left: 3px solid var(--success);">
+          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Added to Cart</div>
+          <div id="vqStatCart" style="font-size: 24px; font-weight: 900; color: var(--success); margin-top: 4px;">0</div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px;">
+        <button class="btn btn-primary" onclick="closeVibeQuestAnalyticsModal()" style="padding: 8px 20px; font-weight: 800;">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ════════════════ SINGLE SCRIPT ENGINE ════════════════ -->
   <script>
     const API_URL = window.location.origin;
@@ -2445,14 +2718,14 @@
       const role = (localStorage.getItem('benzin_user_role') || 'server').toLowerCase();
       const isManager = ['owner', 'manager', 'platform_admin', 'admin'].includes(role);
 
-      if (!isManager && ['inventory', 'menu', 'sales', 'staff'].includes(tab)) {
+      if (!isManager && ['inventory', 'menu', 'sales', 'staff', 'vibeQuest'].includes(tab)) {
         alert(`🔒 Manager Authorization Required\n\nThe "${tab.toUpperCase()}" tab is restricted to Managers and Owners. Please log in with a Manager PIN.`);
         openStaffSwitchModal();
         return;
       }
 
       activeTab = tab;
-      const pages = ['kdsPageLayout', 'tablesPageLayout', 'archivePageLayout', 'inventoryPageLayout', 'menuPageLayout', 'salesPageLayout', 'staffPageLayout'];
+      const pages = ['kdsPageLayout', 'tablesPageLayout', 'archivePageLayout', 'inventoryPageLayout', 'menuPageLayout', 'salesPageLayout', 'staffPageLayout', 'vibeQuestPageLayout'];
       pages.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -2473,6 +2746,7 @@
       else if (tab === 'menu') renderMenuPage();
       else if (tab === 'sales') renderSalesPage();
       else if (tab === 'staff') renderStaffPage();
+      else if (tab === 'vibeQuest') renderVibeQuestPage();
 
       // Sync single mobile navigation dropdown button value
       const mobileSel = document.getElementById('mobileNavSelect');
@@ -6865,8 +7139,889 @@
         }
       }, 1000);
 
-      switchTab('kds');
-    });
+    // ═══════════════════════════════════════════════════════════════════════════
+    //                 CAVALLI VIBE QUEST — DISCOVERY ADMIN ENGINE
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    let vibeQuestDraft = null;
+    let vibeQuestPublished = null;
+    let vibeQuestActiveStageFilter = 'all';
+
+    // Simulation Session State
+    let simStage = 'hookah';
+    let simQuestionId = null;
+    let simAnswers = {};
+    let simSignals = [];
+    let simCart = [];
+
+    async function ensureMenuItemsLoaded() {
+      if (menuItems && menuItems.length > 0) return menuItems;
+      try {
+        const restId = localStorage.getItem('benzin_restaurant_id') || 'RES_EED4E9D266DF';
+        const res = await fetch(`${API_URL}/api/menu?restaurantId=${restId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.items)) menuItems = data.items;
+          else if (Array.isArray(data.menu_items)) menuItems = data.menu_items;
+        }
+      } catch (err) {
+        console.warn('Could not preload menu items for Vibe Quest:', err);
+      }
+      return menuItems || [];
+    }
+
+    async function renderVibeQuestPage() {
+      const container = document.getElementById('vqQuestionsListContainer');
+      if (!container) return;
+      container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);"><i data-lucide="loader" class="spin"></i> Loading Vibe Quest draft...</div>';
+      if (window.lucide) lucide.createIcons();
+
+      await ensureMenuItemsLoaded();
+
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/vibe-quest/admin/draft`, { headers });
+        if (!res.ok) {
+          throw new Error(`Failed to load draft (${res.status})`);
+        }
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to fetch draft');
+
+        vibeQuestDraft = data.draft;
+        vibeQuestPublished = data.published;
+
+        updateVibeQuestHeaderBadges();
+        renderVibeQuestQuestionsList();
+      } catch (err) {
+        console.error('Error rendering Vibe Quest page:', err);
+        container.innerHTML = `
+          <div style="background: rgba(239, 68, 68, 0.1); border: 1.5px solid var(--danger); border-radius: 12px; padding: 24px; text-align: center;">
+            <div style="font-size: 16px; font-weight: 800; color: var(--danger); margin-bottom: 8px;">Failed to load Vibe Quest draft</div>
+            <div style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">${err.message}</div>
+            <button class="btn btn-primary" onclick="renderVibeQuestPage()" style="padding: 8px 16px; font-weight: 800;">Retry</button>
+          </div>
+        `;
+      }
+    }
+
+    function updateVibeQuestHeaderBadges() {
+      const isEnabled = vibeQuestDraft?.enabled !== false;
+      const statusBadge = document.getElementById('vqStatusBadge');
+      const toggleText = document.getElementById('vqToggleText');
+      if (statusBadge) {
+        statusBadge.innerHTML = isEnabled ? '🟢 Active' : '⚪ Disabled';
+        statusBadge.style.color = isEnabled ? 'var(--success)' : 'var(--muted)';
+        statusBadge.style.borderColor = isEnabled ? 'var(--success)' : 'var(--line)';
+        statusBadge.style.background = isEnabled ? 'rgba(16,185,129,0.15)' : 'var(--card2)';
+      }
+      if (toggleText) {
+        toggleText.innerText = isEnabled ? 'Disable Discovery' : 'Enable Discovery';
+      }
+
+      const versionBadge = document.getElementById('vqVersionBadge');
+      if (versionBadge) {
+        const pubVer = vibeQuestPublished?.published_version || vibeQuestDraft?.published_version;
+        versionBadge.innerText = pubVer ? `Live: v${pubVer}` : 'Live: Unversioned Draft';
+      }
+
+      const countBadge = document.getElementById('vqQuestionsCountBadge');
+      if (countBadge) {
+        const qCount = vibeQuestDraft?.questions?.length || 0;
+        countBadge.innerText = `${qCount} Questions Configured`;
+      }
+    }
+
+    function filterVibeQuestStage(stage) {
+      vibeQuestActiveStageFilter = stage;
+      ['all', 'hookah', 'food', 'dessert', 'drinks', 'checkout'].forEach(s => {
+        const el = document.getElementById(`vqStageFilter-${s}`);
+        if (el) {
+          if (s === stage) el.classList.add('active');
+          else el.classList.remove('active');
+        }
+      });
+      renderVibeQuestQuestionsList();
+    }
+
+    function renderVibeQuestQuestionsList() {
+      const container = document.getElementById('vqQuestionsListContainer');
+      if (!container || !vibeQuestDraft) return;
+
+      let questions = vibeQuestDraft.questions || [];
+      if (vibeQuestActiveStageFilter !== 'all') {
+        questions = questions.filter(q => q.stage === vibeQuestActiveStageFilter);
+      }
+
+      // Sort by order
+      questions.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+      if (questions.length === 0) {
+        container.innerHTML = `
+          <div style="background: var(--card); border: 1.5px dashed var(--line); border-radius: 14px; padding: 40px; text-align: center;">
+            <div style="font-size: 28px; margin-bottom: 8px;">📋</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--cream);">No questions configured for stage: ${vibeQuestActiveStageFilter.toUpperCase()}</div>
+            <p style="font-size: 12px; color: var(--muted); margin-top: 4px;">Click "+ New Question" above to create one.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      questions.forEach((q, idx) => {
+        const stageColors = {
+          hookah: '#3B82F6',
+          food: '#F59E0B',
+          dessert: '#EC4899',
+          drinks: '#10B981',
+          checkout: '#8B5CF6'
+        };
+        const stageColor = stageColors[q.stage] || 'var(--gold)';
+        const answers = q.answers || [];
+
+        html += `
+          <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 18px 20px; transition: border-color 0.2s;">
+            <!-- Header Row -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span style="background: var(--card2); border: 1px solid var(--line); font-size: 11px; font-weight: 800; color: var(--gold); padding: 3px 8px; border-radius: 6px;">#${q.order ?? (idx + 1)}</span>
+                <span style="background: ${stageColor}22; color: ${stageColor}; border: 1px solid ${stageColor}55; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 3px 10px; border-radius: 12px;">${q.stage}</span>
+                <span style="font-family: monospace; font-size: 12px; color: var(--muted); font-weight: 700;">ID: ${q.id}</span>
+                ${q.active === false ? '<span style="background: rgba(239,68,68,0.15); color: var(--danger); font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">INACTIVE</span>' : ''}
+                ${q.skippable === false ? '<span style="background: rgba(245,158,11,0.15); color: var(--gold); font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">REQUIRED</span>' : ''}
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <button class="btn" onclick="moveVibeQuestQuestion('${q.id}', -1)" title="Move Up" style="padding: 4px 8px; font-size: 11px; background: var(--card2); border: 1px solid var(--line);">⬆️</button>
+                <button class="btn" onclick="moveVibeQuestQuestion('${q.id}', 1)" title="Move Down" style="padding: 4px 8px; font-size: 11px; background: var(--card2); border: 1px solid var(--line);">⬇️</button>
+                <button class="btn" onclick="openEditVibeQuestQuestionModal('${q.id}')" style="padding: 5px 12px; font-size: 12px; font-weight: 800; background: rgba(59,130,246,0.12); color: #60A5FA; border: 1px solid #3B82F6;">✏️ Edit</button>
+                <button class="btn" onclick="duplicateVibeQuestQuestion('${q.id}')" style="padding: 5px 12px; font-size: 12px; font-weight: 800; background: var(--card2); border: 1px solid var(--line);">📋 Duplicate</button>
+                <button class="btn" onclick="deleteVibeQuestQuestion('${q.id}')" style="padding: 5px 12px; font-size: 12px; font-weight: 800; background: rgba(239,68,68,0.12); color: var(--danger); border: 1px solid var(--danger);">🗑️ Delete</button>
+              </div>
+            </div>
+
+            <!-- Question Prompt Title -->
+            <div style="font-size: 16px; font-weight: 800; color: var(--cream); margin-bottom: 4px;">
+              ${q.question_text || q.title}
+            </div>
+            ${q.helper_text ? `<div style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">${q.helper_text}</div>` : '<div style="margin-bottom: 12px;"></div>'}
+
+            <!-- Answers Cards Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
+              ${answers.map(ans => {
+                const recCount = (ans.curated_product_ids || []).length;
+                const signalsStr = (ans.preference_signals || []).join(', ');
+                const destStr = ans.destination && ans.destination !== 'default' ? ans.destination : null;
+
+                return `
+                  <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                      <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; color: var(--cream);">
+                        <span>${ans.emoji || '✨'}</span>
+                        <span>${ans.label}</span>
+                      </div>
+                      <span style="font-size: 10px; font-family: monospace; color: var(--muted);">${ans.id}</span>
+                    </div>
+
+                    ${ans.subtext ? `<div style="font-size: 11px; color: var(--muted); margin-bottom: 6px;">${ans.subtext}</div>` : ''}
+
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; font-size: 10px;">
+                      ${signalsStr ? `<span style="background: rgba(245,158,11,0.12); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); padding: 2px 6px; border-radius: 4px;">🏷️ ${signalsStr}</span>` : ''}
+                      ${recCount > 0 ? `<span style="background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.3); padding: 2px 6px; border-radius: 4px;">⭐ ${recCount} Curated Pick(s)</span>` : ''}
+                      ${destStr ? `<span style="background: rgba(59,130,246,0.12); color: #60A5FA; border: 1px solid rgba(59,130,246,0.3); padding: 2px 6px; border-radius: 4px;">➡️ ${destStr}</span>` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function toggleVibeQuestEnabled() {
+      if (!vibeQuestDraft) return;
+      const current = vibeQuestDraft.enabled !== false;
+      const next = !current;
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/vibe-quest/admin/toggle`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ enabled: next })
+        });
+        const data = await res.json();
+        if (data.success) {
+          vibeQuestDraft.enabled = next;
+          updateVibeQuestHeaderBadges();
+        } else {
+          alert(`Error: ${data.error || 'Failed to toggle status'}`);
+        }
+      } catch (err) {
+        alert(`Request failed: ${err.message}`);
+      }
+    }
+
+    async function validateVibeQuestDraft(showModal = true) {
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/vibe-quest/admin/validate`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ draft: vibeQuestDraft })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Validation request failed');
+
+        const val = data.validation;
+        const modal = document.getElementById('vqValidationModal');
+        const content = document.getElementById('vqValidationContent');
+        const badge = document.getElementById('vqValidationBadge');
+
+        if (badge) {
+          if (val.valid) {
+            badge.innerText = 'Draft Validated ✅';
+            badge.style.background = 'rgba(16,185,129,0.15)';
+            badge.style.color = 'var(--success)';
+            badge.style.borderColor = 'var(--success)';
+          } else {
+            badge.innerText = `Validation Issues (${val.issues.length}) ⚠️`;
+            badge.style.background = 'rgba(239,68,68,0.15)';
+            badge.style.color = 'var(--danger)';
+            badge.style.borderColor = 'var(--danger)';
+          }
+        }
+
+        if (showModal && content && modal) {
+          if (val.valid) {
+            content.innerHTML = `
+              <div style="background: rgba(16,185,129,0.12); border: 1.5px solid var(--success); border-radius: 12px; padding: 20px; text-align: center;">
+                <div style="font-size: 32px; margin-bottom: 8px;">✅</div>
+                <div style="font-size: 16px; font-weight: 800; color: var(--success); margin-bottom: 6px;">Draft Configuration is 100% Valid!</div>
+                <div style="font-size: 12px; color: var(--muted);">All question sequences, branch conditions, destinations, and product mappings passed integrity checks. Safe to publish.</div>
+              </div>
+            `;
+          } else {
+            let issuesHtml = `
+              <div style="background: rgba(239,68,68,0.12); border: 1.5px solid var(--danger); border-radius: 12px; padding: 16px; margin-bottom: 14px;">
+                <div style="font-size: 14px; font-weight: 800; color: var(--danger); margin-bottom: 4px;">Found ${val.issues.length} Validation Issue(s)</div>
+                <div style="font-size: 11px; color: var(--muted);">Please resolve these before publishing to live customers:</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto;">
+            `;
+            val.issues.forEach(iss => {
+              issuesHtml += `
+                <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                    <span style="font-weight: 800; font-size: 11px; color: var(--danger); text-transform: uppercase;">${iss.code}</span>
+                    ${iss.question_id ? `<span style="font-family: monospace; font-size: 10px; color: var(--muted);">${iss.question_id}</span>` : ''}
+                  </div>
+                  <div style="font-size: 12px; color: var(--cream);">${iss.message}</div>
+                </div>
+              `;
+            });
+            issuesHtml += '</div>';
+            content.innerHTML = issuesHtml;
+          }
+          modal.style.display = 'flex';
+        }
+
+        return val;
+      } catch (err) {
+        alert(`Validation failed: ${err.message}`);
+        return null;
+      }
+    }
+
+    function closeVibeQuestValidationModal() {
+      const modal = document.getElementById('vqValidationModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function publishVibeQuestDraft() {
+      if (!confirm('Deploy Vibe Quest Draft to Live Customer Ordering?\\n\\nThis will run validation, increment the published version, and broadcast real-time updates to connected customer devices.')) {
+        return;
+      }
+
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/vibe-quest/admin/publish`, {
+          method: 'POST',
+          headers
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`🎉 Successfully Published Live!\n\nPublished Version: v${data.published_version}\nQuestions: ${data.questions_count}`);
+          renderVibeQuestPage();
+        } else {
+          alert(`❌ Publication Blocked by Validator:\n\n${(data.issues || [data.error]).map(i => typeof i === 'string' ? i : i.message).join('\n')}`);
+        }
+      } catch (err) {
+        alert(`Publish request failed: ${err.message}`);
+      }
+    }
+
+    let editingQuestionId = null;
+
+    function openEditVibeQuestQuestionModal(qId) {
+      editingQuestionId = qId;
+      const modal = document.getElementById('vqQuestionModal');
+      const title = document.getElementById('vqModalTitle');
+      const container = document.getElementById('vqAnswersListContainer');
+      if (!modal || !container) return;
+
+      container.innerHTML = '';
+
+      if (qId && vibeQuestDraft?.questions) {
+        const q = vibeQuestDraft.questions.find(x => x.id === qId);
+        if (q) {
+          title.innerText = `Edit Question: ${q.id}`;
+          document.getElementById('vqFormId').value = q.id;
+          document.getElementById('vqFormId').disabled = true;
+          document.getElementById('vqFormStage').value = q.stage || 'hookah';
+          document.getElementById('vqFormTitle').value = q.title || '';
+          document.getElementById('vqFormOrder').value = q.order ?? 1;
+          document.getElementById('vqFormText').value = q.question_text || '';
+          document.getElementById('vqFormHelper').value = q.helper_text || '';
+          document.getElementById('vqFormActive').checked = q.active !== false;
+          document.getElementById('vqFormSkippable').checked = q.skippable !== false;
+          document.getElementById('vqFormRepeat').value = q.repeat_policy || 'once_per_session';
+
+          (q.answers || []).forEach(ans => addVibeQuestAnswerRow(ans));
+        }
+      } else {
+        title.innerText = 'Add New Vibe Quest Question';
+        document.getElementById('vqFormId').value = `Q_${Date.now().toString(36)}`;
+        document.getElementById('vqFormId').disabled = false;
+        document.getElementById('vqFormStage').value = vibeQuestActiveStageFilter !== 'all' ? vibeQuestActiveStageFilter : 'hookah';
+        document.getElementById('vqFormTitle').value = '';
+        document.getElementById('vqFormOrder').value = (vibeQuestDraft?.questions?.length || 0) + 1;
+        document.getElementById('vqFormText').value = '';
+        document.getElementById('vqFormHelper').value = '';
+        document.getElementById('vqFormActive').checked = true;
+        document.getElementById('vqFormSkippable').checked = true;
+        document.getElementById('vqFormRepeat').value = 'once_per_session';
+
+        addVibeQuestAnswerRow();
+      }
+
+      modal.style.display = 'flex';
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeVibeQuestQuestionModal() {
+      const modal = document.getElementById('vqQuestionModal');
+      if (modal) modal.style.display = 'none';
+      editingQuestionId = null;
+    }
+
+    function addVibeQuestAnswerRow(ansData = null) {
+      const container = document.getElementById('vqAnswersListContainer');
+      if (!container) return;
+
+      const rowId = `ans_row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+      const ansId = ansData?.id || `ans_${Date.now().toString(36).substring(3, 8)}`;
+      const emoji = ansData?.emoji || '✨';
+      const label = ansData?.label || '';
+      const subtext = ansData?.subtext || '';
+      const signals = (ansData?.preference_signals || []).join(', ');
+      const destination = ansData?.destination || 'default';
+      const pinnedId = (ansData?.curated_product_ids && ansData.curated_product_ids[0]) || '';
+
+      let branchTarget = '';
+      if (ansData?.branching_rules && ansData.branching_rules.length > 0) {
+        branchTarget = ansData.branching_rules[0].target_question_id || '';
+      }
+
+      // Build product options
+      let productOptions = '<option value="">-- No Pinned Product (Use Dynamic Engine) --</option>';
+      if (Array.isArray(menuItems)) {
+        menuItems.forEach(item => {
+          const pId = item.id || item._id;
+          const isSel = pId === pinnedId ? 'selected' : '';
+          productOptions += `<option value="${pId}" ${isSel}>${item.name} ($${Number(item.price).toFixed(2)})</option>`;
+        });
+      }
+
+      const rowHtml = `
+        <div id="${rowId}" class="vq-answer-row" style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 8px; align-items: center; flex: 1;">
+              <input type="text" class="ans-emoji" value="${emoji}" style="width: 44px; padding: 8px; text-align: center; font-size: 18px; border-radius: 8px; background: var(--card); border: 1px solid var(--line);">
+              <input type="text" class="ans-label" value="${label}" placeholder="Option label (e.g. Sweet or fruity)" style="flex: 2; padding: 8px 12px; font-weight: 700; border-radius: 8px; background: var(--card); border: 1px solid var(--line); color: var(--cream); font-size: 13px;">
+              <input type="text" class="ans-id" value="${ansId}" placeholder="ans_id" style="width: 140px; padding: 8px 10px; font-family: monospace; font-size: 11px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); color: var(--muted);">
+            </div>
+            <button class="btn" type="button" onclick="document.getElementById('${rowId}').remove()" style="padding: 4px 8px; color: var(--danger); font-size: 12px; margin-left: 8px;">✕</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <input type="text" class="ans-subtext" value="${subtext}" placeholder="Subtext hint (optional)" style="padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+            <input type="text" class="ans-signals" value="${signals}" placeholder="Preference signals (e.g. sweet, fruity, minty)" style="padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--gold);">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <div>
+              <label style="display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 2px;">Curated Pinned Item</label>
+              <select class="ans-product" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+                ${productOptions}
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 2px;">Destination Navigation</label>
+              <select class="ans-destination" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+                <option value="default" ${destination === 'default' ? 'selected' : ''}>Default (Next Stage)</option>
+                <option value="menu:hookah" ${destination === 'menu:hookah' ? 'selected' : ''}>Menu: Hookah</option>
+                <option value="menu:food" ${destination === 'menu:food' ? 'selected' : ''}>Menu: Food</option>
+                <option value="menu:drinks" ${destination === 'menu:drinks' ? 'selected' : ''}>Menu: Drinks</option>
+                <option value="flow:mix_lab" ${destination === 'flow:mix_lab' ? 'selected' : ''}>Open Custom Mix Lab 🧪</option>
+                <option value="stage:checkout" ${destination === 'stage:checkout' ? 'selected' : ''}>Review Order (Checkout)</option>
+                <option value="dismiss" ${destination === 'dismiss' ? 'selected' : ''}>Dismiss Discovery</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 2px;">Target Question Branch</label>
+              <input type="text" class="ans-target" value="${branchTarget}" placeholder="Target Question ID (or Next)" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream); font-family: monospace;">
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.insertAdjacentHTML('beforeend', rowHtml);
+    }
+
+    async function saveVibeQuestQuestionFromModal() {
+      if (!vibeQuestDraft) return;
+
+      const qId = document.getElementById('vqFormId').value.trim();
+      const stage = document.getElementById('vqFormStage').value;
+      const title = document.getElementById('vqFormTitle').value.trim();
+      const order = Number(document.getElementById('vqFormOrder').value) || 1;
+      const qText = document.getElementById('vqFormText').value.trim();
+      const helper = document.getElementById('vqFormHelper').value.trim();
+      const active = document.getElementById('vqFormActive').checked;
+      const skippable = document.getElementById('vqFormSkippable').checked;
+      const repeat = document.getElementById('vqFormRepeat').value;
+
+      if (!qId || !qText) {
+        alert('Please fill in required fields: Question ID and Prompt text.');
+        return;
+      }
+
+      // Collect answers
+      const answerRows = document.querySelectorAll('.vq-answer-row');
+      const answers = [];
+      answerRows.forEach((row, idx) => {
+        const aId = row.querySelector('.ans-id').value.trim() || `ans_${idx + 1}`;
+        const aEmoji = row.querySelector('.ans-emoji').value.trim() || '✨';
+        const aLabel = row.querySelector('.ans-label').value.trim();
+        const aSubtext = row.querySelector('.ans-subtext').value.trim();
+        const aSignalsRaw = row.querySelector('.ans-signals').value.trim();
+        const aSignals = aSignalsRaw ? aSignalsRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean) : [];
+        const aProduct = row.querySelector('.ans-product').value;
+        const aDest = row.querySelector('.ans-destination').value;
+        const aTarget = row.querySelector('.ans-target').value.trim();
+
+        if (aLabel) {
+          const ansObj = {
+            id: aId,
+            label: aLabel,
+            emoji: aEmoji,
+            subtext: aSubtext || undefined,
+            preference_signals: aSignals,
+            destination: aDest !== 'default' ? aDest : undefined,
+            curated_product_ids: aProduct ? [aProduct] : [],
+          };
+          if (aTarget) {
+            ansObj.branching_rules = [{
+              condition: { type: 'always' },
+              target_question_id: aTarget
+            }];
+          }
+          answers.push(ansObj);
+        }
+      });
+
+      if (answers.length === 0) {
+        alert('Please add at least one answer option for customers to tap.');
+        return;
+      }
+
+      const newQ = {
+        id: qId,
+        stage,
+        title: title || qText,
+        question_text: qText,
+        helper_text: helper || undefined,
+        order,
+        active,
+        skippable,
+        repeat_policy: repeat,
+        answers
+      };
+
+      if (!vibeQuestDraft.questions) vibeQuestDraft.questions = [];
+      const existingIdx = vibeQuestDraft.questions.findIndex(x => x.id === qId);
+      if (existingIdx >= 0) {
+        vibeQuestDraft.questions[existingIdx] = newQ;
+      } else {
+        vibeQuestDraft.questions.push(newQ);
+      }
+
+      // Save to server
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/vibe-quest/admin/draft`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ draft: vibeQuestDraft })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeVibeQuestQuestionModal();
+          renderVibeQuestPage();
+        } else {
+          alert(`Error saving question: ${data.error || 'Unknown error'}`);
+        }
+      } catch (err) {
+        alert(`Failed to save question: ${err.message}`);
+      }
+    }
+
+    async function duplicateVibeQuestQuestion(qId) {
+      if (!vibeQuestDraft?.questions) return;
+      const orig = vibeQuestDraft.questions.find(x => x.id === qId);
+      if (!orig) return;
+
+      const clone = JSON.parse(JSON.stringify(orig));
+      clone.id = `${orig.id}_copy_${Date.now().toString(36).substring(3, 7)}`;
+      clone.title = `${orig.title || orig.question_text} (Copy)`;
+      clone.order = (orig.order ?? 1) + 1;
+
+      vibeQuestDraft.questions.push(clone);
+      await saveDraftToServer();
+    }
+
+    async function deleteVibeQuestQuestion(qId) {
+      if (!confirm(`Are you sure you want to delete question "${qId}"?`)) return;
+      if (!vibeQuestDraft?.questions) return;
+      vibeQuestDraft.questions = vibeQuestDraft.questions.filter(x => x.id !== qId);
+      await saveDraftToServer();
+    }
+
+    async function moveVibeQuestQuestion(qId, direction) {
+      if (!vibeQuestDraft?.questions) return;
+      const list = [...vibeQuestDraft.questions].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const idx = list.findIndex(x => x.id === qId);
+      if (idx < 0) return;
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= list.length) return;
+
+      // Swap orders
+      const tempOrder = list[idx].order ?? (idx + 1);
+      list[idx].order = list[targetIdx].order ?? (targetIdx + 1);
+      list[targetIdx].order = tempOrder;
+
+      vibeQuestDraft.questions = list;
+      await saveDraftToServer();
+    }
+
+    async function saveDraftToServer() {
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/vibe-quest/admin/draft`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ draft: vibeQuestDraft })
+        });
+        const data = await res.json();
+        if (data.success) {
+          renderVibeQuestPage();
+        } else {
+          alert(`Failed to save draft changes: ${data.error || 'Unknown error'}`);
+        }
+      } catch (err) {
+        alert(`Save failed: ${err.message}`);
+      }
+    }
+
+    // ── SIMULATOR ENGINE ──
+
+    function openVibeQuestSimulatorModal() {
+      const modal = document.getElementById('vqSimulatorModal');
+      if (!modal) return;
+      resetSimulation();
+      modal.style.display = 'flex';
+      setSimulatedStage('hookah');
+    }
+
+    function closeVibeQuestSimulatorModal() {
+      const modal = document.getElementById('vqSimulatorModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function resetSimulation() {
+      simAnswers = {};
+      simSignals = [];
+      simCart = [];
+      const dCheck = document.getElementById('simCartHasDessert');
+      const dakuCheck = document.getElementById('simCartHasDaku');
+      if (dCheck) dCheck.checked = false;
+      if (dakuCheck) dakuCheck.checked = false;
+      simQuestionId = null;
+      renderSimulationView();
+    }
+
+    function setSimulatedStage(stage) {
+      simStage = stage;
+      ['hookah', 'food', 'dessert', 'drinks', 'checkout'].forEach(s => {
+        const btn = document.getElementById(`simStage-${s}`);
+        if (btn) {
+          if (s === stage) {
+            btn.style.background = 'var(--gold)';
+            btn.style.color = '#000';
+          } else {
+            btn.style.background = 'var(--card2)';
+            btn.style.color = 'var(--cream)';
+          }
+        }
+      });
+
+      // Find first question in stage
+      if (vibeQuestDraft?.questions) {
+        const qList = vibeQuestDraft.questions.filter(x => x.stage === stage && x.active !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        simQuestionId = qList.length > 0 ? qList[0].id : null;
+      }
+      renderSimulationView();
+    }
+
+    function renderSimulationView() {
+      const screenBox = document.getElementById('simScreenContainer');
+      const recsBox = document.getElementById('simRecsContainer');
+      if (!screenBox || !vibeQuestDraft) return;
+
+      const hasDessert = document.getElementById('simCartHasDessert')?.checked;
+      const hasDaku = document.getElementById('simCartHasDaku')?.checked;
+
+      // Check dessert suppression
+      if (simStage === 'dessert' && hasDessert) {
+        screenBox.innerHTML = `
+          <div style="text-align: center; padding: 24px; color: #10B981;">
+            <div style="font-size: 32px; margin-bottom: 6px;">🍨</div>
+            <div style="font-size: 15px; font-weight: 800;">Dessert Discovery Suppressed</div>
+            <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Rule verified: Customer already has a qualifying dessert in their cart!</div>
+          </div>
+        `;
+        if (recsBox) recsBox.innerHTML = '';
+        return;
+      }
+
+      const q = (vibeQuestDraft.questions || []).find(x => x.id === simQuestionId);
+      if (!q) {
+        screenBox.innerHTML = `
+          <div style="text-align: center; padding: 24px; color: var(--muted);">
+            <div style="font-size: 28px; margin-bottom: 6px;">✨</div>
+            <div style="font-size: 14px; font-weight: 800; color: var(--cream);">No more questions in stage "${simStage.toUpperCase()}"</div>
+            <div style="font-size: 11px; margin-top: 4px;">Discovery complete or dismissed for this step.</div>
+          </div>
+        `;
+        renderSimulatedRecommendations();
+        return;
+      }
+
+      let answersHtml = '';
+      (q.answers || []).forEach(ans => {
+        answersHtml += `
+          <button class="btn" onclick="simSelectAnswer('${q.id}', '${ans.id}')" style="background: #27272A; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 14px; text-align: left; display: flex; align-items: center; gap: 10px; width: 100%; transition: border-color 0.2s;">
+            <span style="font-size: 20px;">${ans.emoji || '✨'}</span>
+            <div style="flex: 1;">
+              <div style="font-size: 13px; font-weight: 800; color: #FFF;">${ans.label}</div>
+              ${ans.subtext ? `<div style="font-size: 11px; color: #94A3B8;">${ans.subtext}</div>` : ''}
+            </div>
+            ${ans.destination ? `<span style="font-size: 10px; color: #F59E0B; font-weight: 700;">➡️ ${ans.destination}</span>` : ''}
+          </button>
+        `;
+      });
+
+      screenBox.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="background: rgba(245,158,11,0.2); color: #F59E0B; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px;">✨ CAVALLI VIBE QUEST</span>
+            <span style="background: #27272A; color: #94A3B8; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px;">${q.stage.toUpperCase()}</span>
+          </div>
+          <button class="btn" onclick="simSkipQuestion('${q.id}')" style="padding: 2px 8px; font-size: 11px; color: #94A3B8;">Skip ⏩</button>
+        </div>
+
+        <div style="font-size: 17px; font-weight: 800; color: #F8FAFC; margin-bottom: 4px;">
+          ${q.question_text || q.title}
+        </div>
+        ${q.helper_text ? `<div style="font-size: 12px; color: #94A3B8; margin-bottom: 14px;">${q.helper_text}</div>` : '<div style="margin-bottom: 14px;"></div>'}
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${answersHtml}
+        </div>
+      `;
+
+      renderSimulatedRecommendations();
+    }
+
+    function simSelectAnswer(qId, aId) {
+      if (!vibeQuestDraft?.questions) return;
+      const q = vibeQuestDraft.questions.find(x => x.id === qId);
+      if (!q) return;
+      const ans = (q.answers || []).find(x => x.id === aId);
+      if (!ans) return;
+
+      simAnswers[qId] = [aId];
+      if (ans.preference_signals) {
+        simSignals = [...new Set([...simSignals, ...ans.preference_signals])];
+      }
+
+      // Check destination
+      if (ans.destination === 'dismiss') {
+        simQuestionId = null;
+        renderSimulationView();
+        return;
+      }
+
+      // Check branching rules
+      if (ans.branching_rules && ans.branching_rules.length > 0) {
+        const nextId = ans.branching_rules[0].target_question_id;
+        if (nextId) {
+          simQuestionId = nextId;
+          renderSimulationView();
+          return;
+        }
+      }
+
+      // Else find next question in stage
+      const stageQuestions = vibeQuestDraft.questions.filter(x => x.stage === q.stage && x.active !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const currIdx = stageQuestions.findIndex(x => x.id === qId);
+      if (currIdx >= 0 && currIdx < stageQuestions.length - 1) {
+        simQuestionId = stageQuestions[currIdx + 1].id;
+      } else {
+        simQuestionId = null;
+      }
+
+      renderSimulationView();
+    }
+
+    function simSkipQuestion(qId) {
+      if (!vibeQuestDraft?.questions) return;
+      const q = vibeQuestDraft.questions.find(x => x.id === qId);
+      if (!q) return;
+
+      const stageQuestions = vibeQuestDraft.questions.filter(x => x.stage === q.stage && x.active !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const currIdx = stageQuestions.findIndex(x => x.id === qId);
+      if (currIdx >= 0 && currIdx < stageQuestions.length - 1) {
+        simQuestionId = stageQuestions[currIdx + 1].id;
+      } else {
+        simQuestionId = null;
+      }
+      renderSimulationView();
+    }
+
+    function renderSimulatedRecommendations() {
+      const container = document.getElementById('simRecsContainer');
+      if (!container || !menuItems || menuItems.length === 0) return;
+
+      // Find curated products from chosen answers
+      let curatedIds = [];
+      Object.keys(simAnswers).forEach(qId => {
+        const aIds = simAnswers[qId] || [];
+        const q = vibeQuestDraft?.questions?.find(x => x.id === qId);
+        if (q) {
+          (q.answers || []).forEach(a => {
+            if (aIds.includes(a.id) && a.curated_product_ids) {
+              curatedIds.push(...a.curated_product_ids);
+            }
+          });
+        }
+      });
+
+      // Filter products for stage
+      let stageCategory = simStage === 'dessert' ? 'CAT_DESSERTS' : simStage;
+      let recs = [];
+
+      curatedIds.forEach(pId => {
+        const item = menuItems.find(m => (m.id || m._id) === pId);
+        if (item && !recs.some(r => (r.id || r._id) === (item.id || item._id))) {
+          recs.push(item);
+        }
+      });
+
+      if (recs.length === 0) {
+        // Fallback: items in category
+        recs = menuItems.filter(m => (m.category || m.category_id || '').toLowerCase().includes(simStage)).slice(0, 3);
+      }
+
+      if (recs.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      let html = `
+        <div style="background: var(--card2); border: 1.5px solid var(--gold); border-radius: 14px; padding: 14px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="font-size: 13px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px;">
+              <span>✨</span> Simulated Recommendation Picks (${recs.length})
+            </div>
+            ${simSignals.length > 0 ? `<div style="font-size: 10px; color: var(--muted);">Signals: ${simSignals.join(', ')}</div>` : ''}
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+      `;
+
+      recs.slice(0, 3).forEach(item => {
+        html += `
+          <div style="background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+              <span style="font-weight: 800; font-size: 12px; color: var(--cream);">${item.name}</span>
+              <span style="font-weight: 800; font-size: 12px; color: var(--gold);">$${Number(item.price).toFixed(2)}</span>
+            </div>
+            <div style="font-size: 10px; color: var(--muted);">${item.description || 'Delicious selection'}</div>
+          </div>
+        `;
+      });
+
+      html += '</div></div>';
+      container.innerHTML = html;
+    }
+
+    // ── ANALYTICS ENGINE ──
+
+    async function openVibeQuestAnalyticsModal() {
+      const modal = document.getElementById('vqAnalyticsModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+
+      try {
+        const headers = getAuthHeaders();
+        const res = await fetch(`${API_URL}/api/vibe-quest/admin/analytics`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.summary) {
+            const s = data.summary;
+            document.getElementById('vqStatShown').innerText = s.question_shown || 0;
+            document.getElementById('vqStatAnswered').innerText = s.question_answered || 0;
+            document.getElementById('vqStatSkipped').innerText = (s.question_skipped || 0) + (s.question_dismissed || 0);
+            document.getElementById('vqStatSelected').innerText = s.recommendation_selected || 0;
+            document.getElementById('vqStatCart').innerText = s.recommendation_added_to_cart || 0;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not load analytics:', err);
+      }
+    }
+
+    function closeVibeQuestAnalyticsModal() {
+      const modal = document.getElementById('vqAnalyticsModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    switchTab('kds');
+  });
   </script>
 </body>
 </html>
