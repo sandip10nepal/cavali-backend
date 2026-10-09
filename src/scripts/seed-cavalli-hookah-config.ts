@@ -34,7 +34,7 @@ const HOOKAH_FLAVORS_DATABASE = [
   { id: 'flv_guava_21', name: 'Guava', brand: 'Afzal', category: 'afzal', description: 'Fragrant sweet pink tropical guava', color: '#10B981', emoji: '🍈', available: true },
   { id: 'flv_mixed_fruit_22', name: 'Mixed Fruit', brand: 'Afzal', category: 'afzal', description: 'Rich orchard and tropical fruit medley', color: '#10B981', emoji: '🍓', available: true },
   { id: 'flv_choco_crackle_23', name: 'Choco Crackle', brand: 'Afzal', category: 'afzal', description: 'Rich velvety chocolate crunch', color: '#10B981', emoji: '🍫', available: true },
-  { id: 'flv_1001_nights_24', name: '1001 Nights', brand: 'Afzal', category: 'afzal', description: 'Exotic Arabian spiced fruit night blend', color: '#10B981', emoji: '✨', available: true },
+  { id: 'flv_1001_nights_24', name: '1001 Nights', brand: 'Afzal', category: 'afzal', description: 'Exotic Arabian spiced fruit night blend', color: '#10B981', emoji: '🌙', available: true },
   { id: 'flv_chief_commissioner_25', name: 'Chief Commissioner', brand: 'Afzal', category: 'afzal', description: 'Strong royal spiced blend with paan notes', color: '#10B981', emoji: '🎖️', available: true },
 
   // ── AL FAKHAR (23 FLAVORS) ──

@@ -33,7 +33,7 @@ const brandsData = {
     { name: "Guava", emoji: "🍈", desc: "Fragrant sweet pink tropical guava", color: "#10B981" },
     { name: "Mixed Fruit", emoji: "🍓", desc: "Rich orchard and tropical fruit medley", color: "#10B981" },
     { name: "Choco Crackle", emoji: "🍫", desc: "Rich velvety chocolate crunch", color: "#10B981" },
-    { name: "1001 Nights", emoji: "✨", desc: "Exotic Arabian spiced fruit night blend", color: "#10B981" },
+    { name: "1001 Nights", emoji: "🌙", desc: "Exotic Arabian spiced fruit night blend", color: "#10B981" },
     { name: "Chief Commissioner", emoji: "🎖️", desc: "Strong royal spiced blend with paan notes", color: "#10B981" }
   ],
   "Al Fakhar": [
