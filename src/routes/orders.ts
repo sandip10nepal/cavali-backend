@@ -159,9 +159,9 @@ function classifyOrderItem(item: any): 'hookah' | 'drinks' | 'food' {
     cat.includes('hookah') ||
     cat.includes('shisha') ||
     item.is_hookah === true ||
-    item.flavor !== undefined ||
-    item.iceHose !== undefined ||
-    item.iceBase !== undefined ||
+    (item.flavor !== undefined && item.flavor !== null && item.flavor !== '') ||
+    item.iceHose === true ||
+    item.iceBase === true ||
     emoji === '💨' || emoji === '🧪' ||
     name.includes('hookah') ||
     name.includes('shisha') ||
@@ -823,11 +823,11 @@ router.post('/:orderId/assign', async (req, res) => {
     if (req.body.caller_name) callerName = req.body.caller_name;
     if (req.body.caller_role) callerRole = req.body.caller_role;
 
-    const canAssign = ['owner', 'manager', 'platform_admin', 'admin', 'host'].includes(callerRole.toLowerCase()) || (await isManagerOrOwner(req));
+    const canAssign = ['owner', 'manager', 'platform_admin', 'admin', 'host', 'server'].includes(callerRole.toLowerCase()) || (await isManagerOrOwner(req));
     if (!canAssign) {
       return res.status(403).json({
         success: false,
-        message: 'Forbidden: Only managers and hosts can assign tables. Regular servers cannot assign tables.'
+        message: 'Forbidden: You do not have permission to assign tables.'
       });
     }
 

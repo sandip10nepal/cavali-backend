@@ -36,14 +36,17 @@ function HouseMixItemCard(props) {
   var iceHose = iceHoseState[0];
   var setIceHose = iceHoseState[1];
 
-  var totalPrice = item.price + (iceBase ? 2 : 0) + (iceHose ? 6 : 0);
+  var isDaku = (item.name || "").toLowerCase().includes("daku");
+  var iceBasePrice = isDaku ? 0 : 2;
+  var iceHosePrice = isDaku ? 0 : 6;
+  var totalPrice = item.price + (iceBase ? iceBasePrice : 0) + (iceHose ? iceHosePrice : 0);
 
   // Directly adds to cart with the selected Ice Base & Ice Hose add-ons!
   var handleAdd = function(e) {
     if (e && e.stopPropagation) e.stopPropagation();
     var selectedOpts = [];
-    if (iceBase) selectedOpts.push({ id: "OPT_ICE_BASE", name: "Ice Base", price: 2 });
-    if (iceHose) selectedOpts.push({ id: "OPT_ICE_HOSE", name: "Ice Hose", price: 6 });
+    if (iceBase) selectedOpts.push({ id: "OPT_ICE_BASE", name: "Ice Base", price: iceBasePrice });
+    if (iceHose) selectedOpts.push({ id: "OPT_ICE_HOSE", name: "Ice Hose", price: iceHosePrice });
     if (onAddToCart) {
       onAddToCart(item, 1, selectedOpts);
     }
@@ -133,7 +136,7 @@ function HouseMixItemCard(props) {
                   fontSize: isMobile ? 11 : 12,
                   fontWeight: "900"
                 },
-                children: iceBase ? "✓ ICE BASE +$2" : "+ ICE BASE $2"
+                children: iceBase ? "✓ ICE BASE +$" + iceBasePrice : "+ ICE BASE $" + iceBasePrice
               })
             ]
           }),
@@ -166,7 +169,7 @@ function HouseMixItemCard(props) {
                   fontSize: isMobile ? 11 : 12,
                   fontWeight: "900"
                 },
-                children: iceHose ? "✓ ICE HOSE +$6" : "+ ICE HOSE $6"
+                children: iceHose ? "✓ ICE HOSE +$" + iceHosePrice : "+ ICE HOSE $" + iceHosePrice
               })
             ]
           })
@@ -280,13 +283,16 @@ function HostHookahCard(props) {
   var iceHose = iceHoseState[0];
   var setIceHose = iceHoseState[1];
 
-  var totalPrice = e.price + (iceBase ? 2 : 0) + (iceHose ? 6 : 0);
+  var isDaku = (e.name || "").toLowerCase().includes("daku");
+  var iceBasePrice = isDaku ? 0 : 2;
+  var iceHosePrice = isDaku ? 0 : 6;
+  var totalPrice = e.price + (iceBase ? iceBasePrice : 0) + (iceHose ? iceHosePrice : 0);
 
   var handleAdd = function(ev) {
     if (ev && ev.stopPropagation) ev.stopPropagation();
     var selectedOpts = [];
-    if (iceBase) selectedOpts.push({ id: "OPT_ICE_BASE", name: "Ice Base", price: 2 });
-    if (iceHose) selectedOpts.push({ id: "OPT_ICE_HOSE", name: "Ice Hose", price: 6 });
+    if (iceBase) selectedOpts.push({ id: "OPT_ICE_BASE", name: "Ice Base", price: iceBasePrice });
+    if (iceHose) selectedOpts.push({ id: "OPT_ICE_HOSE", name: "Ice Hose", price: iceHosePrice });
     if (k) {
       k(e, 1, selectedOpts);
     }
@@ -403,7 +409,7 @@ function HostHookahCard(props) {
                   fontSize: A ? 11 : 12,
                   fontWeight: "900"
                 },
-                children: iceBase ? "✓ ICE BASE +$2" : "+ ICE BASE $2"
+                children: iceBase ? "✓ ICE BASE +$" + iceBasePrice : "+ ICE BASE $" + iceBasePrice
               })
             ]
           }),
@@ -436,7 +442,7 @@ function HostHookahCard(props) {
                   fontSize: A ? 11 : 12,
                   fontWeight: "900"
                 },
-                children: iceHose ? "✓ ICE HOSE +$6" : "+ ICE HOSE $6"
+                children: iceHose ? "✓ ICE HOSE +$" + iceHosePrice : "+ ICE HOSE $" + iceHosePrice
               })
             ]
           })

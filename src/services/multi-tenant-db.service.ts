@@ -290,9 +290,10 @@ export class MultiTenantDbService {
         this.db.collection<any>(COLLECTIONS.tables).createIndex({ restaurant_id: 1, number: 1 }),
         this.db.collection<any>(COLLECTIONS.menu_categories).createIndex({ restaurant_id: 1, sort_order: 1 }),
         this.db.collection<any>(COLLECTIONS.menu_items).createIndex({ restaurant_id: 1, category_id: 1 }),
+        this.db.collection<any>(COLLECTIONS.menu_items).dropIndex('uniq_restaurant_cat_item_name').catch(() => {}),
         this.db.collection<any>(COLLECTIONS.menu_items).createIndex(
           { restaurant_id: 1, category_id: 1, name: 1 },
-          { name: 'uniq_restaurant_cat_item_name', unique: true, collation: { locale: 'en', strength: 2 } }
+          { name: 'uniq_restaurant_cat_item_name', collation: { locale: 'en', strength: 2 } }
         ),
         this.db.collection<any>(COLLECTIONS.orders).createIndex({ restaurant_id: 1, status: 1 }),
         this.db.collection<any>(COLLECTIONS.orders).createIndex({ restaurant_id: 1, idempotency_key: 1 }),
@@ -2081,7 +2082,16 @@ export class MultiTenantDbService {
           { category_ids: new RegExp(`^${categoryId}$`, 'i') }
         ];
       }
-      const mongoDocs = await db.collection<any>(COLLECTIONS.menu_items).find(query as any).toArray();
+      const [mongoDocs, inventory] = await Promise.all([
+        db.collection<any>(COLLECTIONS.menu_items).find(query as any).toArray(),
+        this.listInventory(targetId)
+      ]);
+      const inventoryMap = new Map();
+      inventory.forEach(inv => {
+        inventoryMap.set(String(inv._id || (inv as any).id), inv);
+        if (inv.name) inventoryMap.set(inv.name.toLowerCase(), inv);
+      });
+
       return mongoDocs.map(i => {
         const isHookah = (i.category === 'hookah' || String(i.category_id || '').toLowerCase().includes('hookah') || i.subcategory === 'House Mixes' || /cavalli crush|shah jahan|habibi nights|kashmiri chai|anarkali|white king|zaalim|shokha|dubai nights|dragon/i.test(i.name || ''));
         const mods = i.modifier_groups || i.modifierGroups || (isHookah ? hookahModifiers : []);
@@ -2101,7 +2111,25 @@ export class MultiTenantDbService {
           modifier_groups: mods,
           modifierGroups: mods,
           active: i.active !== false,
-          available: i.available !== false,
+          available: (function() {
+            if (i.available === false) return false;
+            let isAvail = true;
+            if (Array.isArray(i.recipe) && i.recipe.length > 0) {
+              for (const r of i.recipe) {
+                const inv = inventoryMap.get(String(r.ingredient_id)) || (r.ingredient_id ? inventoryMap.get(String(r.ingredient_id).toLowerCase()) : null);
+                if (inv && (inv.stock || 0) < (r.quantity || 0)) {
+                  isAvail = false;
+                  break;
+                }
+              }
+            } else if (isHookah) {
+              const inv = inventoryMap.get(String(i._id)) || (i.name ? inventoryMap.get(String(i.name).toLowerCase()) : null);
+              if (inv && (inv.stock || 0) <= 0) {
+                isAvail = false;
+              }
+            }
+            return isAvail;
+          })(),
         } as unknown as MenuItemModel;
       }).sort(sortFn);
     }
@@ -2113,6 +2141,14 @@ export class MultiTenantDbService {
         return (i.category_id || i.category || '').toLowerCase() === categoryId.toLowerCase() || catIds.includes(categoryId.toLowerCase());
       });
     }
+
+    const inventory = await this.listInventory(targetId);
+    const inventoryMap = new Map();
+    inventory.forEach(inv => {
+      inventoryMap.set(String(inv._id || (inv as any).id), inv);
+      if (inv.name) inventoryMap.set(inv.name.toLowerCase(), inv);
+    });
+
     return items.map(i => {
       const isHookah = (i.category === 'hookah' || String(i.category_id || '').toLowerCase().includes('hookah') || (i as any).subcategory === 'House Mixes' || /cavalli crush|shah jahan|habibi nights|kashmiri chai|anarkali|white king|zaalim|shokha|dubai nights|dragon/i.test(i.name || ''));
       const mods = (i as any).modifier_groups || (i as any).modifierGroups || (isHookah ? hookahModifiers : []);
@@ -2129,7 +2165,25 @@ export class MultiTenantDbService {
         modifier_groups: mods,
         modifierGroups: mods,
         active: i.active !== false,
-        available: i.available !== false,
+        available: (function() {
+          if (i.available === false) return false;
+          let isAvail = true;
+          if (Array.isArray((i as any).recipe) && (i as any).recipe.length > 0) {
+            for (const r of (i as any).recipe) {
+              const inv = inventoryMap.get(String(r.ingredient_id)) || (r.ingredient_id ? inventoryMap.get(String(r.ingredient_id).toLowerCase()) : null);
+              if (inv && (inv.stock || 0) < (r.quantity || 0)) {
+                isAvail = false;
+                break;
+              }
+            }
+          } else if (isHookah) {
+            const inv = inventoryMap.get(String(i._id || (i as any).id)) || (i.name ? inventoryMap.get(String(i.name).toLowerCase()) : null);
+            if (inv && (inv.stock || 0) <= 0) {
+              isAvail = false;
+            }
+          }
+          return isAvail;
+        })(),
       };
     }).sort(sortFn);
   }

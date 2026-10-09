@@ -132,6 +132,19 @@ export class OrderService {
       }
     }
 
+    // Validate Custom Mix Percentages
+    const allItemsToValidate = [...(orderData.items || []), ...(orderData.food || []), ...(orderData.hookahs || [])];
+    allItemsToValidate.forEach((cartLine: any) => {
+      const it = cartLine.item || cartLine;
+      if (it && Array.isArray(it.recipe) && String(it.id || it._id).startsWith('custom_mix')) {
+        // total should be 20g for 100%
+        const totalQty = it.recipe.reduce((sum: number, r: any) => sum + (Number(r.quantity || r.amount) || 0), 0);
+        if (Math.abs(totalQty - 20) > 0.1) {
+          throw new ValidationError('Custom hookah mix flavors must exactly sum up to 100%.');
+        }
+      }
+    });
+
     const finances = calculateOrderFinances(orderData);
 
     // Enrich generic soft drink items with specific flavor names

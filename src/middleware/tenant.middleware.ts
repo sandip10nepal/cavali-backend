@@ -30,7 +30,7 @@ declare global {
  * Returns 401 if no valid token is found.
  */
 export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const authHeader = req.headers.authorization;
+  const authHeader = req?.headers?.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     res.status(401).json({ success: false, error: 'Authentication required. Provide a Bearer token.' });
@@ -82,7 +82,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
  * Useful for public endpoints that behave differently for authenticated users.
  */
 export function optionalAuth(req: Request, res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization;
+  const authHeader = req?.headers?.authorization;
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
@@ -189,7 +189,7 @@ export async function resolveTenantRestaurantId(req: Request): Promise<string | 
   // 1. Authenticated JWT Context
   if (req.tenant?.restaurant_id) return req.tenant.restaurant_id;
 
-  const authHeader = req.headers?.authorization;
+  const authHeader = req?.headers?.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     const payload = AuthService.verifyToken(token);

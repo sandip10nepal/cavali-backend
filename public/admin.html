@@ -1825,9 +1825,7 @@
 
       <!-- ADDONS TAB -->
       <div id="hkTab-addons" style="display: none;">
-        <div style="font-size: 11px; color: var(--gold); background: rgba(229,177,58,0.1); border: 1px solid rgba(229,177,58,0.25); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; line-height: 1.4;">
-          ⚠️ <strong>Note:</strong> Ice Base and Ice Hose are selectable customer options. They are <strong>never</strong> automatically selected or charged by default.
-        </div>
+
         <div style="background: rgba(0,102,255,0.06); border: 1px dashed rgba(0,102,255,0.3); border-radius: 10px; padding: 12px; margin-bottom: 16px;">
           <div style="font-size: 12px; font-weight: 800; color: #60a5fa; margin-bottom: 8px;">➕ ADD HOOKAH ADD-ON</div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -1861,9 +1859,13 @@
               <input type="number" step="0.5" id="hkDakuPrice" value="65.00" style="width: 100%; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; color: var(--gold); font-size: 14px; font-weight: 800;">
             </div>
           </div>
-          <div>
+          <div style="margin-bottom: 12px;">
             <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Description / Perks</label>
             <input type="text" id="hkDakuDesc" value="Unlimited head refill" style="width: 100%; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Poster Image URL</label>
+            <input type="text" id="hkDakuImage" placeholder="https://..." style="width: 100%; padding: 8px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
           </div>
         </div>
       </div>
@@ -2640,12 +2642,25 @@
       let rawFood = Array.isArray(order.food) ? [...order.food] : [];
       let rawDrinks = Array.isArray(order.drinks) ? [...order.drinks] : [];
 
-      if (Array.isArray(order.items) && order.items.length > 0) {
-        order.items.forEach(it => {
+      const isHookahFn = (it) => {
           const cat = (it.category || '').toLowerCase();
           const name = (it.name || '').toLowerCase();
-          const isHookah = cat === 'hookah' || name.includes('hookah') || it.emoji === '💨' || it.emoji === '🧪';
-          const isDrink = cat === 'drinks' || cat === 'beverage' || name.includes('drink') || name.includes('water') || name.includes('cola') || name.includes('soda') || name.includes('red bull') || it.emoji === '🥤' || it.emoji === '🍹' || it.emoji === '🍸';
+          return cat === 'hookah' || name.includes('hookah') || it.emoji === '💨' || it.emoji === '🧪';
+      };
+      const isDrinkFn = (it) => {
+          const cat = (it.category || '').toLowerCase();
+          const name = (it.name || '').toLowerCase();
+          return cat === 'drinks' || cat === 'beverage' || name.includes('drink') || name.includes('water') || name.includes('cola') || name.includes('soda') || name.includes('red bull') || it.emoji === '🥤' || it.emoji === '🍹' || it.emoji === '🍸';
+      };
+
+      rawFood = rawFood.filter(it => !isHookahFn(it) && !isDrinkFn(it));
+      rawDrinks = rawDrinks.filter(it => isDrinkFn(it) && !isHookahFn(it));
+      rawHookahs = rawHookahs.filter(it => isHookahFn(it));
+
+      if (Array.isArray(order.items) && order.items.length > 0) {
+        order.items.forEach(it => {
+          const isHookah = isHookahFn(it);
+          const isDrink = isDrinkFn(it);
           
           if (isHookah) {
             const alreadyInHookahs = rawHookahs.some(h => (h.flavor?.name || h.name) === it.name);
@@ -2773,7 +2788,7 @@
       const myId = localStorage.getItem('benzin_user_id') || '';
       const myName = localStorage.getItem('benzin_user_name') || 'Me';
       const myRole = (localStorage.getItem('benzin_user_role') || 'server').toLowerCase();
-      const canAssign = ['owner', 'manager', 'platform_admin', 'admin', 'host'].includes(myRole);
+      const canAssign = ['owner', 'manager', 'platform_admin', 'admin', 'host', 'server'].includes(myRole);
 
       let serverBadgeHtml = '';
       if (!isFulfilledOrder) {
@@ -4850,8 +4865,8 @@
           flavCont.innerHTML = flavors.map((f, i) => `
             <div style="display:flex; justify-content:space-between; align-items:center; background:var(--card2); border:1px solid var(--line); border-radius:10px; padding:10px 14px;">
               <div style="flex:1;">
-                <div style="font-weight:800; font-size:13px; color:var(--cream);">${escapeHtml(f.name)}</div>
-                <div style="font-size:11px; color:var(--teal); font-weight:700;">${escapeHtml(f.category || 'Standard')}</div>
+                <input type="text" value="${escapeHtml(f.name)}" onchange="updateHookahFlavor(${i}, 'name', this.value)" style="background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.1); color:var(--cream); font-weight:800; font-size:13px; outline:none; width:90%; margin-bottom:4px;" placeholder="Flavor Name">
+                <input type="text" value="${escapeHtml(f.category || 'Standard')}" onchange="updateHookahFlavor(${i}, 'category', this.value)" style="background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.1); color:var(--teal); font-weight:700; font-size:11px; outline:none; width:90%;" placeholder="Category (e.g. Standard)">
               </div>
               <div style="display:flex; align-items:center; gap:12px;">
                 <label style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; color:var(--muted); cursor:pointer;">
@@ -4898,10 +4913,12 @@
         const priceInput = document.getElementById('hkDakuPrice');
         const descInput = document.getElementById('hkDakuDesc');
         const activeCheck = document.getElementById('hkDakuActive');
+        const imageInput = document.getElementById('hkDakuImage');
         if (nameInput) nameInput.value = dakuPkg.name || 'Daku';
         if (priceInput) priceInput.value = dakuPkg.price || 65;
         if (descInput) descInput.value = dakuPkg.description || 'Unlimited head refill';
         if (activeCheck) activeCheck.checked = dakuPkg.active !== false;
+        if (imageInput) imageInput.value = dakuPkg.image_url || '';
       }
     }
 
@@ -4971,6 +4988,16 @@
       }
     }
 
+    function updateHookahFlavor(index, field, value) {
+      if (currentHookahConfig.flavors && currentHookahConfig.flavors[index]) {
+        currentHookahConfig.flavors[index][field] = value.trim();
+        // optionally update ID if name changes
+        if (field === 'name') {
+           currentHookahConfig.flavors[index].id = value.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+        }
+      }
+    }
+
     function addHookahAddonRow() {
       const nameInput = document.getElementById('newHkAddonName');
       const priceInput = document.getElementById('newHkAddonPrice');
@@ -5001,12 +5028,14 @@
         const price = parseFloat(document.getElementById('hkDakuPrice')?.value || '65') || 65;
         const description = document.getElementById('hkDakuDesc')?.value.trim() || 'Unlimited head refill';
         const active = document.getElementById('hkDakuActive')?.checked !== false;
+        const image_url = document.getElementById('hkDakuImage')?.value.trim() || '';
 
         currentHookahConfig.packages = [{
           id: 'daku',
           name,
           price,
           description,
+          image_url,
           includes_refill: true,
           active
         }];
@@ -5022,7 +5051,9 @@
           alert('✓ Hookah configuration saved successfully!');
           closeHookahConfigModal();
         } else {
-          alert('Could not save hookah config: ' + (data.error || 'Server error'));
+          console.error('Save hookah config error:', data.error);
+          const errMsg = typeof data.error === 'object' ? JSON.stringify(data.error) : (data.error || data.message || 'Server error');
+          alert('Could not save hookah config: ' + errMsg);
         }
       } catch (err) {
         alert('Error saving hookah config: ' + err.message);

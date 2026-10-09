@@ -274,8 +274,7 @@ function HookahMixLabModal(props) {
                   }),
                   JsxRuntime.jsxs(View, {
                     children: [
-                      JsxRuntime.jsx(Text, { style: [styles.headerTitle, { color: w.textColor, fontSize: isMobile ? 15 : 18 }], children: "CUSTOM HOOKAH FLAVOR LAB" }),
-                      JsxRuntime.jsx(Text, { style: { color: "#E5B13A", fontSize: 11, fontWeight: "800" }, children: "$25.00 BASE • SELECT UP TO 5 FLAVORS" })
+                      JsxRuntime.jsx(Text, { style: [styles.headerTitle, { color: w.textColor, fontSize: isMobile ? 15 : 18 }], children: "CUSTOM HOOKAH FLAVOR LAB" })
                     ]
                   })
                 ]
@@ -426,8 +425,7 @@ function HookahMixLabModal(props) {
                                         children: JsxRuntime.jsx(Text, { style: styles.brandMiniBadgeText, children: flv.brand })
                                       })
                                     ]
-                                  }),
-                                  JsxRuntime.jsx(Text, { style: [styles.flavorDesc, { color: w.mutedTextColor, fontSize: 10 }], numberOfLines: 1, children: flv.description })
+                                  })
                                 ]
                               }),
                               JsxRuntime.jsx(TouchableOpacity, {
@@ -580,7 +578,6 @@ function HookahMixLabModal(props) {
                                 ]
                               }),
                               JsxRuntime.jsx(Text, { style: [styles.flavorName, { color: w.textColor, marginTop: 4 }], children: flv.name }),
-                              JsxRuntime.jsx(Text, { style: [styles.flavorDesc, { color: w.mutedTextColor }], numberOfLines: 2, children: flv.description }),
                               JsxRuntime.jsx(TouchableOpacity, {
                                 onPress: function() { isAdded ? removeFlavor(flv.id) : addFlavor(flv); },
                                 style: [styles.cardAddBtn, { backgroundColor: isAdded ? "rgba(239,68,68,0.12)" : "transparent", borderColor: isAdded ? "#EF4444" : "#22C55E", borderWidth: 1.5, marginTop: 8 }],
