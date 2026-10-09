@@ -900,8 +900,8 @@ export class MultiTenantDbService {
       }
 
       // 2. Upsert existing/new flavors
-      for (const f of config.flavors) {
-        const existing = existingHkItems.find(item => item._id === f.id || item.id === f.id || item.name === f.name);
+      for (const f of config.flavors as any[]) {
+        const existing = existingHkItems.find(item => item._id === f.id || (item as any).id === f.id || item.name === f.name);
         const flavorItem = {
           name: f.name,
           description: f.description || '',
@@ -918,8 +918,9 @@ export class MultiTenantDbService {
           await this.updateMenuItem(restaurantId, existing._id, flavorItem);
         } else {
           // ensure id if not set
-          await this.createMenuItem(restaurantId, {
+          await this.createMenuItem({
             ...flavorItem,
+            restaurant_id: restaurantId,
             _id: f.id || `hk_flv_${Date.now()}_${Math.random().toString(36).substring(7)}`
           } as any);
         }
