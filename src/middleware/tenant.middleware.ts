@@ -210,7 +210,7 @@ export async function resolveTenantRestaurantId(req: Request): Promise<string | 
   }
 
   // 3. Query Parameters
-  const queryId = req.query?.restaurant_id as string;
+  const queryId = (req.query?.restaurantId || req.query?.restaurant_id) as string;
   if (queryId) {
     const rest = await MultiTenantDbService.getRestaurant(queryId);
     if (rest) return rest._id;

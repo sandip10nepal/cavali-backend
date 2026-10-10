@@ -85,6 +85,7 @@ export interface VibeQuestRecommendationConfig {
 export interface VibeQuestQuestion {
   id: string;
   stage: VibeQuestStage;
+  navigation_trigger?: 'start_order' | 'next_food' | 'next_drinks' | string;
   title: string;
   question_text: string;
   helper_text?: string;

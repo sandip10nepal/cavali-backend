@@ -129,13 +129,38 @@ router.put('/admin/draft', optionalAuth, async (req, res, next) => {
       return res.status(403).json({ success: false, error: 'Forbidden: cross-tenant access denied' });
     }
 
-    const { draft } = req.body;
-    if (!draft || !Array.isArray(draft.questions)) {
-      return res.status(400).json({ success: false, error: 'Valid draft with questions array required' });
+    const { draft, questions, settings } = req.body;
+    const questionsToSave = questions || draft?.questions;
+    if (!questionsToSave || !Array.isArray(questionsToSave)) {
+      return res.status(400).json({ success: false, error: 'Valid questions array required' });
     }
 
-    await VibeQuestService.updateDraft(restaurantId, draft);
-    return res.json({ success: true, message: 'Draft saved successfully' });
+    const result = await VibeQuestService.saveQuestions(restaurantId, questionsToSave, settings || draft?.settings);
+    return res.json({ message: 'Questions saved and published successfully', ...result });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * POST /api/vibe-quest/admin/save-questions
+ * Save and publish question configuration directly.
+ */
+router.post('/admin/save-questions', optionalAuth, async (req, res, next) => {
+  try {
+    const restaurantId = (await resolveTenantRestaurantId(req)) || 'RES_EED4E9D266DF';
+
+    if (req.tenant && req.tenant.role !== 'platform_admin' && req.tenant.restaurant_id !== restaurantId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: cross-tenant access denied' });
+    }
+
+    const { questions, settings } = req.body;
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({ success: false, error: 'Valid questions array required' });
+    }
+
+    const result = await VibeQuestService.saveQuestions(restaurantId, questions, settings);
+    return res.json({ message: 'Questions saved successfully', ...result });
   } catch (err) {
     next(err);
   }

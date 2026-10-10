@@ -1123,8 +1123,8 @@
           <span>Menu Items &amp; Categories</span>
         </button>
         <button class="sub-tab" id="menuSubTab-vibeQuest" onclick="switchMenuCatalogSubTab('vibeQuest')" style="font-weight: 800; font-size: 13px; padding: 8px 18px; border-radius: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-          <i data-lucide="compass" style="width: 15px; height: 15px; color: var(--gold);"></i>
-          <span>Vibe Quest Discovery</span>
+          <i data-lucide="help-circle" style="width: 15px; height: 15px; color: var(--gold);"></i>
+          <span>Ordering Questions</span>
         </button>
       </div>
 
@@ -1143,9 +1143,9 @@
               <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; opacity: 0.6;">🔍</span>
             </div>
             <div style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;">
-              <button class="btn touch-target" onclick="switchMenuCatalogSubTab('vibeQuest')" style="background: rgba(245,158,11,0.14); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Switch to Vibe Quest Discovery">
-                <i data-lucide="compass" style="width: 14px; height: 14px;"></i>
-                <span>Vibe Quest</span>
+              <button class="btn touch-target" onclick="switchMenuCatalogSubTab('vibeQuest')" style="background: rgba(245,158,11,0.14); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Configure Ordering Questions">
+                <i data-lucide="help-circle" style="width: 14px; height: 14px;"></i>
+                <span>Ordering Questions</span>
               </button>
               <button class="btn touch-target" onclick="openHookahConfigModal()" style="background: rgba(229,177,58,0.12); color: var(--gold); border: 1.5px solid var(--gold); font-weight: 800; padding: 6px 10px; font-size: 12px; border-radius: 8px; white-space: nowrap; min-height: 36px;" title="Configure Hookah Flavors, Bases, Add-ons & Packages">
                 <i data-lucide="flame" style="width: 14px; height: 14px;"></i>
@@ -1177,217 +1177,40 @@
         <div id="menuGridContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;"></div>
       </div>
 
-      <!-- VIEW B: Vibe Quest Discovery Manager -->
-      <div id="menuCatalogVibeQuestView" style="display: none;">
-        <!-- Header, Status Badges & Action Toolbar -->
-        <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-            <div>
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <h2 style="font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px;">
-                  Vibe Quest Discovery Manager
-                </h2>
-              </div>
-              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <span id="vqStatusBadge" style="background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid var(--success); font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
-                  🟢 Active
-                </span>
-                <span id="vqVersionBadge" style="background: var(--card2); color: var(--cream); border: 1px solid var(--line); font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
-                  Version: Live v1
-                </span>
-                <span id="vqQuestionsCountBadge" style="background: var(--card2); color: var(--gold); border: 1px solid var(--line); font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
-                  12 Questions Configured
-                </span>
-                <span id="vqValidationBadge" style="background: rgba(59,130,246,0.15); color: #60A5FA; border: 1px solid #3B82F6; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 20px;">
-                  Draft Validated ✅
-                </span>
-              </div>
-            </div>
-
-            <!-- Action Buttons Toolbar -->
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-              <button class="btn" id="vqToggleBtn" onclick="toggleVibeQuestEnabled()" style="background: var(--card2); border: 1.5px solid var(--line); color: var(--cream); font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;">
-                <i data-lucide="power" style="width: 14px; height: 14px;"></i>
-                <span id="vqToggleText">Disable Discovery</span>
-              </button>
-              <button class="btn" onclick="validateVibeQuestDraft(true)" style="background: rgba(59,130,246,0.12); color: #60A5FA; border: 1.5px solid #3B82F6; font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="Check questions reachability, valid product IDs, and graph cycles">
-                <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
-                <span>Validate Draft</span>
-              </button>
-              <button class="btn" onclick="openVibeQuestSimulatorModal()" style="background: rgba(168,85,247,0.12); color: #c084fc; border: 1.5px solid #a855f7; font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="Interactive customer journey simulation">
-                <i data-lucide="play" style="width: 14px; height: 14px;"></i>
-                <span>Simulator</span>
-              </button>
-              <button class="btn btn-primary" onclick="publishVibeQuestDraft()" style="background: #10B981; border-color: #10B981; color: #FFF; font-weight: 800; font-size: 12px; padding: 8px 14px; border-radius: 8px;" title="Deploy draft to live customer ordering">
-                <i data-lucide="send" style="width: 14px; height: 14px;"></i>
-                <span>Publish Live</span>
-              </button>
-              <button class="btn" onclick="openVibeQuestAnalyticsModal()" style="background: var(--card2); border: 1.5px solid var(--line); color: var(--cream); font-weight: 800; font-size: 12px; padding: 8px 12px; border-radius: 8px;" title="View discovery engagement and conversions">
-                <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i>
-                <span>Analytics</span>
-              </button>
-              <button class="btn btn-primary" onclick="openEditVibeQuestQuestionModal(null)" style="background: var(--gold); border-color: var(--gold); color: #000; font-weight: 800; font-size: 12px; padding: 8px 14px; border-radius: 8px;">
-                <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
-                <span>+ New Question</span>
-              </button>
-            </div>
+      <!-- VIEW B: Question Configuration (Ordering Questions) -->
+      <div id="menuCatalogVibeQuestView" style="display: none; max-width: 1040px; margin: 0 auto;">
+        <!-- Header & Primary Action Toolbar -->
+        <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 22px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h2 style="font-family: 'Outfit', 'Inter', system-ui, sans-serif; font-size: 22px; font-weight: 900; color: var(--gold); margin: 0; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px;">
+              <span>🎯</span>
+              <span>Ordering Question Configuration</span>
+            </h2>
+            <p style="font-size: 13px; color: var(--muted); margin: 6px 0 0 0;">
+              Configure questions shown when customers click navigation buttons, and destination pages or menu categories for each answer.
+            </p>
           </div>
-        </div>
 
-        <!-- Stage Filter Pills -->
-        <div style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
-          <button class="sub-tab active" id="vqStageFilter-all" onclick="filterVibeQuestStage('all')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">All Stages</button>
-          <button class="sub-tab" id="vqStageFilter-hookah" onclick="filterVibeQuestStage('hookah')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">💨 Hookah</button>
-          <button class="sub-tab" id="vqStageFilter-food" onclick="filterVibeQuestStage('food')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍔 Food</button>
-          <button class="sub-tab" id="vqStageFilter-dessert" onclick="filterVibeQuestStage('dessert')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍨 Dessert (Cart-Conditional)</button>
-          <button class="sub-tab" id="vqStageFilter-drinks" onclick="filterVibeQuestStage('drinks')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍹 Drinks</button>
-          <button class="sub-tab" id="vqStageFilter-checkout" onclick="filterVibeQuestStage('checkout')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">📋 Checkout Nudge</button>
-        </div>
-
-        <!-- Ordering Flow & Reminders Configuration Card -->
-        <div id="vqOrderingFlowCard" style="background: var(--card); border: 1.5px solid var(--gold); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-            <div>
-              <div style="font-size: 16px; font-weight: 800; color: var(--cream); display: flex; align-items: center; gap: 8px;">
-                <span>🎯</span>
-                <span>Customer Ordering Flow &amp; Smart Reminders</span>
-              </div>
-              <p style="font-size: 12px; color: var(--muted); margin: 4px 0 0 0;">
-                Configure the customer journey: Hookah Experience selection, Food Craving recommendations, and Cart-Conditional Dessert &amp; Drink reminders.
-              </p>
-            </div>
-            <button class="btn btn-primary" onclick="saveVibeQuestFlowSettings()" style="background: var(--gold); border-color: var(--gold); color: #000; font-weight: 800; font-size: 12px; padding: 8px 18px; border-radius: 8px;">
-              💾 Save &amp; Publish Flow
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn btn-primary" id="saveQuestionsTopBtn" onclick="saveAllConfiguredQuestions()" style="background: var(--gold); border-color: var(--gold); color: #000; font-weight: 900; font-size: 13px; padding: 10px 24px; border-radius: 10px; box-shadow: 0 4px 14px rgba(229,177,58,0.25);">
+              💾 Save Questions
             </button>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-            <!-- Hookah Experience Selection Screen -->
-            <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-weight: 800; font-size: 13px; color: #60A5FA;">💨 Hookah Category Selection Screen</span>
-                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--cream); cursor: pointer;">
-                  <input type="checkbox" id="vqFlowHookahEnabled" checked>
-                  <span>Enabled</span>
-                </label>
-              </div>
-              <div style="margin-bottom: 8px;">
-                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Question Prompt</label>
-                <input type="text" id="vqFlowHookahQuestion" value="What kind of hookah experience would you like?" style="width: 100%; padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px;">
-                <div>
-                  <label style="font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Option 1: Name</label>
-                  <input type="text" id="vqFlowHookahOpt1Name" value="House Mix Hookahs" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-                </div>
-                <div>
-                  <label style="font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Option 1: Destination</label>
-                  <select id="vqFlowHookahOpt1Dest" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-                    <option value="menu:hookah">Menu: House Mix Hookahs</option>
-                    <option value="category:CAT_HOOKAH_HOUSE_MIXES">Category: House Mixes</option>
-                  </select>
-                </div>
-              </div>
-              <input type="text" id="vqFlowHookahOpt1Desc" value="Curated house blends and signature shisha flavors" placeholder="Option 1 Description" style="width: 100%; padding: 5px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--muted); margin-bottom: 8px;">
-
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px;">
-                <div>
-                  <label style="font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Option 2: Name</label>
-                  <input type="text" id="vqFlowHookahOpt2Name" value="Create Your Own Hookah" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-                </div>
-                <div>
-                  <label style="font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Option 2: Destination</label>
-                  <select id="vqFlowHookahOpt2Dest" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-                    <option value="flow:mix_lab">Open Custom Mix Lab 🧪</option>
-                    <option value="category:CAT_HOOKAH_CUSTOM">Category: Custom Mix Lab</option>
-                  </select>
-                </div>
-              </div>
-              <input type="text" id="vqFlowHookahOpt2Desc" value="Craft your custom bowl in our interactive Mix Lab" placeholder="Option 2 Description" style="width: 100%; padding: 5px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--muted);">
-            </div>
-
-            <!-- Food Craving Question & Quick Navigation -->
-            <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-weight: 800; font-size: 13px; color: #F59E0B;">🍽️ Food Recommendation Question</span>
-                <span style="font-size: 10px; color: var(--gold); background: rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 4px;">Dynamic Categories</span>
-              </div>
-              <div style="margin-bottom: 8px;">
-                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Question Prompt</label>
-                <input type="text" id="vqFlowFoodQuestion" value="What are we craving? 🍽️" style="width: 100%; padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-              </div>
-              <p style="font-size: 11px; color: var(--muted); margin: 0 0 10px 0;">
-                Customers tapping options like <b>Desi &amp; Pakistani</b> jump directly to that menu category (e.g. <b>Mains</b>) while keeping all other food categories accessible.
-              </p>
-              <button class="btn" onclick="filterVibeQuestStage('food')" style="padding: 6px 12px; font-size: 11px; background: var(--card); border: 1px solid var(--line); color: var(--gold);">
-                🔍 View &amp; Reorder Food Options Below ↓
-              </button>
-            </div>
-
-            <!-- Dessert Reminder -->
-            <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-weight: 800; font-size: 13px; color: #EC4899;">🍰 Dessert Reminder (Cart-Conditional)</span>
-                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--cream); cursor: pointer;">
-                  <input type="checkbox" id="vqFlowDessertEnabled" checked>
-                  <span>Enabled</span>
-                </label>
-              </div>
-              <div style="margin-bottom: 8px;">
-                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Reminder Prompt</label>
-                <input type="text" id="vqFlowDessertText" value="Should we save room for something sweet? 🍰" style="width: 100%; padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-              </div>
-              <div>
-                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Dessert Destination Category</label>
-                <select id="vqFlowDessertDest" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-                  <option value="category:CAT_DESSERTS">Category: Desserts (CAT_DESSERTS)</option>
-                  <option value="menu:food">Menu: Food</option>
-                </select>
-              </div>
-              <div style="font-size: 10px; color: var(--muted); margin-top: 6px;">
-                Only shows if NO dessert item is in the cart when advancing from Food. Never blocks skipping.
-              </div>
-            </div>
-
-            <!-- Drink Reminder -->
-            <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-weight: 800; font-size: 13px; color: #10B981;">🥤 Drink Reminder (Cart-Conditional)</span>
-                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--cream); cursor: pointer;">
-                  <input type="checkbox" id="vqFlowDrinkEnabled" checked>
-                  <span>Enabled</span>
-                </label>
-              </div>
-              <div style="margin-bottom: 8px;">
-                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Reminder Prompt</label>
-                <input type="text" id="vqFlowDrinkText" value="Would you like something to drink? 🥤" style="width: 100%; padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-              </div>
-              <div>
-                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Drinks Destination Category / Section</label>
-                <select id="vqFlowDrinkDest" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-                  <option value="category:cat_super_drinks">Beverages / Drinks (cat_super_drinks)</option>
-                  <option value="category:CAT_DRINKS_REFRESHERS">Refreshers (CAT_DRINKS_REFRESHERS)</option>
-                  <option value="category:CAT_DRINKS_TEA_COFFEE">Tea &amp; Coffee (CAT_DRINKS_TEA_COFFEE)</option>
-                  <option value="category:CAT_DRINKS_SOFT">Soft Drinks (CAT_DRINKS_SOFT)</option>
-                </select>
-              </div>
-              <div style="font-size: 10px; color: var(--muted); margin-top: 6px;">
-                Only shows if NO drink item is in the cart when advancing. Never blocks checkout.
-              </div>
-            </div>
           </div>
         </div>
 
         <!-- Question Cards List Container -->
-        <div style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <h3 style="font-size: 16px; font-weight: 800; color: var(--cream); margin: 0; display: flex; align-items: center; gap: 8px;">
-            <span>📋</span>
-            <span>Configured Journey Questions</span>
-          </h3>
-          <span style="font-size: 11px; color: var(--muted); font-weight: 700; background: var(--card2); border: 1px solid var(--line); padding: 4px 10px; border-radius: 20px;" id="vqQuestionsStageLabel">Showing: All Stages</span>
+        <div id="questionConfigCardsContainer" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 24px;">
+          <div style="text-align: center; padding: 40px; color: var(--muted);">Loading question configuration...</div>
         </div>
-        <div id="vqQuestionsListContainer" style="display: flex; flex-direction: column; gap: 16px;">
-          <div style="text-align: center; padding: 40px; color: var(--muted);">Loading Vibe Quest draft...</div>
+
+        <!-- Bottom Action Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 40px;">
+          <button class="btn" onclick="addNewQuestionCard()" style="background: var(--card2); border: 1.5px dashed var(--gold); color: var(--gold); font-weight: 800; font-size: 13px; padding: 10px 20px; border-radius: 10px;">
+            + Add Another Question
+          </button>
+          <button class="btn btn-primary" onclick="saveAllConfiguredQuestions()" style="background: var(--gold); border-color: var(--gold); color: #000; font-weight: 900; font-size: 13px; padding: 10px 24px; border-radius: 10px; box-shadow: 0 4px 14px rgba(229,177,58,0.25);">
+            💾 Save Questions
+          </button>
         </div>
       </div>
     </div>
@@ -2147,194 +1970,6 @@
       <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1.5px solid var(--line); padding-top: 16px;">
         <button class="btn" onclick="closeSpecialsModal()" style="padding: 10px 16px;">Cancel</button>
         <button class="btn btn-primary" onclick="saveSpecials()" style="background: #a855f7; color: #fff; font-weight: 800; padding: 10px 20px;">Save Specials</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════════════════ VIBE QUEST MODALS ════════════════ -->
-
-  <!-- 1. Question & Answers Edit Modal -->
-  <div id="vqQuestionModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
-    <div style="width: 100%; max-width: 780px; max-height: 90vh; overflow-y: auto; background: var(--card); border: 1.5px solid var(--gold); border-radius: 20px; padding: 24px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 id="vqModalTitle" style="color: var(--gold); font-size: 18px; font-weight: 800; margin: 0;">Edit Vibe Quest Question</h3>
-        <button class="btn" onclick="closeVibeQuestQuestionModal()" style="padding: 4px 10px; font-size: 14px;">✕</button>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-        <div>
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Question ID *</label>
-          <input type="text" id="vqFormId" required placeholder="e.g. H1_vibe_mood" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px; font-weight: 700;">
-        </div>
-        <div>
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Stage *</label>
-          <select id="vqFormStage" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px; font-weight: 700;">
-            <option value="hookah">💨 Hookah</option>
-            <option value="food">🍔 Food</option>
-            <option value="dessert">🍨 Dessert</option>
-            <option value="drinks">🍹 Drinks</option>
-            <option value="checkout">📋 Checkout</option>
-          </select>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px;">
-        <div>
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Question Title *</label>
-          <input type="text" id="vqFormTitle" placeholder="e.g. What's the vibe tonight?" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
-        </div>
-        <div>
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Display Order *</label>
-          <input type="number" id="vqFormOrder" value="1" min="1" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
-        </div>
-      </div>
-
-      <div style="margin-bottom: 12px;">
-        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Customer Question Prompt *</label>
-        <input type="text" id="vqFormText" placeholder="e.g. What's the vibe tonight?" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 14px; font-weight: 600;">
-      </div>
-
-      <div style="margin-bottom: 12px;">
-        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">Helper Subtext (Optional)</label>
-        <input type="text" id="vqFormHelper" placeholder="e.g. Tap a flavor direction to narrow down our signature mixes" style="width: 100%; padding: 10px; background: var(--card2); border: 1px solid var(--line); border-radius: 8px; color: var(--cream); font-size: 13px;">
-      </div>
-
-      <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px; background: var(--card2); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--line); flex-wrap: wrap;">
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
-          <input type="checkbox" id="vqFormActive" checked style="width: 16px; height: 16px;"> Active in Discovery
-        </label>
-        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">
-          <input type="checkbox" id="vqFormSkippable" checked style="width: 16px; height: 16px;"> Skippable
-        </label>
-        <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700;">
-          <span>Repeat Policy:</span>
-          <select id="vqFormRepeat" style="padding: 4px 8px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; color: var(--cream); font-size: 12px;">
-            <option value="once_per_session">Once Per Session</option>
-            <option value="always">Always Show</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Answers Section -->
-      <div style="border-top: 1.5px solid var(--line); padding-top: 16px; margin-bottom: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div>
-            <h4 style="font-size: 14px; font-weight: 800; color: var(--gold); margin: 0;">Tap-to-Select Answer Options</h4>
-            <p style="font-size: 11px; color: var(--muted); margin: 2px 0 0 0;">Each option can trigger signals, branch to next question, curate recommended products, or navigate to a menu section.</p>
-          </div>
-          <button class="btn btn-primary" type="button" onclick="addVibeQuestAnswerRow()" style="padding: 6px 12px; font-size: 11px; font-weight: 800; background: var(--gold); color: #000;">
-            + Add Option
-          </button>
-        </div>
-
-        <div id="vqAnswersListContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
-      </div>
-
-      <!-- Modal Footer -->
-      <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1.5px solid var(--line); padding-top: 16px;">
-        <button class="btn" onclick="closeVibeQuestQuestionModal()" style="padding: 10px 18px;">Cancel</button>
-        <button class="btn btn-primary" onclick="saveVibeQuestQuestionFromModal()" style="padding: 10px 24px; font-weight: 800; background: var(--gold); color: #000;">Save Question</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. Draft Validation Report Modal -->
-  <div id="vqValidationModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
-    <div style="width: 100%; max-width: 580px; background: var(--card); border: 1.5px solid var(--line); border-radius: 20px; padding: 24px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 20px;">🛡️</span>
-          <h3 style="font-size: 18px; font-weight: 800; color: var(--cream); margin: 0;">Discovery Configuration Validation</h3>
-        </div>
-        <button class="btn" onclick="closeVibeQuestValidationModal()" style="padding: 4px 10px; font-size: 14px;">✕</button>
-      </div>
-      <div id="vqValidationContent"></div>
-      <div style="display: flex; justify-content: flex-end; margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px;">
-        <button class="btn btn-primary" onclick="closeVibeQuestValidationModal()" style="padding: 8px 20px; font-weight: 800;">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. Interactive Customer Simulator Modal -->
-  <div id="vqSimulatorModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
-    <div style="width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; background: var(--card); border: 1.5px solid var(--gold); border-radius: 20px; padding: 24px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 22px;">🧪</span>
-          <h3 style="font-size: 18px; font-weight: 800; color: var(--gold); margin: 0;">Customer Experience Simulator</h3>
-        </div>
-        <button class="btn" onclick="closeVibeQuestSimulatorModal()" style="padding: 4px 10px; font-size: 14px;">✕</button>
-      </div>
-
-      <!-- Stage Selector in Simulator -->
-      <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
-        <button class="btn" id="simStage-hookah" onclick="setSimulatedStage('hookah')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">💨 Hookah</button>
-        <button class="btn" id="simStage-food" onclick="setSimulatedStage('food')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">🍔 Food</button>
-        <button class="btn" id="simStage-dessert" onclick="setSimulatedStage('dessert')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">🍨 Dessert</button>
-        <button class="btn" id="simStage-drinks" onclick="setSimulatedStage('drinks')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">🍹 Drinks</button>
-        <button class="btn" id="simStage-checkout" onclick="setSimulatedStage('checkout')" style="padding: 6px 12px; font-size: 11px; font-weight: 800;">📋 Checkout</button>
-      </div>
-
-      <!-- Cart Condition Toggles -->
-      <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
-        <span style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Simulated Cart:</span>
-        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
-          <input type="checkbox" id="simCartHasDessert" onchange="renderSimulationView()"> Contains Dessert (CAT_DESSERTS)
-        </label>
-        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;">
-          <input type="checkbox" id="simCartHasDaku" onchange="renderSimulationView()"> Contains Make It Daku
-        </label>
-      </div>
-
-      <!-- Simulated Customer Screen Preview Container -->
-      <div id="simScreenContainer" style="background: #18181B; border: 2px solid #F59E0B; border-radius: 16px; padding: 20px; margin-bottom: 16px;"></div>
-
-      <!-- Simulated Live Recommendations Output -->
-      <div id="simRecsContainer" style="margin-top: 16px;"></div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--line); padding-top: 14px;">
-        <button class="btn" onclick="resetSimulation()" style="padding: 8px 16px; font-size: 12px;">Reset Answers &amp; Signals</button>
-        <button class="btn btn-primary" onclick="closeVibeQuestSimulatorModal()" style="padding: 8px 20px; font-weight: 800;">Done</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. Analytics & Insights Modal -->
-  <div id="vqAnalyticsModal" style="display: none; position: fixed; inset: 0; background: rgba(14,10,8,0.92); backdrop-filter: blur(16px); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
-    <div style="width: 100%; max-width: 640px; background: var(--card); border: 1.5px solid var(--gold); border-radius: 20px; padding: 24px; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.9);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 22px;">📊</span>
-          <h3 style="font-size: 18px; font-weight: 800; color: var(--gold); margin: 0;">Vibe Quest Engagement &amp; Funnel</h3>
-        </div>
-        <button class="btn" onclick="closeVibeQuestAnalyticsModal()" style="padding: 4px 10px; font-size: 14px;">✕</button>
-      </div>
-
-      <div id="vqAnalyticsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 20px;">
-        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
-          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Questions Shown</div>
-          <div id="vqStatShown" style="font-size: 24px; font-weight: 900; color: var(--cream); margin-top: 4px;">0</div>
-        </div>
-        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
-          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Questions Answered</div>
-          <div id="vqStatAnswered" style="font-size: 24px; font-weight: 900; color: var(--gold); margin-top: 4px;">0</div>
-        </div>
-        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
-          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Skipped / Dismissed</div>
-          <div id="vqStatSkipped" style="font-size: 24px; font-weight: 900; color: var(--muted); margin-top: 4px;">0</div>
-        </div>
-        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
-          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Recs Selected</div>
-          <div id="vqStatSelected" style="font-size: 24px; font-weight: 900; color: #60A5FA; margin-top: 4px;">0</div>
-        </div>
-        <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; border-left: 3px solid var(--success);">
-          <div style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Added to Cart</div>
-          <div id="vqStatCart" style="font-size: 24px; font-weight: 900; color: var(--success); margin-top: 4px;">0</div>
-        </div>
-      </div>
-
-      <div style="display: flex; justify-content: flex-end; margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px;">
-        <button class="btn btn-primary" onclick="closeVibeQuestAnalyticsModal()" style="padding: 8px 20px; font-weight: 800;">Close</button>
       </div>
     </div>
   </div>
@@ -7369,10 +7004,23 @@
       return menuItems || [];
     }
 
+    // ════════════════ SIMPLIFIED ORDERING QUESTIONS CONFIGURATION ════════════════
+    let configuredQuestions = [];
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     async function renderVibeQuestPage() {
-      const container = document.getElementById('vqQuestionsListContainer');
+      const container = document.getElementById('questionConfigCardsContainer');
       if (!container) return;
-      container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);"><i data-lucide="loader" class="spin"></i> Loading Vibe Quest draft...</div>';
+      container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--muted);"><i data-lucide="loader" class="spin"></i> Loading question configuration...</div>';
       if (window.lucide) lucide.createIcons();
 
       await ensureMenuItemsLoaded();
@@ -7384,473 +7032,252 @@
           res = await fetch(`${API_URL}/api/vibe-quest/admin/draft`, { headers });
         }
         if (!res.ok) {
-          throw new Error(`Failed to load draft (${res.status})`);
+          throw new Error(`Failed to load configuration (${res.status})`);
         }
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to fetch draft');
+        const rawQuestions = data.draft?.questions || data.questions || data.published?.questions || [];
 
-        vibeQuestDraft = data.draft || data.settings?.draft;
-        vibeQuestPublished = data.published || data.settings?.published;
-
-        if (!vibeQuestDraft) {
-          vibeQuestDraft = { version: 1, enabled: true, questions: [] };
+        // Normalize questions into configuredQuestions
+        if (Array.isArray(rawQuestions) && rawQuestions.length > 0) {
+          configuredQuestions = rawQuestions.map((q, idx) => {
+            let trigger = q.navigation_trigger;
+            if (!trigger) {
+              if (q.stage === 'hookah' || q.id === 'q_hookah_experience' || q.id === 'q_hookah_path') {
+                trigger = 'start_order';
+              } else if (q.stage === 'food' || q.id === 'q_food_craving') {
+                trigger = 'next_food';
+              } else if (q.stage === 'drinks' || q.id === 'q_drink_reminder') {
+                trigger = 'next_drinks';
+              } else {
+                trigger = 'start_order';
+              }
+            }
+            return {
+              id: q.id || `q_${trigger}_${idx + 1}`,
+              navigation_trigger: trigger,
+              question_text: q.question_text || q.title || '',
+              active: q.active !== false,
+              answers: Array.isArray(q.answers) ? q.answers.map((a, aIdx) => ({
+                id: a.id || `ans_${idx + 1}_${aIdx + 1}`,
+                label: a.label || '',
+                destination: a.destination || 'skip'
+              })) : []
+            };
+          });
+        } else {
+          // Initialize default questions
+          configuredQuestions = [
+            {
+              id: 'q_start_order',
+              navigation_trigger: 'start_order',
+              question_text: 'What kind of hookah experience would you like?',
+              active: true,
+              answers: [
+                { id: 'ans_1', label: 'House Mix Hookahs', destination: 'menu:hookah' },
+                { id: 'ans_2', label: 'Create Your Own Hookah', destination: 'flow:mix_lab' }
+              ]
+            },
+            {
+              id: 'q_next_food',
+              navigation_trigger: 'next_food',
+              question_text: 'What are we craving?',
+              active: true,
+              answers: [
+                { id: 'ans_1', label: 'Browse Food Menu', destination: 'menu:food' },
+                { id: 'ans_2', label: 'Skip', destination: 'skip' }
+              ]
+            },
+            {
+              id: 'q_next_drinks',
+              navigation_trigger: 'next_drinks',
+              question_text: 'Would you like something to drink?',
+              active: true,
+              answers: [
+                { id: 'ans_1', label: 'Browse Drinks Menu', destination: 'menu:drinks' },
+                { id: 'ans_2', label: 'Skip', destination: 'skip' }
+              ]
+            }
+          ];
         }
-        if (!Array.isArray(vibeQuestDraft.questions)) {
-          vibeQuestDraft.questions = [];
-        }
 
-        updateVibeQuestHeaderBadges();
-        populateVibeQuestFlowSettings();
-        renderVibeQuestQuestionsList();
+        renderQuestionCards();
       } catch (err) {
-        console.error('Error rendering Vibe Quest page:', err);
+        console.error('Error rendering ordering questions:', err);
         container.innerHTML = `
           <div style="background: rgba(239, 68, 68, 0.1); border: 1.5px solid var(--danger); border-radius: 12px; padding: 24px; text-align: center;">
-            <div style="font-size: 16px; font-weight: 800; color: var(--danger); margin-bottom: 8px;">Failed to load Vibe Quest draft</div>
-            <div style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">${err.message}</div>
+            <div style="font-size: 16px; font-weight: 800; color: var(--danger); margin-bottom: 8px;">Failed to load question configuration</div>
+            <div style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">${escapeHtml(err.message)}</div>
             <button class="btn btn-primary" onclick="renderVibeQuestPage()" style="padding: 8px 16px; font-weight: 800;">Retry</button>
           </div>
         `;
       }
     }
 
-    function populateVibeQuestFlowSettings() {
-      if (!vibeQuestDraft) return;
-
-      const settings = vibeQuestDraft.settings || {};
-      const questions = vibeQuestDraft.questions || [];
-
-      // 1. Hookah Experience Question
-      const hQ = questions.find(q => (q.id === 'q_hookah_experience' || q.id === 'q_hookah_path') && q.stage === 'hookah') || questions.find(q => q.stage === 'hookah');
-      const hookahEnabled = settings.hookah_selection_screen_enabled !== false && (!hQ || hQ.active !== false);
-      const hEnabledCheck = document.getElementById('vqFlowHookahEnabled');
-      if (hEnabledCheck) hEnabledCheck.checked = hookahEnabled;
-
-      const hPromptInput = document.getElementById('vqFlowHookahQuestion');
-      if (hPromptInput && hQ) hPromptInput.value = hQ.question_text || hQ.title || 'What kind of hookah experience would you like?';
-
-      const opt1 = hQ?.answers?.[0];
-      const opt2 = hQ?.answers?.[1];
-
-      const opt1Name = document.getElementById('vqFlowHookahOpt1Name');
-      if (opt1Name && opt1) opt1Name.value = opt1.label || 'House Mix Hookahs';
-
-      const opt1Desc = document.getElementById('vqFlowHookahOpt1Desc');
-      if (opt1Desc && opt1) opt1Desc.value = opt1.subtext || opt1.description || 'Curated house blends and signature shisha flavors';
-
-      const opt1Dest = document.getElementById('vqFlowHookahOpt1Dest');
-      if (opt1Dest && opt1) opt1Dest.value = opt1.destination || 'menu:hookah';
-
-      const opt2Name = document.getElementById('vqFlowHookahOpt2Name');
-      if (opt2Name && opt2) opt2Name.value = opt2.label || 'Create Your Own Hookah';
-
-      const opt2Desc = document.getElementById('vqFlowHookahOpt2Desc');
-      if (opt2Desc && opt2) opt2Desc.value = opt2.subtext || opt2.description || 'Craft your custom bowl in our interactive Mix Lab';
-
-      const opt2Dest = document.getElementById('vqFlowHookahOpt2Dest');
-      if (opt2Dest && opt2) opt2Dest.value = opt2.destination || 'flow:mix_lab';
-
-      // 2. Food Craving Question
-      const fQ = questions.find(q => q.id === 'q_food_craving') || questions.find(q => q.stage === 'food');
-      const fPromptInput = document.getElementById('vqFlowFoodQuestion');
-      if (fPromptInput && fQ) fPromptInput.value = fQ.question_text || fQ.title || 'What are we craving? 🍽️';
-
-      // 3. Dessert Reminder
-      const dQ = questions.find(q => q.id === 'q_dessert_reminder' || q.id === 'q_dessert_prompt');
-      const dessertEnabled = settings.dessert_reminder_enabled !== false && (!dQ || dQ.active !== false);
-      const dEnabledCheck = document.getElementById('vqFlowDessertEnabled');
-      if (dEnabledCheck) dEnabledCheck.checked = dessertEnabled;
-
-      const dPromptInput = document.getElementById('vqFlowDessertText');
-      if (dPromptInput) dPromptInput.value = settings.dessert_reminder_text || dQ?.question_text || 'Should we save room for something sweet? 🍰';
-
-      const dDestSelect = document.getElementById('vqFlowDessertDest');
-      if (dDestSelect) {
-        let currentDessertVal = settings.dessert_destination_category || dQ?.answers?.[0]?.destination || 'category:CAT_DESSERTS';
-        let normVal = currentDessertVal.startsWith('category:') ? currentDessertVal : `category:${currentDessertVal}`;
-        let dOptions = `
-          <option value="category:CAT_DESSERTS">Category: Desserts (CAT_DESSERTS)</option>
-          <option value="menu:food">Menu: All Food</option>
-        `;
-        const allCats = typeof getAllMenuCategoriesList === 'function' ? getAllMenuCategoriesList() : [];
-        allCats.forEach(c => {
-          const cid = c.id || c._id;
-          if (cid && cid !== 'CAT_DESSERTS') {
-            dOptions += `<option value="category:${cid}">Category: ${c.name || cid} (${cid})</option>`;
-          }
-        });
-        dDestSelect.innerHTML = dOptions;
-        if (Array.from(dDestSelect.options).some(o => o.value === normVal)) {
-          dDestSelect.value = normVal;
-        } else if (Array.from(dDestSelect.options).some(o => o.value === currentDessertVal)) {
-          dDestSelect.value = currentDessertVal;
-        } else {
-          dDestSelect.value = 'category:CAT_DESSERTS';
-        }
-      }
-
-      // 4. Drink Reminder
-      const bQ = questions.find(q => q.id === 'q_drink_reminder');
-      const drinkEnabled = settings.drink_reminder_enabled !== false && (!bQ || bQ.active !== false);
-      const bEnabledCheck = document.getElementById('vqFlowDrinkEnabled');
-      if (bEnabledCheck) bEnabledCheck.checked = drinkEnabled;
-
-      const bPromptInput = document.getElementById('vqFlowDrinkText');
-      if (bPromptInput) bPromptInput.value = settings.drink_reminder_text || bQ?.question_text || 'Would you like something to drink? 🥤';
-
-      const bDestSelect = document.getElementById('vqFlowDrinkDest');
-      if (bDestSelect) {
-        let currentDrinkVal = settings.drink_destination_category || bQ?.answers?.[0]?.destination || 'category:cat_super_drinks';
-        let normVal = currentDrinkVal.startsWith('category:') ? currentDrinkVal : `category:${currentDrinkVal}`;
-        let bOptions = `
-          <option value="category:cat_super_drinks">Beverages / Drinks (cat_super_drinks)</option>
-          <option value="category:CAT_DRINKS_REFRESHERS">Refreshers (CAT_DRINKS_REFRESHERS)</option>
-          <option value="category:CAT_DRINKS_TEA_COFFEE">Tea &amp; Coffee (CAT_DRINKS_TEA_COFFEE)</option>
-          <option value="category:CAT_DRINKS_SOFT">Soft Drinks (CAT_DRINKS_SOFT)</option>
-          <option value="menu:drinks">Menu: All Drinks</option>
-        `;
-        const allCats = typeof getAllMenuCategoriesList === 'function' ? getAllMenuCategoriesList() : [];
-        allCats.forEach(c => {
-          const cid = c.id || c._id;
-          if (cid && !['cat_super_drinks', 'CAT_DRINKS_REFRESHERS', 'CAT_DRINKS_TEA_COFFEE', 'CAT_DRINKS_SOFT'].includes(cid)) {
-            bOptions += `<option value="category:${cid}">Category: ${c.name || cid} (${cid})</option>`;
-          }
-        });
-        bDestSelect.innerHTML = bOptions;
-        if (Array.from(bDestSelect.options).some(o => o.value === normVal)) {
-          bDestSelect.value = normVal;
-        } else if (Array.from(bDestSelect.options).some(o => o.value === currentDrinkVal)) {
-          bDestSelect.value = currentDrinkVal;
-        } else {
-          bDestSelect.value = 'category:cat_super_drinks';
-        }
-      }
-    }
-
-    async function saveVibeQuestFlowSettings() {
-      if (!vibeQuestDraft) return;
-
-      if (!vibeQuestDraft.settings) vibeQuestDraft.settings = {};
-      if (!Array.isArray(vibeQuestDraft.questions)) vibeQuestDraft.questions = [];
-
-      const hookahEnabled = document.getElementById('vqFlowHookahEnabled')?.checked ?? true;
-      const hookahPrompt = document.getElementById('vqFlowHookahQuestion')?.value.trim() || 'What kind of hookah experience would you like?';
-      const opt1Name = document.getElementById('vqFlowHookahOpt1Name')?.value.trim() || 'House Mix Hookahs';
-      const opt1Desc = document.getElementById('vqFlowHookahOpt1Desc')?.value.trim() || 'Curated house blends and signature shisha flavors';
-      const opt1Dest = document.getElementById('vqFlowHookahOpt1Dest')?.value || 'menu:hookah';
-      const opt2Name = document.getElementById('vqFlowHookahOpt2Name')?.value.trim() || 'Create Your Own Hookah';
-      const opt2Desc = document.getElementById('vqFlowHookahOpt2Desc')?.value.trim() || 'Craft your custom bowl in our interactive Mix Lab';
-      const opt2Dest = document.getElementById('vqFlowHookahOpt2Dest')?.value || 'flow:mix_lab';
-
-      const foodPrompt = document.getElementById('vqFlowFoodQuestion')?.value.trim() || 'What are we craving? 🍽️';
-
-      const dessertEnabled = document.getElementById('vqFlowDessertEnabled')?.checked ?? true;
-      const dessertPrompt = document.getElementById('vqFlowDessertText')?.value.trim() || 'Should we save room for something sweet? 🍰';
-      const dessertDest = document.getElementById('vqFlowDessertDest')?.value || 'category:CAT_DESSERTS';
-
-      const drinkEnabled = document.getElementById('vqFlowDrinkEnabled')?.checked ?? true;
-      const drinkPrompt = document.getElementById('vqFlowDrinkText')?.value.trim() || 'Would you like something to drink? 🥤';
-      const drinkDest = document.getElementById('vqFlowDrinkDest')?.value || 'category:cat_super_drinks';
-
-      // Update top-level settings
-      vibeQuestDraft.settings.hookah_selection_screen_enabled = hookahEnabled;
-      vibeQuestDraft.settings.dessert_reminder_enabled = dessertEnabled;
-      vibeQuestDraft.settings.dessert_reminder_text = dessertPrompt;
-      vibeQuestDraft.settings.dessert_destination_category = dessertDest;
-      vibeQuestDraft.settings.drink_reminder_enabled = drinkEnabled;
-      vibeQuestDraft.settings.drink_reminder_text = drinkPrompt;
-      vibeQuestDraft.settings.drink_destination_category = drinkDest;
-
-      // Update or create q_hookah_experience
-      let hQ = vibeQuestDraft.questions.find(q => q.id === 'q_hookah_experience' || q.id === 'q_hookah_path');
-      if (!hQ) {
-        hQ = {
-          id: 'q_hookah_experience',
-          stage: 'hookah',
-          title: 'Hookah Experience',
-          question_text: hookahPrompt,
-          helper_text: 'Choose a signature house blend or build your own bowl in Custom Mix Lab',
-          order: 1,
-          sort_order: 1,
-          active: hookahEnabled,
-          skippable: false,
-          repeat_policy: 'once_per_session',
-          answers: []
-        };
-        vibeQuestDraft.questions.unshift(hQ);
-      }
-      hQ.active = hookahEnabled;
-      hQ.question_text = hookahPrompt;
-      hQ.answers = [
-        {
-          id: 'ans_house_mix',
-          label: opt1Name,
-          emoji: '💨',
-          subtext: opt1Desc,
-          preference_signals: ['house_mix'],
-          destination: opt1Dest,
-          curated_product_ids: []
-        },
-        {
-          id: 'ans_custom_lab',
-          label: opt2Name,
-          emoji: '🧪',
-          subtext: opt2Desc,
-          preference_signals: ['custom_mix'],
-          destination: opt2Dest,
-          curated_product_ids: []
-        }
+    function buildDestinationOptionsHtml(selectedVal) {
+      const current = selectedVal || 'skip';
+      const staticOptions = [
+        { value: 'menu:hookah', label: 'House Mix Hookahs Menu (menu:hookah)' },
+        { value: 'flow:mix_lab', label: 'Custom Hookah Mix Lab (flow:mix_lab)' },
+        { value: 'menu:food', label: 'All Food Menu (menu:food)' },
+        { value: 'menu:drinks', label: 'All Drinks Menu (menu:drinks)' },
+        { value: 'stage:checkout', label: 'Review Order (stage:checkout)' },
+        { value: 'skip', label: 'Skip Question (skip)' }
       ];
 
-      // Update q_food_craving
-      const fQ = vibeQuestDraft.questions.find(q => q.id === 'q_food_craving');
-      if (fQ) {
-        fQ.question_text = foodPrompt;
-      }
+      let optionsHtml = '';
+      let foundSelected = false;
 
-      // Update or create q_dessert_reminder
-      let dQ = vibeQuestDraft.questions.find(q => q.id === 'q_dessert_reminder' || q.id === 'q_dessert_prompt');
-      if (!dQ) {
-        dQ = {
-          id: 'q_dessert_reminder',
-          stage: 'dessert',
-          title: 'Dessert Reminder',
-          question_text: dessertPrompt,
-          order: 1,
-          sort_order: 1,
-          active: dessertEnabled,
-          skippable: true,
-          repeat_policy: 'cart_conditional',
-          answers: []
-        };
-        vibeQuestDraft.questions.push(dQ);
-      }
-      dQ.active = dessertEnabled;
-      dQ.question_text = dessertPrompt;
-      dQ.answers = [
-        {
-          id: 'ans_d_browse',
-          label: 'Browse Desserts',
-          emoji: '🍰',
-          subtext: 'View Kunafa, molten cakes & sweet specialties',
-          destination: dessertDest,
-          curated_product_ids: ['MI_kunafa_dessert', 'MI_biscoff_cake_dessert']
-        },
-        {
-          id: 'ans_d_skip',
-          label: 'Skip Dessert',
-          emoji: '⏩',
-          subtext: 'Continue with the rest of your order',
-          destination: 'skip',
-          curated_product_ids: []
-        }
-      ];
-
-      // Update or create q_drink_reminder
-      let bQ = vibeQuestDraft.questions.find(q => q.id === 'q_drink_reminder');
-      if (!bQ) {
-        bQ = {
-          id: 'q_drink_reminder',
-          stage: 'drinks',
-          title: 'Drink Reminder',
-          question_text: drinkPrompt,
-          order: 1,
-          sort_order: 1,
-          active: drinkEnabled,
-          skippable: true,
-          repeat_policy: 'cart_conditional',
-          answers: []
-        };
-        vibeQuestDraft.questions.push(bQ);
-      }
-      bQ.active = drinkEnabled;
-      bQ.question_text = drinkPrompt;
-      bQ.answers = [
-        {
-          id: 'ans_b_browse',
-          label: 'Browse Drinks',
-          emoji: '🥤',
-          subtext: 'Explore craft mocktails, sodas, and iced teas',
-          destination: drinkDest,
-          curated_product_ids: ['MI_classic_mint_mojito', 'MI_mango_mojito']
-        },
-        {
-          id: 'ans_b_skip',
-          label: 'Skip Drinks',
-          emoji: '⏩',
-          subtext: 'Continue to order review',
-          destination: 'skip',
-          curated_product_ids: []
-        }
-      ];
-
-      try {
-        const headers = getAuthHeaders();
-        // 1. Save draft
-        const draftRes = await fetch(`${API_URL}/api/vibe-quest/admin/draft`, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ draft: vibeQuestDraft })
-        });
-        const draftData = await draftRes.json();
-        if (!draftData.success) throw new Error(draftData.error || 'Failed to save draft');
-
-        // 2. Publish live
-        const pubRes = await fetch(`${API_URL}/api/vibe-quest/admin/publish`, {
-          method: 'POST',
-          headers
-        });
-        const pubData = await pubRes.json();
-        if (!pubData.success) throw new Error(pubData.error || 'Failed to publish draft');
-
-        alert('Customer Ordering Flow & Smart Reminders saved and published successfully!');
-        renderVibeQuestPage();
-      } catch (err) {
-        alert('Error saving flow settings: ' + err.message);
-      }
-    }
-
-    function updateVibeQuestHeaderBadges() {
-      const isEnabled = vibeQuestDraft?.enabled !== false;
-      const statusBadge = document.getElementById('vqStatusBadge');
-      const toggleText = document.getElementById('vqToggleText');
-      if (statusBadge) {
-        statusBadge.innerHTML = isEnabled ? '🟢 Active' : '⚪ Disabled';
-        statusBadge.style.color = isEnabled ? 'var(--success)' : 'var(--muted)';
-        statusBadge.style.borderColor = isEnabled ? 'var(--success)' : 'var(--line)';
-        statusBadge.style.background = isEnabled ? 'rgba(16,185,129,0.15)' : 'var(--card2)';
-      }
-      if (toggleText) {
-        toggleText.innerText = isEnabled ? 'Disable Discovery' : 'Enable Discovery';
-      }
-
-      const versionBadge = document.getElementById('vqVersionBadge');
-      if (versionBadge) {
-        const pubVer = vibeQuestPublished?.published_version || vibeQuestPublished?.version || vibeQuestDraft?.published_version || vibeQuestDraft?.version;
-        versionBadge.innerText = pubVer ? `Live: v${pubVer}` : 'Live: Active';
-      }
-
-      const countBadge = document.getElementById('vqQuestionsCountBadge');
-      if (countBadge) {
-        const qCount = vibeQuestDraft?.questions?.length || 0;
-        countBadge.innerText = `${qCount} Questions Configured`;
-      }
-    }
-
-    function filterVibeQuestStage(stage) {
-      vibeQuestActiveStageFilter = stage;
-      ['all', 'hookah', 'food', 'dessert', 'drinks', 'checkout'].forEach(s => {
-        const el = document.getElementById(`vqStageFilter-${s}`);
-        if (el) {
-          if (s === stage) el.classList.add('active');
-          else el.classList.remove('active');
-        }
+      staticOptions.forEach(opt => {
+        const isSel = opt.value === current;
+        if (isSel) foundSelected = true;
+        optionsHtml += `<option value="${opt.value}" ${isSel ? 'selected' : ''}>${opt.label}</option>`;
       });
-      const lbl = document.getElementById('vqQuestionsStageLabel');
-      if (lbl) {
-        const stageNames = {
-          all: 'All Stages',
-          hookah: '💨 Hookah Experience',
-          food: '🍔 Food Cravings',
-          dessert: '🍨 Dessert Reminders',
-          drinks: '🍹 Drink Reminders',
-          checkout: '📋 Checkout Nudge'
-        };
-        lbl.innerText = `Showing: ${stageNames[stage] || stage.toUpperCase()}`;
+
+      // Categories from live restaurant menu
+      const allCats = typeof getAllMenuCategoriesList === 'function' 
+        ? getAllMenuCategoriesList() 
+        : (Array.isArray(window.menuCategories) ? window.menuCategories : []);
+
+      if (allCats && allCats.length > 0) {
+        optionsHtml += `<optgroup label="Menu Categories">`;
+        allCats.forEach(cat => {
+          const cid = cat.id || cat._id;
+          if (cid) {
+            const val = `category:${cid}`;
+            const isSel = val === current || cid === current;
+            if (isSel) foundSelected = true;
+            optionsHtml += `<option value="${val}" ${isSel ? 'selected' : ''}>Category: ${escapeHtml(cat.name || cid)} (${cid})</option>`;
+          }
+        });
+        optionsHtml += `</optgroup>`;
       }
-      renderVibeQuestQuestionsList();
+
+      if (!foundSelected && current) {
+        optionsHtml = `<option value="${escapeHtml(current)}" selected>Current: ${escapeHtml(current)}</option>` + optionsHtml;
+      }
+
+      return optionsHtml;
     }
 
-    function renderVibeQuestQuestionsList() {
-      const container = document.getElementById('vqQuestionsListContainer');
-      if (!container || !vibeQuestDraft) return;
+    function renderQuestionCards() {
+      const container = document.getElementById('questionConfigCardsContainer');
+      if (!container) return;
 
-      let questions = vibeQuestDraft.questions || [];
-      if (vibeQuestActiveStageFilter !== 'all') {
-        questions = questions.filter(q => q.stage === vibeQuestActiveStageFilter);
-      }
-
-      // Sort by order
-      questions.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-
-      if (questions.length === 0) {
+      if (!configuredQuestions || configuredQuestions.length === 0) {
         container.innerHTML = `
           <div style="background: var(--card); border: 1.5px dashed var(--line); border-radius: 14px; padding: 40px; text-align: center;">
-            <div style="font-size: 28px; margin-bottom: 8px;">📋</div>
-            <div style="font-size: 15px; font-weight: 800; color: var(--cream);">No questions configured for stage: ${vibeQuestActiveStageFilter.toUpperCase()}</div>
-            <p style="font-size: 12px; color: var(--muted); margin-top: 4px;">Click "+ New Question" above to create one.</p>
+            <div style="font-size: 32px; margin-bottom: 12px;">📝</div>
+            <div style="font-size: 16px; font-weight: 800; color: var(--cream); margin-bottom: 6px;">No Questions Configured</div>
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">Add a question to display when customers navigate between order steps.</p>
+            <button class="btn btn-primary" onclick="addNewQuestionCard()" style="background: var(--gold); color: #000; font-weight: 800; padding: 10px 20px; border-radius: 10px;">
+              + Add First Question
+            </button>
           </div>
         `;
         return;
       }
 
       let html = '';
-      questions.forEach((q, idx) => {
-        const stageColors = {
-          hookah: '#3B82F6',
-          food: '#F59E0B',
-          dessert: '#EC4899',
-          drinks: '#10B981',
-          checkout: '#8B5CF6'
-        };
-        const stageColor = stageColors[q.stage] || 'var(--gold)';
-        const answers = q.answers || [];
+      configuredQuestions.forEach((q, qIdx) => {
+        const answers = Array.isArray(q.answers) ? q.answers : [];
 
         html += `
-          <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 18px 20px; transition: border-color 0.2s;">
-            <!-- Header Row -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <span style="background: var(--card2); border: 1px solid var(--line); font-size: 11px; font-weight: 800; color: var(--gold); padding: 3px 8px; border-radius: 6px;">#${q.order ?? (idx + 1)}</span>
-                <span style="background: ${stageColor}22; color: ${stageColor}; border: 1px solid ${stageColor}55; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 3px 10px; border-radius: 12px;">${q.stage}</span>
-                <span style="font-family: monospace; font-size: 12px; color: var(--muted); font-weight: 700;">ID: ${q.id}</span>
-                ${q.active === false ? '<span style="background: rgba(239,68,68,0.15); color: var(--danger); font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">INACTIVE</span>' : ''}
-                ${q.skippable === false ? '<span style="background: rgba(245,158,11,0.15); color: var(--gold); font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 4px;">REQUIRED</span>' : ''}
+          <div style="background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(0,0,0,0.3); transition: border-color 0.2s;">
+            <!-- Question Header Row -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 14px;">
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <span style="background: var(--card2); border: 1px solid var(--line); font-size: 12px; font-weight: 900; color: var(--gold); padding: 4px 10px; border-radius: 8px;">
+                  Question #${qIdx + 1}
+                </span>
+
+                <!-- Navigation Trigger Dropdown -->
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <label style="font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase;">Navigation Trigger:</label>
+                  <select onchange="updateQuestionTrigger(${qIdx}, this.value)" style="padding: 6px 12px; font-size: 12px; font-weight: 800; border-radius: 8px; background: var(--card2); border: 1.5px solid var(--gold); color: var(--gold); cursor: pointer;">
+                    <option value="start_order" ${q.navigation_trigger === 'start_order' ? 'selected' : ''}>Start Order</option>
+                    <option value="next_food" ${q.navigation_trigger === 'next_food' ? 'selected' : ''}>Next: Food</option>
+                    <option value="next_drinks" ${q.navigation_trigger === 'next_drinks' ? 'selected' : ''}>Next: Drinks</option>
+                  </select>
+                </div>
+
+                <!-- Enabled Checkbox -->
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: ${q.active !== false ? 'var(--success)' : 'var(--muted)'}; cursor: pointer; margin-left: 8px;">
+                  <input type="checkbox" ${q.active !== false ? 'checked' : ''} onchange="toggleQuestionActive(${qIdx}, this.checked)" style="width: 16px; height: 16px; cursor: pointer;">
+                  ${q.active !== false ? 'Active' : 'Disabled'}
+                </label>
               </div>
 
-              <!-- Action Buttons -->
-              <div style="display: flex; gap: 6px; align-items: center;">
-                <button class="btn" onclick="moveVibeQuestQuestion('${q.id}', -1)" title="Move Up" style="padding: 4px 8px; font-size: 11px; background: var(--card2); border: 1px solid var(--line);">⬆️</button>
-                <button class="btn" onclick="moveVibeQuestQuestion('${q.id}', 1)" title="Move Down" style="padding: 4px 8px; font-size: 11px; background: var(--card2); border: 1px solid var(--line);">⬇️</button>
-                <button class="btn" onclick="openEditVibeQuestQuestionModal('${q.id}')" style="padding: 5px 12px; font-size: 12px; font-weight: 800; background: rgba(59,130,246,0.12); color: #60A5FA; border: 1px solid #3B82F6;">✏️ Edit</button>
-                <button class="btn" onclick="duplicateVibeQuestQuestion('${q.id}')" style="padding: 5px 12px; font-size: 12px; font-weight: 800; background: var(--card2); border: 1px solid var(--line);">📋 Duplicate</button>
-                <button class="btn" onclick="deleteVibeQuestQuestion('${q.id}')" style="padding: 5px 12px; font-size: 12px; font-weight: 800; background: rgba(239,68,68,0.12); color: var(--danger); border: 1px solid var(--danger);">🗑️ Delete</button>
+              <!-- Question Controls: Reorder & Delete -->
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <button class="btn" onclick="moveQuestionCard(${qIdx}, -1)" ${qIdx === 0 ? 'disabled' : ''} title="Move Up" style="padding: 6px 10px; font-size: 12px; background: var(--card2); border: 1px solid var(--line); opacity: ${qIdx === 0 ? '0.4' : '1'};">
+                  ⬆️
+                </button>
+                <button class="btn" onclick="moveQuestionCard(${qIdx}, 1)" ${qIdx === configuredQuestions.length - 1 ? 'disabled' : ''} title="Move Down" style="padding: 6px 10px; font-size: 12px; background: var(--card2); border: 1px solid var(--line); opacity: ${qIdx === configuredQuestions.length - 1 ? '0.4' : '1'};">
+                  ⬇️
+                </button>
+                <button class="btn" onclick="deleteQuestionCard(${qIdx})" title="Delete Question" style="padding: 6px 12px; font-size: 12px; font-weight: 800; background: rgba(239,68,68,0.12); color: var(--danger); border: 1px solid var(--danger); border-radius: 8px;">
+                  🗑️ Delete
+                </button>
               </div>
             </div>
 
-            <!-- Question Prompt Title -->
-            <div style="font-size: 16px; font-weight: 800; color: var(--cream); margin-bottom: 4px;">
-              ${q.question_text || q.title}
+            <!-- Question Text Field -->
+            <div style="margin-bottom: 20px;">
+              <label style="display: block; font-size: 11px; font-weight: 800; color: var(--cream); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.4px;">
+                Question Text <span style="color: var(--gold);">(Customer Prompt)</span>
+              </label>
+              <input type="text" value="${escapeHtml(q.question_text)}" onchange="updateQuestionText(${qIdx}, this.value)" oninput="updateQuestionText(${qIdx}, this.value)" placeholder="e.g. What kind of hookah experience would you like?" style="width: 100%; padding: 12px 14px; font-size: 15px; font-weight: 700; border-radius: 10px; background: var(--card2); border: 1.5px solid var(--line); color: var(--cream); box-sizing: border-box;">
             </div>
-            ${q.helper_text ? `<div style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">${q.helper_text}</div>` : '<div style="margin-bottom: 12px;"></div>'}
 
-            <!-- Answers Cards Grid -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
-              ${answers.map(ans => {
-                const recCount = (ans.curated_product_ids || []).length;
-                const signalsStr = (ans.preference_signals || []).join(', ');
-                const destStr = ans.destination && ans.destination !== 'default' ? ans.destination : null;
+            <!-- Answer Options List -->
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--line); border-radius: 12px; padding: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 12px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 0.4px;">
+                  Answer Options (${answers.length})
+                </span>
+                <button class="btn" onclick="addOptionToQuestion(${qIdx})" style="padding: 6px 14px; font-size: 12px; font-weight: 800; background: var(--card2); border: 1px solid var(--gold); color: var(--gold); border-radius: 8px;">
+                  + Add Option
+                </button>
+              </div>
 
-                return `
-                  <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                      <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; color: var(--cream);">
-                        <span>${ans.emoji || ''}</span>
-                        <span>${ans.label}</span>
+              ${answers.length === 0 ? `
+                <div style="text-align: center; padding: 20px; color: var(--muted); font-size: 13px;">
+                  No options added yet. Click "+ Add Option" to add selection choices for this question.
+                </div>
+              ` : `
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  ${answers.map((ans, aIdx) => `
+                    <div style="display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; flex-wrap: wrap;">
+                      <span style="font-size: 11px; font-weight: 800; color: var(--muted); min-width: 24px;">#${aIdx + 1}</span>
+
+                      <!-- Option Label Input -->
+                      <div style="flex: 2; min-width: 200px;">
+                        <input type="text" value="${escapeHtml(ans.label)}" onchange="updateOptionLabel(${qIdx}, ${aIdx}, this.value)" oninput="updateOptionLabel(${qIdx}, ${aIdx}, this.value)" placeholder="Option Label (e.g. House Mix Hookahs)" style="width: 100%; padding: 8px 12px; font-size: 13px; font-weight: 700; border-radius: 8px; background: var(--card2); border: 1px solid var(--line); color: var(--cream); box-sizing: border-box;">
                       </div>
-                      <span style="font-size: 10px; font-family: monospace; color: var(--muted);">${ans.id}</span>
-                    </div>
 
-                    ${ans.subtext ? `<div style="font-size: 11px; color: var(--muted); margin-bottom: 6px;">${ans.subtext}</div>` : ''}
+                      <!-- Destination Selector Dropdown -->
+                      <div style="flex: 3; min-width: 240px;">
+                        <select onchange="updateOptionDestination(${qIdx}, ${aIdx}, this.value)" style="width: 100%; padding: 8px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; background: var(--card2); border: 1px solid var(--line); color: var(--cream); cursor: pointer; box-sizing: border-box;">
+                          ${buildDestinationOptionsHtml(ans.destination)}
+                        </select>
+                      </div>
 
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; font-size: 10px;">
-                      ${signalsStr ? `<span style="background: rgba(245,158,11,0.12); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); padding: 2px 6px; border-radius: 4px;">🏷️ ${signalsStr}</span>` : ''}
-                      ${recCount > 0 ? `<span style="background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.3); padding: 2px 6px; border-radius: 4px;">⭐ ${recCount} Curated Pick(s)</span>` : ''}
-                      ${destStr ? `<span style="background: rgba(59,130,246,0.12); color: #60A5FA; border: 1px solid rgba(59,130,246,0.3); padding: 2px 6px; border-radius: 4px;">➡️ ${destStr}</span>` : ''}
+                      <!-- Move & Delete Option Buttons -->
+                      <div style="display: flex; align-items: center; gap: 4px;">
+                        <button class="btn" onclick="moveOptionInQuestion(${qIdx}, ${aIdx}, -1)" ${aIdx === 0 ? 'disabled' : ''} title="Move Up" style="padding: 4px 8px; font-size: 11px; background: var(--card2); border: 1px solid var(--line); opacity: ${aIdx === 0 ? '0.3' : '1'};">
+                          ⬆️
+                        </button>
+                        <button class="btn" onclick="moveOptionInQuestion(${qIdx}, ${aIdx}, 1)" ${aIdx === answers.length - 1 ? 'disabled' : ''} title="Move Down" style="padding: 4px 8px; font-size: 11px; background: var(--card2); border: 1px solid var(--line); opacity: ${aIdx === answers.length - 1 ? '0.3' : '1'};">
+                          ⬇️
+                        </button>
+                        <button class="btn" onclick="deleteOptionFromQuestion(${qIdx}, ${aIdx})" title="Remove Option" style="padding: 4px 8px; font-size: 11px; color: var(--danger); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 6px;">
+                          ✕
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                `;
-              }).join('')}
+                  `).join('')}
+                </div>
+              `}
             </div>
           </div>
         `;
@@ -7860,725 +7287,182 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    async function toggleVibeQuestEnabled() {
-      if (!vibeQuestDraft) return;
-      const current = vibeQuestDraft.enabled !== false;
-      const next = !current;
-      try {
-        const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/api/vibe-quest/admin/toggle`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ enabled: next })
-        });
-        const data = await res.json();
-        if (data.success) {
-          vibeQuestDraft.enabled = next;
-          updateVibeQuestHeaderBadges();
-        } else {
-          alert(`Error: ${data.error || 'Failed to toggle status'}`);
-        }
-      } catch (err) {
-        alert(`Request failed: ${err.message}`);
-      }
+    function updateQuestionTrigger(qIdx, trigger) {
+      if (!configuredQuestions[qIdx]) return;
+      configuredQuestions[qIdx].navigation_trigger = trigger;
     }
 
-    async function validateVibeQuestDraft(showModal = true) {
-      try {
-        const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/api/vibe-quest/admin/validate`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ draft: vibeQuestDraft })
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Validation request failed');
-
-        const val = data.validation;
-        const modal = document.getElementById('vqValidationModal');
-        const content = document.getElementById('vqValidationContent');
-        const badge = document.getElementById('vqValidationBadge');
-
-        if (badge) {
-          if (val.valid) {
-            badge.innerText = 'Draft Validated ✅';
-            badge.style.background = 'rgba(16,185,129,0.15)';
-            badge.style.color = 'var(--success)';
-            badge.style.borderColor = 'var(--success)';
-          } else {
-            badge.innerText = `Validation Issues (${val.issues.length}) ⚠️`;
-            badge.style.background = 'rgba(239,68,68,0.15)';
-            badge.style.color = 'var(--danger)';
-            badge.style.borderColor = 'var(--danger)';
-          }
-        }
-
-        if (showModal && content && modal) {
-          if (val.valid) {
-            content.innerHTML = `
-              <div style="background: rgba(16,185,129,0.12); border: 1.5px solid var(--success); border-radius: 12px; padding: 20px; text-align: center;">
-                <div style="font-size: 32px; margin-bottom: 8px;">✅</div>
-                <div style="font-size: 16px; font-weight: 800; color: var(--success); margin-bottom: 6px;">Draft Configuration is 100% Valid!</div>
-                <div style="font-size: 12px; color: var(--muted);">All question sequences, branch conditions, destinations, and product mappings passed integrity checks. Safe to publish.</div>
-              </div>
-            `;
-          } else {
-            let issuesHtml = `
-              <div style="background: rgba(239,68,68,0.12); border: 1.5px solid var(--danger); border-radius: 12px; padding: 16px; margin-bottom: 14px;">
-                <div style="font-size: 14px; font-weight: 800; color: var(--danger); margin-bottom: 4px;">Found ${val.issues.length} Validation Issue(s)</div>
-                <div style="font-size: 11px; color: var(--muted);">Please resolve these before publishing to live customers:</div>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto;">
-            `;
-            val.issues.forEach(iss => {
-              issuesHtml += `
-                <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                    <span style="font-weight: 800; font-size: 11px; color: var(--danger); text-transform: uppercase;">${iss.code}</span>
-                    ${iss.question_id ? `<span style="font-family: monospace; font-size: 10px; color: var(--muted);">${iss.question_id}</span>` : ''}
-                  </div>
-                  <div style="font-size: 12px; color: var(--cream);">${iss.message}</div>
-                </div>
-              `;
-            });
-            issuesHtml += '</div>';
-            content.innerHTML = issuesHtml;
-          }
-          modal.style.display = 'flex';
-        }
-
-        return val;
-      } catch (err) {
-        alert(`Validation failed: ${err.message}`);
-        return null;
-      }
+    function toggleQuestionActive(qIdx, active) {
+      if (!configuredQuestions[qIdx]) return;
+      configuredQuestions[qIdx].active = active;
+      renderQuestionCards();
     }
 
-    function closeVibeQuestValidationModal() {
-      const modal = document.getElementById('vqValidationModal');
-      if (modal) modal.style.display = 'none';
+    function updateQuestionText(qIdx, text) {
+      if (!configuredQuestions[qIdx]) return;
+      configuredQuestions[qIdx].question_text = text;
     }
 
-    async function publishVibeQuestDraft() {
-      if (!confirm('Deploy Vibe Quest Draft to Live Customer Ordering?\\n\\nThis will run validation, increment the published version, and broadcast real-time updates to connected customer devices.')) {
-        return;
+    function addOptionToQuestion(qIdx) {
+      if (!configuredQuestions[qIdx]) return;
+      if (!Array.isArray(configuredQuestions[qIdx].answers)) {
+        configuredQuestions[qIdx].answers = [];
       }
-
-      try {
-        const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/api/vibe-quest/admin/publish`, {
-          method: 'POST',
-          headers
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`🎉 Successfully Published Live!\n\nPublished Version: v${data.published_version}\nQuestions: ${data.questions_count}`);
-          renderVibeQuestPage();
-        } else {
-          alert(`❌ Publication Blocked by Validator:\n\n${(data.issues || [data.error]).map(i => typeof i === 'string' ? i : i.message).join('\n')}`);
-        }
-      } catch (err) {
-        alert(`Publish request failed: ${err.message}`);
-      }
-    }
-
-    let editingQuestionId = null;
-
-    function openEditVibeQuestQuestionModal(qId) {
-      editingQuestionId = qId;
-      const modal = document.getElementById('vqQuestionModal');
-      const title = document.getElementById('vqModalTitle');
-      const container = document.getElementById('vqAnswersListContainer');
-      if (!modal || !container) return;
-
-      container.innerHTML = '';
-
-      if (qId && vibeQuestDraft?.questions) {
-        const q = vibeQuestDraft.questions.find(x => x.id === qId);
-        if (q) {
-          title.innerText = `Edit Question: ${q.id}`;
-          document.getElementById('vqFormId').value = q.id;
-          document.getElementById('vqFormId').disabled = true;
-          document.getElementById('vqFormStage').value = q.stage || 'hookah';
-          document.getElementById('vqFormTitle').value = q.title || '';
-          document.getElementById('vqFormOrder').value = q.order ?? 1;
-          document.getElementById('vqFormText').value = q.question_text || '';
-          document.getElementById('vqFormHelper').value = q.helper_text || '';
-          document.getElementById('vqFormActive').checked = q.active !== false;
-          document.getElementById('vqFormSkippable').checked = q.skippable !== false;
-          document.getElementById('vqFormRepeat').value = q.repeat_policy || 'once_per_session';
-
-          (q.answers || []).forEach(ans => addVibeQuestAnswerRow(ans));
-        }
-      } else {
-        title.innerText = 'Add New Vibe Quest Question';
-        document.getElementById('vqFormId').value = `Q_${Date.now().toString(36)}`;
-        document.getElementById('vqFormId').disabled = false;
-        document.getElementById('vqFormStage').value = vibeQuestActiveStageFilter !== 'all' ? vibeQuestActiveStageFilter : 'hookah';
-        document.getElementById('vqFormTitle').value = '';
-        document.getElementById('vqFormOrder').value = (vibeQuestDraft?.questions?.length || 0) + 1;
-        document.getElementById('vqFormText').value = '';
-        document.getElementById('vqFormHelper').value = '';
-        document.getElementById('vqFormActive').checked = true;
-        document.getElementById('vqFormSkippable').checked = true;
-        document.getElementById('vqFormRepeat').value = 'once_per_session';
-
-        addVibeQuestAnswerRow();
-      }
-
-      modal.style.display = 'flex';
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function closeVibeQuestQuestionModal() {
-      const modal = document.getElementById('vqQuestionModal');
-      if (modal) modal.style.display = 'none';
-      editingQuestionId = null;
-    }
-
-    function addVibeQuestAnswerRow(ansData = null) {
-      const container = document.getElementById('vqAnswersListContainer');
-      if (!container) return;
-
-      const rowId = `ans_row_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-      const ansId = ansData?.id || `ans_${Date.now().toString(36).substring(3, 8)}`;
-      const emoji = ansData?.emoji || '';
-      const label = ansData?.label || '';
-      const subtext = ansData?.subtext || '';
-      const signals = (ansData?.preference_signals || []).join(', ');
-      const destination = ansData?.destination || 'default';
-      const pinnedId = (ansData?.curated_product_ids && ansData.curated_product_ids[0]) || '';
-
-      let branchTarget = '';
-      if (ansData?.branching_rules && ansData.branching_rules.length > 0) {
-        branchTarget = ansData.branching_rules[0].target_question_id || '';
-      }
-
-      // Build product options
-      let productOptions = '<option value="">-- No Pinned Product (Use Dynamic Engine) --</option>';
-      if (Array.isArray(menuItems)) {
-        menuItems.forEach(item => {
-          const pId = item.id || item._id;
-          const isSel = pId === pinnedId ? 'selected' : '';
-          productOptions += `<option value="${pId}" ${isSel}>${item.name} ($${Number(item.price).toFixed(2)})</option>`;
-        });
-      }
-
-      // Build dynamic category destination options
-      let catDestOptions = '';
-      const allMenuCats = typeof getAllMenuCategoriesList === 'function' ? getAllMenuCategoriesList() : [];
-      allMenuCats.forEach(cat => {
-        const cId = cat.id || cat._id;
-        const val = `category:${cId}`;
-        const isSel = destination === val ? 'selected' : '';
-        catDestOptions += `<option value="${val}" ${isSel}>📂 Category: ${cat.title}</option>`;
+      configuredQuestions[qIdx].answers.push({
+        id: `ans_${qIdx + 1}_${Date.now()}`,
+        label: '',
+        destination: 'skip'
       });
-
-      const rowHtml = `
-        <div id="${rowId}" class="vq-answer-row" style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; gap: 8px; align-items: center; flex: 1;">
-              <input type="text" class="ans-emoji" value="${emoji}" style="width: 44px; padding: 8px; text-align: center; font-size: 18px; border-radius: 8px; background: var(--card); border: 1px solid var(--line);">
-              <input type="text" class="ans-label" value="${label}" placeholder="Option label (e.g. Sweet or fruity)" style="flex: 2; padding: 8px 12px; font-weight: 700; border-radius: 8px; background: var(--card); border: 1px solid var(--line); color: var(--cream); font-size: 13px;">
-              <input type="text" class="ans-id" value="${ansId}" placeholder="ans_id" style="width: 140px; padding: 8px 10px; font-family: monospace; font-size: 11px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); color: var(--muted);">
-            </div>
-            <button class="btn" type="button" onclick="document.getElementById('${rowId}').remove()" style="padding: 4px 8px; color: var(--danger); font-size: 12px; margin-left: 8px;">✕</button>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <input type="text" class="ans-subtext" value="${subtext}" placeholder="Subtext hint (optional)" style="padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-            <input type="text" class="ans-signals" value="${signals}" placeholder="Preference signals (e.g. sweet, fruity, minty)" style="padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--gold);">
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-            <div>
-              <label style="display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 2px;">Curated Pinned Item</label>
-              <select class="ans-product" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-                ${productOptions}
-              </select>
-            </div>
-            <div>
-              <label style="display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 2px;">Destination Navigation</label>
-              <select class="ans-destination" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
-                <option value="default" ${destination === 'default' ? 'selected' : ''}>Default (Next Stage)</option>
-                <option value="menu:hookah" ${destination === 'menu:hookah' ? 'selected' : ''}>Menu: House Mix Hookahs</option>
-                <option value="category:CAT_HOOKAH_HOUSE_MIXES" ${destination === 'category:CAT_HOOKAH_HOUSE_MIXES' ? 'selected' : ''}>Category: House Mixes</option>
-                <option value="flow:mix_lab" ${destination === 'flow:mix_lab' ? 'selected' : ''}>Open Custom Mix Lab 🧪</option>
-                <option value="menu:food" ${destination === 'menu:food' ? 'selected' : ''}>Menu: Food (All)</option>
-                <option value="menu:drinks" ${destination === 'menu:drinks' ? 'selected' : ''}>Menu: Drinks (All)</option>
-                ${catDestOptions}
-                <option value="stage:checkout" ${destination === 'stage:checkout' ? 'selected' : ''}>Review Order (Checkout)</option>
-                <option value="skip" ${destination === 'skip' ? 'selected' : ''}>Skip</option>
-                <option value="dismiss" ${destination === 'dismiss' ? 'selected' : ''}>Dismiss Discovery</option>
-              </select>
-            </div>
-            <div>
-              <label style="display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 2px;">Target Question Branch</label>
-              <input type="text" class="ans-target" value="${branchTarget}" placeholder="Target Question ID (or Next)" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream); font-family: monospace;">
-            </div>
-          </div>
-        </div>
-      `;
-
-      container.insertAdjacentHTML('beforeend', rowHtml);
+      renderQuestionCards();
     }
 
-    async function saveVibeQuestQuestionFromModal() {
-      if (!vibeQuestDraft) return;
+    function deleteOptionFromQuestion(qIdx, aIdx) {
+      if (!configuredQuestions[qIdx] || !configuredQuestions[qIdx].answers) return;
+      configuredQuestions[qIdx].answers.splice(aIdx, 1);
+      renderQuestionCards();
+    }
 
-      const qId = document.getElementById('vqFormId').value.trim();
-      const stage = document.getElementById('vqFormStage').value;
-      const title = document.getElementById('vqFormTitle').value.trim();
-      const order = Number(document.getElementById('vqFormOrder').value) || 1;
-      const qText = document.getElementById('vqFormText').value.trim();
-      const helper = document.getElementById('vqFormHelper').value.trim();
-      const active = document.getElementById('vqFormActive').checked;
-      const skippable = document.getElementById('vqFormSkippable').checked;
-      const repeat = document.getElementById('vqFormRepeat').value;
+    function moveOptionInQuestion(qIdx, aIdx, dir) {
+      if (!configuredQuestions[qIdx] || !configuredQuestions[qIdx].answers) return;
+      const arr = configuredQuestions[qIdx].answers;
+      const targetIdx = aIdx + dir;
+      if (targetIdx < 0 || targetIdx >= arr.length) return;
+      const temp = arr[aIdx];
+      arr[aIdx] = arr[targetIdx];
+      arr[targetIdx] = temp;
+      renderQuestionCards();
+    }
 
-      if (!qId || !qText) {
-        alert('Please fill in required fields: Question ID and Prompt text.');
-        return;
-      }
+    function updateOptionLabel(qIdx, aIdx, label) {
+      if (!configuredQuestions[qIdx] || !configuredQuestions[qIdx].answers?.[aIdx]) return;
+      configuredQuestions[qIdx].answers[aIdx].label = label;
+    }
 
-      // Collect answers
-      const answerRows = document.querySelectorAll('.vq-answer-row');
-      const answers = [];
-      answerRows.forEach((row, idx) => {
-        const aId = row.querySelector('.ans-id').value.trim() || `ans_${idx + 1}`;
-        const aEmoji = row.querySelector('.ans-emoji').value.trim() || '';
-        const aLabel = row.querySelector('.ans-label').value.trim();
-        const aSubtext = row.querySelector('.ans-subtext').value.trim();
-        const aSignalsRaw = row.querySelector('.ans-signals').value.trim();
-        const aSignals = aSignalsRaw ? aSignalsRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean) : [];
-        const aProduct = row.querySelector('.ans-product').value;
-        const aDest = row.querySelector('.ans-destination').value;
-        const aTarget = row.querySelector('.ans-target').value.trim();
+    function updateOptionDestination(qIdx, aIdx, destination) {
+      if (!configuredQuestions[qIdx] || !configuredQuestions[qIdx].answers?.[aIdx]) return;
+      configuredQuestions[qIdx].answers[aIdx].destination = destination;
+    }
 
-        if (aLabel) {
-          const ansObj = {
-            id: aId,
-            label: aLabel,
-            emoji: aEmoji,
-            subtext: aSubtext || undefined,
-            preference_signals: aSignals,
-            destination: aDest !== 'default' ? aDest : undefined,
-            curated_product_ids: aProduct ? [aProduct] : [],
-          };
-          if (aTarget) {
-            ansObj.branching_rules = [{
-              condition: { type: 'always' },
-              target_question_id: aTarget
-            }];
-          }
-          answers.push(ansObj);
-        }
+    function addNewQuestionCard() {
+      configuredQuestions.push({
+        id: `q_custom_${Date.now()}`,
+        navigation_trigger: 'start_order',
+        question_text: '',
+        active: true,
+        answers: [
+          { id: `ans_1_${Date.now()}`, label: '', destination: 'skip' }
+        ]
       });
-
-      if (answers.length === 0) {
-        alert('Please add at least one answer option for customers to tap.');
-        return;
-      }
-
-      const newQ = {
-        id: qId,
-        stage,
-        title: title || qText,
-        question_text: qText,
-        helper_text: helper || undefined,
-        order,
-        active,
-        skippable,
-        repeat_policy: repeat,
-        answers
-      };
-
-      if (!vibeQuestDraft.questions) vibeQuestDraft.questions = [];
-      const existingIdx = vibeQuestDraft.questions.findIndex(x => x.id === qId);
-      if (existingIdx >= 0) {
-        vibeQuestDraft.questions[existingIdx] = newQ;
-      } else {
-        vibeQuestDraft.questions.push(newQ);
-      }
-
-      // Save to server
-      try {
-        const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/api/vibe-quest/admin/draft`, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ draft: vibeQuestDraft })
-        });
-        const data = await res.json();
-        if (data.success) {
-          closeVibeQuestQuestionModal();
-          renderVibeQuestPage();
-        } else {
-          alert(`Error saving question: ${data.error || 'Unknown error'}`);
-        }
-      } catch (err) {
-        alert(`Failed to save question: ${err.message}`);
-      }
+      renderQuestionCards();
     }
 
-    async function duplicateVibeQuestQuestion(qId) {
-      if (!vibeQuestDraft?.questions) return;
-      const orig = vibeQuestDraft.questions.find(x => x.id === qId);
-      if (!orig) return;
-
-      const clone = JSON.parse(JSON.stringify(orig));
-      clone.id = `${orig.id}_copy_${Date.now().toString(36).substring(3, 7)}`;
-      clone.title = `${orig.title || orig.question_text} (Copy)`;
-      clone.order = (orig.order ?? 1) + 1;
-
-      vibeQuestDraft.questions.push(clone);
-      await saveDraftToServer();
+    function deleteQuestionCard(qIdx) {
+      if (!confirm('Are you sure you want to delete this question?')) return;
+      configuredQuestions.splice(qIdx, 1);
+      renderQuestionCards();
     }
 
-    async function deleteVibeQuestQuestion(qId) {
-      if (!confirm(`Are you sure you want to delete question "${qId}"?`)) return;
-      if (!vibeQuestDraft?.questions) return;
-      vibeQuestDraft.questions = vibeQuestDraft.questions.filter(x => x.id !== qId);
-      await saveDraftToServer();
+    function moveQuestionCard(qIdx, dir) {
+      const targetIdx = qIdx + dir;
+      if (targetIdx < 0 || targetIdx >= configuredQuestions.length) return;
+      const temp = configuredQuestions[qIdx];
+      configuredQuestions[qIdx] = configuredQuestions[targetIdx];
+      configuredQuestions[targetIdx] = temp;
+      renderQuestionCards();
     }
 
-    async function moveVibeQuestQuestion(qId, direction) {
-      if (!vibeQuestDraft?.questions) return;
-      const list = [...vibeQuestDraft.questions].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      const idx = list.findIndex(x => x.id === qId);
-      if (idx < 0) return;
-      const targetIdx = idx + direction;
-      if (targetIdx < 0 || targetIdx >= list.length) return;
-
-      // Swap orders
-      const tempOrder = list[idx].order ?? (idx + 1);
-      list[idx].order = list[targetIdx].order ?? (targetIdx + 1);
-      list[targetIdx].order = tempOrder;
-
-      vibeQuestDraft.questions = list;
-      await saveDraftToServer();
-    }
-
-    async function saveDraftToServer() {
-      try {
-        const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/api/vibe-quest/admin/draft`, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ draft: vibeQuestDraft })
-        });
-        const data = await res.json();
-        if (data.success) {
-          renderVibeQuestPage();
-        } else {
-          alert(`Failed to save draft changes: ${data.error || 'Unknown error'}`);
-        }
-      } catch (err) {
-        alert(`Save failed: ${err.message}`);
-      }
-    }
-
-    // ── SIMULATOR ENGINE ──
-
-    function openVibeQuestSimulatorModal() {
-      const modal = document.getElementById('vqSimulatorModal');
-      if (!modal) return;
-      resetSimulation();
-      modal.style.display = 'flex';
-      setSimulatedStage('hookah');
-    }
-
-    function closeVibeQuestSimulatorModal() {
-      const modal = document.getElementById('vqSimulatorModal');
-      if (modal) modal.style.display = 'none';
-    }
-
-    function resetSimulation() {
-      simAnswers = {};
-      simSignals = [];
-      simCart = [];
-      const dCheck = document.getElementById('simCartHasDessert');
-      const dakuCheck = document.getElementById('simCartHasDaku');
-      if (dCheck) dCheck.checked = false;
-      if (dakuCheck) dakuCheck.checked = false;
-      simQuestionId = null;
-      renderSimulationView();
-    }
-
-    function setSimulatedStage(stage) {
-      simStage = stage;
-      ['hookah', 'food', 'dessert', 'drinks', 'checkout'].forEach(s => {
-        const btn = document.getElementById(`simStage-${s}`);
-        if (btn) {
-          if (s === stage) {
-            btn.style.background = 'var(--gold)';
-            btn.style.color = '#000';
-          } else {
-            btn.style.background = 'var(--card2)';
-            btn.style.color = 'var(--cream)';
-          }
-        }
-      });
-
-      // Find first question in stage
-      if (vibeQuestDraft?.questions) {
-        const qList = vibeQuestDraft.questions.filter(x => x.stage === stage && x.active !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-        simQuestionId = qList.length > 0 ? qList[0].id : null;
-      }
-      renderSimulationView();
-    }
-
-    function renderSimulationView() {
-      const screenBox = document.getElementById('simScreenContainer');
-      const recsBox = document.getElementById('simRecsContainer');
-      if (!screenBox || !vibeQuestDraft) return;
-
-      const hasDessert = document.getElementById('simCartHasDessert')?.checked;
-      const hasDaku = document.getElementById('simCartHasDaku')?.checked;
-
-      // Check dessert suppression
-      if (simStage === 'dessert' && hasDessert) {
-        screenBox.innerHTML = `
-          <div style="text-align: center; padding: 24px; color: #10B981;">
-            <div style="font-size: 32px; margin-bottom: 6px;">🍨</div>
-            <div style="font-size: 15px; font-weight: 800;">Dessert Discovery Suppressed</div>
-            <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Rule verified: Customer already has a qualifying dessert in their cart!</div>
-          </div>
-        `;
-        if (recsBox) recsBox.innerHTML = '';
-        return;
-      }
-
-      const q = (vibeQuestDraft.questions || []).find(x => x.id === simQuestionId);
-      if (!q) {
-        screenBox.innerHTML = `
-          <div style="text-align: center; padding: 24px; color: var(--muted);">
-            <div style="font-size: 28px; margin-bottom: 6px;">🎯</div>
-            <div style="font-size: 14px; font-weight: 800; color: var(--cream);">No more questions in stage "${simStage.toUpperCase()}"</div>
-            <div style="font-size: 11px; margin-top: 4px;">Discovery complete or dismissed for this step.</div>
-          </div>
-        `;
-        renderSimulatedRecommendations();
-        return;
-      }
-
-      let answersHtml = '';
-      (q.answers || []).forEach(ans => {
-        answersHtml += `
-          <button class="btn" onclick="simSelectAnswer('${q.id}', '${ans.id}')" style="background: #27272A; border: 1.5px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 14px; text-align: left; display: flex; align-items: center; gap: 10px; width: 100%; transition: border-color 0.2s;">
-            <span style="font-size: 20px;">${ans.emoji || ''}</span>
-            <div style="flex: 1;">
-              <div style="font-size: 13px; font-weight: 800; color: #FFF;">${ans.label}</div>
-              ${ans.subtext ? `<div style="font-size: 11px; color: #94A3B8;">${ans.subtext}</div>` : ''}
-            </div>
-            ${ans.destination ? `<span style="font-size: 10px; color: #F59E0B; font-weight: 700;">➡️ ${ans.destination}</span>` : ''}
-          </button>
-        `;
-      });
-
-      screenBox.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="background: rgba(245,158,11,0.2); color: #F59E0B; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px;">CAVALLI VIBE QUEST</span>
-            <span style="background: #27272A; color: #94A3B8; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px;">${q.stage.toUpperCase()}</span>
-          </div>
-          <button class="btn" onclick="simSkipQuestion('${q.id}')" style="padding: 2px 8px; font-size: 11px; color: #94A3B8;">Skip ⏩</button>
-        </div>
-
-        <div style="font-size: 17px; font-weight: 800; color: #F8FAFC; margin-bottom: 4px;">
-          ${q.question_text || q.title}
-        </div>
-        ${q.helper_text ? `<div style="font-size: 12px; color: #94A3B8; margin-bottom: 14px;">${q.helper_text}</div>` : '<div style="margin-bottom: 14px;"></div>'}
-
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          ${answersHtml}
-        </div>
-      `;
-
-      renderSimulatedRecommendations();
-    }
-
-    function simSelectAnswer(qId, aId) {
-      if (!vibeQuestDraft?.questions) return;
-      const q = vibeQuestDraft.questions.find(x => x.id === qId);
-      if (!q) return;
-      const ans = (q.answers || []).find(x => x.id === aId);
-      if (!ans) return;
-
-      simAnswers[qId] = [aId];
-      if (ans.preference_signals) {
-        simSignals = [...new Set([...simSignals, ...ans.preference_signals])];
-      }
-
-      // Check destination
-      if (ans.destination === 'dismiss') {
-        simQuestionId = null;
-        renderSimulationView();
-        return;
-      }
-
-      // Check branching rules
-      if (ans.branching_rules && ans.branching_rules.length > 0) {
-        const nextId = ans.branching_rules[0].target_question_id;
-        if (nextId) {
-          simQuestionId = nextId;
-          renderSimulationView();
+    async function saveAllConfiguredQuestions() {
+      for (let i = 0; i < configuredQuestions.length; i++) {
+        const q = configuredQuestions[i];
+        if (!q.question_text || !q.question_text.trim()) {
+          alert(`Question #${i + 1} has empty question text. Please provide question text.`);
           return;
         }
-      }
-
-      // Else find next question in stage
-      const stageQuestions = vibeQuestDraft.questions.filter(x => x.stage === q.stage && x.active !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      const currIdx = stageQuestions.findIndex(x => x.id === qId);
-      if (currIdx >= 0 && currIdx < stageQuestions.length - 1) {
-        simQuestionId = stageQuestions[currIdx + 1].id;
-      } else {
-        simQuestionId = null;
-      }
-
-      renderSimulationView();
-    }
-
-    function simSkipQuestion(qId) {
-      if (!vibeQuestDraft?.questions) return;
-      const q = vibeQuestDraft.questions.find(x => x.id === qId);
-      if (!q) return;
-
-      const stageQuestions = vibeQuestDraft.questions.filter(x => x.stage === q.stage && x.active !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      const currIdx = stageQuestions.findIndex(x => x.id === qId);
-      if (currIdx >= 0 && currIdx < stageQuestions.length - 1) {
-        simQuestionId = stageQuestions[currIdx + 1].id;
-      } else {
-        simQuestionId = null;
-      }
-      renderSimulationView();
-    }
-
-    function renderSimulatedRecommendations() {
-      const container = document.getElementById('simRecsContainer');
-      if (!container || !menuItems || menuItems.length === 0) return;
-
-      // Find curated products from chosen answers
-      let curatedIds = [];
-      Object.keys(simAnswers).forEach(qId => {
-        const aIds = simAnswers[qId] || [];
-        const q = vibeQuestDraft?.questions?.find(x => x.id === qId);
-        if (q) {
-          (q.answers || []).forEach(a => {
-            if (aIds.includes(a.id) && a.curated_product_ids) {
-              curatedIds.push(...a.curated_product_ids);
-            }
-          });
+        if (!Array.isArray(q.answers) || q.answers.length === 0) {
+          alert(`Question #${i + 1} has no answer options. Please add at least one answer option.`);
+          return;
         }
-      });
-
-      // Filter products for stage
-      let stageCategory = simStage === 'dessert' ? 'CAT_DESSERTS' : simStage;
-      let recs = [];
-
-      curatedIds.forEach(pId => {
-        const item = menuItems.find(m => (m.id || m._id) === pId);
-        if (item && !recs.some(r => (r.id || r._id) === (item.id || item._id))) {
-          recs.push(item);
+        for (let j = 0; j < q.answers.length; j++) {
+          if (!q.answers[j].label || !q.answers[j].label.trim()) {
+            alert(`Question #${i + 1}, Option #${j + 1} has an empty label. Please provide an option label.`);
+            return;
+          }
         }
-      });
-
-      if (recs.length === 0) {
-        // Fallback: items in category
-        recs = menuItems.filter(m => (m.category || m.category_id || '').toLowerCase().includes(simStage)).slice(0, 3);
       }
 
-      if (recs.length === 0) {
-        container.innerHTML = '';
-        return;
-      }
+      const formattedQuestions = configuredQuestions.map((q, idx) => {
+        const trigger = q.navigation_trigger || 'start_order';
+        const stage = trigger === 'start_order' ? 'hookah' : trigger === 'next_food' ? 'food' : trigger === 'next_drinks' ? 'drinks' : 'hookah';
 
-      let html = `
-        <div style="background: var(--card2); border: 1.5px solid var(--gold); border-radius: 14px; padding: 14px 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="font-size: 13px; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px;">
-              <span>🎯</span> Simulated Recommendation Picks (${recs.length})
-            </div>
-            ${simSignals.length > 0 ? `<div style="font-size: 10px; color: var(--muted);">Signals: ${simSignals.join(', ')}</div>` : ''}
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
-      `;
-
-      recs.slice(0, 3).forEach(item => {
-        html += `
-          <div style="background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-              <span style="font-weight: 800; font-size: 12px; color: var(--cream);">${item.name}</span>
-              <span style="font-weight: 800; font-size: 12px; color: var(--gold);">$${Number(item.price).toFixed(2)}</span>
-            </div>
-            <div style="font-size: 10px; color: var(--muted);">${item.description || 'Delicious selection'}</div>
-          </div>
-        `;
+        return {
+          id: q.id || `q_${trigger}_${idx + 1}`,
+          navigation_trigger: trigger,
+          stage: stage,
+          title: q.question_text.trim(),
+          question_text: q.question_text.trim(),
+          order: idx + 1,
+          sort_order: idx + 1,
+          active: q.active !== false,
+          skippable: true,
+          repeat_policy: 'always',
+          answers: (q.answers || []).map((ans, aIdx) => ({
+            id: ans.id || `ans_${idx + 1}_${aIdx + 1}`,
+            label: ans.label.trim(),
+            destination: ans.destination || 'skip',
+            preference_signals: [],
+            curated_product_ids: []
+          }))
+        };
       });
 
-      html += '</div></div>';
-      container.innerHTML = html;
-    }
-
-    // ── ANALYTICS ENGINE ──
-
-    async function openVibeQuestAnalyticsModal() {
-      const modal = document.getElementById('vqAnalyticsModal');
-      if (!modal) return;
-      modal.style.display = 'flex';
+      const topSaveBtn = document.getElementById('saveQuestionsTopBtn');
+      const origText = topSaveBtn ? topSaveBtn.innerText : '';
+      if (topSaveBtn) {
+        topSaveBtn.innerText = 'Saving...';
+        topSaveBtn.disabled = true;
+      }
 
       try {
         const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/api/vibe-quest/admin/analytics`, { headers });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.summary) {
-            const s = data.summary;
-            document.getElementById('vqStatShown').innerText = s.question_shown || 0;
-            document.getElementById('vqStatAnswered').innerText = s.question_answered || 0;
-            document.getElementById('vqStatSkipped').innerText = (s.question_skipped || 0) + (s.question_dismissed || 0);
-            document.getElementById('vqStatSelected').innerText = s.recommendation_selected || 0;
-            document.getElementById('vqStatCart').innerText = s.recommendation_added_to_cart || 0;
-          }
+        const res = await fetch(`${API_URL}/api/vibe-quest/admin/save-questions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ questions: formattedQuestions })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to save questions');
         }
+
+        alert('Questions successfully saved and published for customer ordering!');
+        renderVibeQuestPage();
       } catch (err) {
-        console.warn('Could not load analytics:', err);
+        console.error('Error saving questions:', err);
+        alert('Error saving questions: ' + err.message);
+      } finally {
+        if (topSaveBtn) {
+          topSaveBtn.innerText = origText;
+          topSaveBtn.disabled = false;
+        }
       }
     }
 
-    function closeVibeQuestAnalyticsModal() {
-      const modal = document.getElementById('vqAnalyticsModal');
-      if (modal) modal.style.display = 'none';
-    }
-
-    // Explicitly bind all Vibe Quest functions to window for inline onclick handlers
+    // Explicitly bind functions to window for onclick handlers
     window.switchMenuCatalogSubTab = switchMenuCatalogSubTab;
     window.renderVibeQuestPage = renderVibeQuestPage;
-    window.updateVibeQuestHeaderBadges = updateVibeQuestHeaderBadges;
-    window.filterVibeQuestStage = filterVibeQuestStage;
-    window.renderVibeQuestQuestionsList = renderVibeQuestQuestionsList;
-    window.toggleVibeQuestEnabled = toggleVibeQuestEnabled;
-    window.validateVibeQuestDraft = validateVibeQuestDraft;
-    window.closeVibeQuestValidationModal = closeVibeQuestValidationModal;
-    window.publishVibeQuestDraft = publishVibeQuestDraft;
-    window.openEditVibeQuestQuestionModal = openEditVibeQuestQuestionModal;
-    window.closeVibeQuestQuestionModal = closeVibeQuestQuestionModal;
-    window.addVibeQuestAnswerRow = addVibeQuestAnswerRow;
-    window.removeVibeQuestAnswerRow = removeVibeQuestAnswerRow;
-    window.saveVibeQuestQuestionFromModal = saveVibeQuestQuestionFromModal;
-    window.duplicateVibeQuestQuestion = duplicateVibeQuestQuestion;
-    window.deleteVibeQuestQuestion = deleteVibeQuestQuestion;
-    window.moveVibeQuestQuestion = moveVibeQuestQuestion;
-    window.openVibeQuestSimulatorModal = openVibeQuestSimulatorModal;
-    window.closeVibeQuestSimulatorModal = closeVibeQuestSimulatorModal;
-    window.resetSimulation = resetSimulation;
-    window.setSimulatedStage = setSimulatedStage;
-    window.renderSimulationView = renderSimulationView;
-    window.simSelectAnswer = simSelectAnswer;
-    window.simSkipQuestion = simSkipQuestion;
-    window.renderSimulatedRecommendations = renderSimulatedRecommendations;
-    window.openVibeQuestAnalyticsModal = openVibeQuestAnalyticsModal;
-    window.closeVibeQuestAnalyticsModal = closeVibeQuestAnalyticsModal;
+    window.renderQuestionCards = renderQuestionCards;
+    window.updateQuestionTrigger = updateQuestionTrigger;
+    window.toggleQuestionActive = toggleQuestionActive;
+    window.updateQuestionText = updateQuestionText;
+    window.addOptionToQuestion = addOptionToQuestion;
+    window.deleteOptionFromQuestion = deleteOptionFromQuestion;
+    window.moveOptionInQuestion = moveOptionInQuestion;
+    window.updateOptionLabel = updateOptionLabel;
+    window.updateOptionDestination = updateOptionDestination;
+    window.addNewQuestionCard = addNewQuestionCard;
+    window.deleteQuestionCard = deleteQuestionCard;
+    window.moveQuestionCard = moveQuestionCard;
+    window.saveAllConfiguredQuestions = saveAllConfiguredQuestions;
   </script>
 </body>
 </html>

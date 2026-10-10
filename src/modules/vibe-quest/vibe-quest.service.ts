@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { MultiTenantDbService } from '../../services/multi-tenant-db.service';
 import { sseService } from '../../services/sse.service';
 import { VibeQuestEngine } from './vibe-quest.engine';
@@ -5,6 +7,8 @@ import {
   VibeQuestConfig,
   VibeQuestRestaurantSettings,
   VibeQuestValidationResult,
+  VibeQuestQuestion,
+  VibeQuestConfigSettings,
 } from './vibe-quest.types';
 
 export class VibeQuestService {
@@ -17,12 +21,26 @@ export class VibeQuestService {
   }
 
   /**
+   * Resolve canonical restaurant _id.
+   */
+  static async resolveRestaurantId(restaurantId: string): Promise<string> {
+    if (!restaurantId) return 'RES_EED4E9D266DF';
+    try {
+      const rest = await MultiTenantDbService.getRestaurant(restaurantId);
+      return rest?._id || restaurantId;
+    } catch {
+      return restaurantId;
+    }
+  }
+
+  /**
    * Retrieve the full Vibe Quest settings for admin (including draft & published).
    */
   static async getSettings(restaurantId: string): Promise<VibeQuestRestaurantSettings | null> {
+    const canonicalId = await this.resolveRestaurantId(restaurantId);
     const db = this.getDb();
     const rest = await db.collection<any>('restaurants').findOne(
-      { _id: restaurantId },
+      { $or: [{ _id: canonicalId }, { id: canonicalId }] },
       { projection: { 'settings.vibe_quest': 1 } }
     );
     return (rest?.settings?.vibe_quest as VibeQuestRestaurantSettings) || null;
@@ -32,37 +50,192 @@ export class VibeQuestService {
    * Retrieve only the published configuration for the public customer client.
    */
   static async getPublishedConfig(restaurantId: string): Promise<VibeQuestConfig | null> {
+    const canonicalId = await this.resolveRestaurantId(restaurantId);
     const db = this.getDb();
     const rest = await db.collection<any>('restaurants').findOne(
-      { _id: restaurantId },
+      { $or: [{ _id: canonicalId }, { id: canonicalId }] },
       { projection: { 'settings.vibe_quest': 1 } }
     );
     const vq = rest?.settings?.vibe_quest as VibeQuestRestaurantSettings | undefined;
-    if (!vq || !vq.enabled || !vq.published) {
+    if (!vq || vq.enabled === false) {
       return null;
     }
-    return vq.published;
+    return vq.published || vq.draft || null;
   }
 
   /**
-   * Save or update draft configuration.
+   * Save or update configuration (atomically updates draft and published to keep them synchronized).
    */
   static async updateDraft(restaurantId: string, draft: VibeQuestConfig): Promise<boolean> {
+    const canonicalId = await this.resolveRestaurantId(restaurantId);
     const db = this.getDb();
     const now = new Date().toISOString();
     draft.updated_at = now;
 
+    const existingSettings = await this.getSettings(canonicalId);
+    const nextVersion = (existingSettings?.published_version || existingSettings?.draft?.version || 1) + 1;
+    draft.version = nextVersion;
+
+    const publishedConfig: VibeQuestConfig = {
+      ...draft,
+      version: nextVersion,
+      enabled: true,
+      published_at: now,
+    };
+
     await db.collection<any>('restaurants').updateOne(
-      { _id: restaurantId },
+      { $or: [{ _id: canonicalId }, { id: canonicalId }] },
       {
         $set: {
+          'settings.vibe_quest.enabled': true,
+          'settings.vibe_quest.published_version': nextVersion,
           'settings.vibe_quest.draft': draft,
+          'settings.vibe_quest.published': publishedConfig,
+          'settings.vibe_quest.updated_at': now,
+          'settings.vibe_quest.published_at': now,
+        },
+      },
+      { upsert: false }
+    );
+
+    // Broadcast SSE update
+    try {
+      sseService.broadcast(
+        {
+          type: 'vibe_quest_updated',
+          version: nextVersion,
+          restaurant_id: canonicalId,
+        },
+        canonicalId
+      );
+    } catch (_) {}
+
+    return true;
+  }
+
+  /**
+   * Dedicated method to save questions directly and immediately publish for a restaurant.
+   */
+  static async saveQuestions(
+    restaurantId: string,
+    questions: VibeQuestQuestion[],
+    customSettings?: Partial<VibeQuestConfigSettings>
+  ): Promise<{ success: boolean; version: number; config: VibeQuestConfig }> {
+    const canonicalId = await this.resolveRestaurantId(restaurantId);
+    const db = this.getDb();
+    const existingSettings = await this.getSettings(canonicalId);
+    const currentVersion = existingSettings?.published_version || existingSettings?.draft?.version || 1;
+    const nextVersion = currentVersion + 1;
+    const now = new Date().toISOString();
+
+    const sanitizedQuestions: VibeQuestQuestion[] = (questions || []).map((q, idx) => {
+      let stage = q.stage;
+      if (q.navigation_trigger === 'start_order') stage = 'hookah';
+      else if (q.navigation_trigger === 'next_food') stage = 'food';
+      else if (q.navigation_trigger === 'next_drinks') stage = 'drinks';
+
+      return {
+        id: q.id || `q_${q.navigation_trigger || stage || idx}`,
+        stage: stage || 'hookah',
+        navigation_trigger: q.navigation_trigger,
+        title: q.title || q.question_text || 'Question',
+        question_text: q.question_text || q.title || '',
+        active: q.active !== false,
+        sort_order: typeof q.sort_order === 'number' ? q.sort_order : idx,
+        type: q.type || 'single_select',
+        required: q.required ?? false,
+        skippable: q.skippable ?? true,
+        repeat_policy: q.repeat_policy || 'show_once',
+        answers: (q.answers || []).map((ans, aIdx) => ({
+          id: ans.id || `ans_${idx}_${aIdx}`,
+          label: ans.label || '',
+          emoji: ans.emoji || (ans as any).icon || '',
+          destination: ans.destination || '',
+          active: ans.active !== false,
+          sort_order: typeof ans.sort_order === 'number' ? ans.sort_order : aIdx,
+        })),
+      };
+    });
+
+    const isHookahActive = sanitizedQuestions.some(
+      (q) => (q.navigation_trigger === 'start_order' || q.stage === 'hookah') && q.active !== false
+    );
+
+    const mergedSettings: VibeQuestConfigSettings = {
+      ...(existingSettings?.draft?.settings || {}),
+      ...(existingSettings?.published?.settings || {}),
+      ...(customSettings || {}),
+      hookah_selection_screen_enabled: isHookahActive,
+      dessert_category_ids: ['CAT_DESSERTS'],
+    };
+
+    const newConfig: VibeQuestConfig = {
+      version: nextVersion,
+      enabled: true,
+      questions: sanitizedQuestions,
+      settings: mergedSettings,
+      updated_at: now,
+      published_at: now,
+    };
+
+    await db.collection<any>('restaurants').updateOne(
+      { $or: [{ _id: canonicalId }, { id: canonicalId }] },
+      {
+        $set: {
+          'settings.vibe_quest.enabled': true,
+          'settings.vibe_quest.published_version': nextVersion,
+          'settings.vibe_quest.published': newConfig,
+          'settings.vibe_quest.draft': newConfig,
+          'settings.vibe_quest.published_at': now,
           'settings.vibe_quest.updated_at': now,
         },
       },
       { upsert: false }
     );
-    return true;
+
+    try {
+      sseService.broadcast(
+        {
+          type: 'vibe_quest_updated',
+          version: nextVersion,
+          restaurant_id: canonicalId,
+        },
+        canonicalId
+      );
+    } catch (_) {}
+
+    try {
+      const localPath = path.join(__dirname, '../../../multi_tenant_db.json');
+      if (fs.existsSync(localPath)) {
+        const fileContent = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+        if (fileContent.restaurants) {
+          const rKey = Object.keys(fileContent.restaurants).find((k) => {
+            const r = fileContent.restaurants[k];
+            return r._id === canonicalId || r.id === canonicalId;
+          });
+          if (rKey) {
+            if (!fileContent.restaurants[rKey].settings) {
+              fileContent.restaurants[rKey].settings = {};
+            }
+            fileContent.restaurants[rKey].settings.vibe_quest = {
+              enabled: true,
+              published_version: nextVersion,
+              draft: newConfig,
+              published: newConfig,
+              updated_at: now,
+              published_at: now,
+            };
+            fs.writeFileSync(localPath, JSON.stringify(fileContent, null, 2), 'utf8');
+          }
+        }
+      }
+    } catch (_) {}
+
+    return {
+      success: true,
+      version: nextVersion,
+      config: newConfig,
+    };
   }
 
   /**
