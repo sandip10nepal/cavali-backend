@@ -431,17 +431,23 @@ export class VibeQuestEngine {
       const q = config.questions.find((x) => x.id === currId);
       if (q) {
         const nextQIds: string[] = [];
-        if (q.default_destination?.type === 'question' && q.default_destination.ref_id) {
+        if (typeof q.default_destination === 'object' && q.default_destination?.type === 'question' && q.default_destination.ref_id) {
           nextQIds.push(q.default_destination.ref_id);
+        } else if (typeof q.default_destination === 'string' && q.default_destination.startsWith('question:')) {
+          nextQIds.push(q.default_destination.replace(/^question:/, ''));
         }
         (q.branches || []).forEach((b) => {
-          if (b.destination.type === 'question' && b.destination.ref_id) {
+          if (typeof b.destination === 'object' && b.destination?.type === 'question' && b.destination.ref_id) {
             nextQIds.push(b.destination.ref_id);
+          } else if (typeof b.destination === 'string' && b.destination.startsWith('question:')) {
+            nextQIds.push(b.destination.replace(/^question:/, ''));
           }
         });
         (q.answers || []).forEach((a) => {
-          if (a.destination?.type === 'question' && a.destination.ref_id) {
+          if (typeof a.destination === 'object' && a.destination?.type === 'question' && a.destination.ref_id) {
             nextQIds.push(a.destination.ref_id);
+          } else if (typeof a.destination === 'string' && a.destination.startsWith('question:')) {
+            nextQIds.push(a.destination.replace(/^question:/, ''));
           }
         });
 
@@ -476,7 +482,7 @@ export class VibeQuestEngine {
   }
 
   private static validateDestination(
-    dest: VibeQuestDestination,
+    rawDest: VibeQuestDestination | string,
     qid: string,
     aid: string | undefined,
     questionIds: Set<string>,
@@ -484,16 +490,34 @@ export class VibeQuestEngine {
     prodMap: Map<string, any>,
     errors: VibeQuestValidationError[]
   ) {
+    if (!rawDest) return;
+
+    if (typeof rawDest === 'string') {
+      if (rawDest.startsWith('category:')) {
+        const catId = rawDest.substring(9);
+        if (!catIdSet.has(catId)) {
+          // Warning if not found, but don't hard error if using virtual alias
+          errors.push({
+            question_id: qid,
+            answer_id: aid,
+            message: `Destination category '${catId}' not recognized in active catalog`,
+            severity: 'warning',
+          });
+        }
+      }
+      return;
+    }
+
+    const dest = rawDest;
     if (dest.type === 'question' && dest.ref_id) {
-      // Must be a valid question id in the config
-      // Note: we check against full config in a second pass if needed, or target exists
+      // Valid question id check
     } else if (dest.type === 'category' && dest.ref_id) {
       if (!catIdSet.has(dest.ref_id)) {
         errors.push({
           question_id: qid,
           answer_id: aid,
           message: `Destination category '${dest.ref_id}' does not exist`,
-          severity: 'error',
+          severity: 'warning',
         });
       }
     } else if ((dest.type === 'product' || dest.type === 'product_customization') && dest.ref_id) {

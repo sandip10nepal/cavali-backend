@@ -7,3 +7,6 @@ db.json
 *.bak
 subagent_step_dump.json
 vindu_menu_raw.html
+check_db.ts
+drop_index.ts
+scripts-tmp/

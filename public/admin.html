@@ -1242,6 +1242,138 @@
           <button class="sub-tab" id="vqStageFilter-dessert" onclick="filterVibeQuestStage('dessert')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍨 Dessert (Cart-Conditional)</button>
           <button class="sub-tab" id="vqStageFilter-drinks" onclick="filterVibeQuestStage('drinks')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍹 Drinks</button>
           <button class="sub-tab" id="vqStageFilter-checkout" onclick="filterVibeQuestStage('checkout')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">📋 Checkout Nudge</button>
+        <!-- Ordering Flow & Reminders Configuration Card -->
+        <div id="vqOrderingFlowCard" style="background: var(--card); border: 1.5px solid var(--gold); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div style="font-size: 16px; font-weight: 800; color: var(--cream); display: flex; align-items: center; gap: 8px;">
+                <span>🎯</span>
+                <span>Customer Ordering Flow &amp; Smart Reminders</span>
+              </div>
+              <p style="font-size: 12px; color: var(--muted); margin: 4px 0 0 0;">
+                Configure the customer journey: Hookah Experience selection, Food Craving recommendations, and Cart-Conditional Dessert &amp; Drink reminders.
+              </p>
+            </div>
+            <button class="btn btn-primary" onclick="saveVibeQuestFlowSettings()" style="background: var(--gold); border-color: var(--gold); color: #000; font-weight: 800; font-size: 12px; padding: 8px 18px; border-radius: 8px;">
+              💾 Save &amp; Publish Flow
+            </button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <!-- Hookah Experience Selection Screen -->
+            <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-weight: 800; font-size: 13px; color: #60A5FA;">💨 Hookah Category Selection Screen</span>
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--cream); cursor: pointer;">
+                  <input type="checkbox" id="vqFlowHookahEnabled" checked>
+                  <span>Enabled</span>
+                </label>
+              </div>
+              <div style="margin-bottom: 8px;">
+                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Question Prompt</label>
+                <input type="text" id="vqFlowHookahQuestion" value="What kind of hookah experience would you like?" style="width: 100%; padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px;">
+                <div>
+                  <label style="font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Option 1: Name</label>
+                  <input type="text" id="vqFlowHookahOpt1Name" value="House Mix Hookahs" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+                </div>
+                <div>
+                  <label style="font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Option 1: Destination</label>
+                  <select id="vqFlowHookahOpt1Dest" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+                    <option value="menu:hookah">Menu: House Mix Hookahs</option>
+                    <option value="category:CAT_HOOKAH_HOUSE_MIXES">Category: House Mixes</option>
+                  </select>
+                </div>
+              </div>
+              <input type="text" id="vqFlowHookahOpt1Desc" value="Curated house blends and signature shisha flavors" placeholder="Option 1 Description" style="width: 100%; padding: 5px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--muted); margin-bottom: 8px;">
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px;">
+                <div>
+                  <label style="font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Option 2: Name</label>
+                  <input type="text" id="vqFlowHookahOpt2Name" value="Create Your Own Hookah" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+                </div>
+                <div>
+                  <label style="font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Option 2: Destination</label>
+                  <select id="vqFlowHookahOpt2Dest" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+                    <option value="flow:mix_lab">Open Custom Mix Lab 🧪</option>
+                    <option value="category:CAT_HOOKAH_CUSTOM">Category: Custom Mix Lab</option>
+                  </select>
+                </div>
+              </div>
+              <input type="text" id="vqFlowHookahOpt2Desc" value="Craft your custom bowl in our interactive Mix Lab" placeholder="Option 2 Description" style="width: 100%; padding: 5px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--muted);">
+            </div>
+
+            <!-- Food Craving Question & Quick Navigation -->
+            <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-weight: 800; font-size: 13px; color: #F59E0B;">🍽️ Food Recommendation Question</span>
+                <span style="font-size: 10px; color: var(--gold); background: rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 4px;">Dynamic Categories</span>
+              </div>
+              <div style="margin-bottom: 8px;">
+                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Question Prompt</label>
+                <input type="text" id="vqFlowFoodQuestion" value="What are we craving? 🍽️" style="width: 100%; padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+              </div>
+              <p style="font-size: 11px; color: var(--muted); margin: 0 0 10px 0;">
+                Customers tapping options like <b>Desi &amp; Pakistani</b> jump directly to that menu category (e.g. <b>Mains</b>) while keeping all other food categories accessible.
+              </p>
+              <button class="btn" onclick="filterVibeQuestStage('food')" style="padding: 6px 12px; font-size: 11px; background: var(--card); border: 1px solid var(--line); color: var(--gold);">
+                🔍 View &amp; Reorder Food Options Below ↓
+              </button>
+            </div>
+
+            <!-- Dessert Reminder -->
+            <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-weight: 800; font-size: 13px; color: #EC4899;">🍰 Dessert Reminder (Cart-Conditional)</span>
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--cream); cursor: pointer;">
+                  <input type="checkbox" id="vqFlowDessertEnabled" checked>
+                  <span>Enabled</span>
+                </label>
+              </div>
+              <div style="margin-bottom: 8px;">
+                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Reminder Prompt</label>
+                <input type="text" id="vqFlowDessertText" value="Should we save room for something sweet? 🍰" style="width: 100%; padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+              </div>
+              <div>
+                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Dessert Destination Category</label>
+                <select id="vqFlowDessertDest" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+                  <option value="category:CAT_DESSERTS">Category: Desserts (CAT_DESSERTS)</option>
+                  <option value="menu:food">Menu: Food</option>
+                </select>
+              </div>
+              <div style="font-size: 10px; color: var(--muted); margin-top: 6px;">
+                Only shows if NO dessert item is in the cart when advancing from Food. Never blocks skipping.
+              </div>
+            </div>
+
+            <!-- Drink Reminder -->
+            <div style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-weight: 800; font-size: 13px; color: #10B981;">🥤 Drink Reminder (Cart-Conditional)</span>
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--cream); cursor: pointer;">
+                  <input type="checkbox" id="vqFlowDrinkEnabled" checked>
+                  <span>Enabled</span>
+                </label>
+              </div>
+              <div style="margin-bottom: 8px;">
+                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Reminder Prompt</label>
+                <input type="text" id="vqFlowDrinkText" value="Would you like something to drink? 🥤" style="width: 100%; padding: 7px 10px; font-size: 12px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+              </div>
+              <div>
+                <label style="font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase;">Drinks Destination Category / Section</label>
+                <select id="vqFlowDrinkDest" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
+                  <option value="category:cat_super_drinks">Beverages / Drinks (cat_super_drinks)</option>
+                  <option value="category:CAT_DRINKS_REFRESHERS">Refreshers (CAT_DRINKS_REFRESHERS)</option>
+                  <option value="category:CAT_DRINKS_TEA_COFFEE">Tea &amp; Coffee (CAT_DRINKS_TEA_COFFEE)</option>
+                  <option value="category:CAT_DRINKS_SOFT">Soft Drinks (CAT_DRINKS_SOFT)</option>
+                </select>
+              </div>
+              <div style="font-size: 10px; color: var(--muted); margin-top: 6px;">
+                Only shows if NO drink item is in the cart when advancing. Never blocks checkout.
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Question Cards List Container -->
@@ -7200,17 +7332,30 @@
     let simCart = [];
 
     async function ensureMenuItemsLoaded() {
-      if (menuItems && menuItems.length > 0) return menuItems;
       try {
         const restId = localStorage.getItem('benzin_restaurant_id') || 'RES_EED4E9D266DF';
-        const res = await fetch(`${API_URL}/api/menu?restaurantId=${restId}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.items)) menuItems = data.items;
-          else if (Array.isArray(data.menu_items)) menuItems = data.menu_items;
+        const promises = [];
+        if (!menuItems || menuItems.length === 0) {
+          promises.push(
+            fetch(`${API_URL}/api/menu?restaurantId=${restId}`)
+              .then(r => r.json())
+              .then(data => {
+                if (Array.isArray(data.items)) menuItems = data.items;
+                else if (Array.isArray(data.menu_items)) menuItems = data.menu_items;
+              })
+              .catch(e => console.warn('Menu load error:', e))
+          );
+        }
+        if (!menuCategories || menuCategories.length === 0) {
+          if (typeof fetchMenuCategories === 'function') {
+            promises.push(fetchMenuCategories().catch(e => console.warn('Cat load error:', e)));
+          }
+        }
+        if (promises.length > 0) {
+          await Promise.all(promises);
         }
       } catch (err) {
-        console.warn('Could not preload menu items for Vibe Quest:', err);
+        console.warn('Could not preload menu items/categories for Vibe Quest:', err);
       }
       return menuItems || [];
     }
@@ -7246,6 +7391,7 @@
         }
 
         updateVibeQuestHeaderBadges();
+        populateVibeQuestFlowSettings();
         renderVibeQuestQuestionsList();
       } catch (err) {
         console.error('Error rendering Vibe Quest page:', err);
@@ -7256,6 +7402,255 @@
             <button class="btn btn-primary" onclick="renderVibeQuestPage()" style="padding: 8px 16px; font-weight: 800;">Retry</button>
           </div>
         `;
+      }
+    }
+
+    function populateVibeQuestFlowSettings() {
+      if (!vibeQuestDraft) return;
+
+      const settings = vibeQuestDraft.settings || {};
+      const questions = vibeQuestDraft.questions || [];
+
+      // 1. Hookah Experience Question
+      const hQ = questions.find(q => (q.id === 'q_hookah_experience' || q.id === 'q_hookah_path') && q.stage === 'hookah') || questions.find(q => q.stage === 'hookah');
+      const hookahEnabled = settings.hookah_selection_screen_enabled !== false && (!hQ || hQ.active !== false);
+      const hEnabledCheck = document.getElementById('vqFlowHookahEnabled');
+      if (hEnabledCheck) hEnabledCheck.checked = hookahEnabled;
+
+      const hPromptInput = document.getElementById('vqFlowHookahQuestion');
+      if (hPromptInput && hQ) hPromptInput.value = hQ.question_text || hQ.title || 'What kind of hookah experience would you like?';
+
+      const opt1 = hQ?.answers?.[0];
+      const opt2 = hQ?.answers?.[1];
+
+      const opt1Name = document.getElementById('vqFlowHookahOpt1Name');
+      if (opt1Name && opt1) opt1Name.value = opt1.label || 'House Mix Hookahs';
+
+      const opt1Desc = document.getElementById('vqFlowHookahOpt1Desc');
+      if (opt1Desc && opt1) opt1Desc.value = opt1.subtext || opt1.description || 'Curated house blends and signature shisha flavors';
+
+      const opt1Dest = document.getElementById('vqFlowHookahOpt1Dest');
+      if (opt1Dest && opt1) opt1Dest.value = opt1.destination || 'menu:hookah';
+
+      const opt2Name = document.getElementById('vqFlowHookahOpt2Name');
+      if (opt2Name && opt2) opt2Name.value = opt2.label || 'Create Your Own Hookah';
+
+      const opt2Desc = document.getElementById('vqFlowHookahOpt2Desc');
+      if (opt2Desc && opt2) opt2Desc.value = opt2.subtext || opt2.description || 'Craft your custom bowl in our interactive Mix Lab';
+
+      const opt2Dest = document.getElementById('vqFlowHookahOpt2Dest');
+      if (opt2Dest && opt2) opt2Dest.value = opt2.destination || 'flow:mix_lab';
+
+      // 2. Food Craving Question
+      const fQ = questions.find(q => q.id === 'q_food_craving') || questions.find(q => q.stage === 'food');
+      const fPromptInput = document.getElementById('vqFlowFoodQuestion');
+      if (fPromptInput && fQ) fPromptInput.value = fQ.question_text || fQ.title || 'What are we craving? 🍽️';
+
+      // 3. Dessert Reminder
+      const dQ = questions.find(q => q.id === 'q_dessert_reminder' || q.id === 'q_dessert_prompt');
+      const dessertEnabled = settings.dessert_reminder_enabled !== false && (!dQ || dQ.active !== false);
+      const dEnabledCheck = document.getElementById('vqFlowDessertEnabled');
+      if (dEnabledCheck) dEnabledCheck.checked = dessertEnabled;
+
+      const dPromptInput = document.getElementById('vqFlowDessertText');
+      if (dPromptInput) dPromptInput.value = settings.dessert_reminder_text || dQ?.question_text || 'Should we save room for something sweet? 🍰';
+
+      const dDestSelect = document.getElementById('vqFlowDessertDest');
+      if (dDestSelect) dDestSelect.value = settings.dessert_destination_category || dQ?.answers?.[0]?.destination || 'category:CAT_DESSERTS';
+
+      // 4. Drink Reminder
+      const bQ = questions.find(q => q.id === 'q_drink_reminder');
+      const drinkEnabled = settings.drink_reminder_enabled !== false && (!bQ || bQ.active !== false);
+      const bEnabledCheck = document.getElementById('vqFlowDrinkEnabled');
+      if (bEnabledCheck) bEnabledCheck.checked = drinkEnabled;
+
+      const bPromptInput = document.getElementById('vqFlowDrinkText');
+      if (bPromptInput) bPromptInput.value = settings.drink_reminder_text || bQ?.question_text || 'Would you like something to drink? 🥤';
+
+      const bDestSelect = document.getElementById('vqFlowDrinkDest');
+      if (bDestSelect) bDestSelect.value = settings.drink_destination_category || bQ?.answers?.[0]?.destination || 'category:cat_super_drinks';
+    }
+
+    async function saveVibeQuestFlowSettings() {
+      if (!vibeQuestDraft) return;
+
+      if (!vibeQuestDraft.settings) vibeQuestDraft.settings = {};
+      if (!Array.isArray(vibeQuestDraft.questions)) vibeQuestDraft.questions = [];
+
+      const hookahEnabled = document.getElementById('vqFlowHookahEnabled')?.checked ?? true;
+      const hookahPrompt = document.getElementById('vqFlowHookahQuestion')?.value.trim() || 'What kind of hookah experience would you like?';
+      const opt1Name = document.getElementById('vqFlowHookahOpt1Name')?.value.trim() || 'House Mix Hookahs';
+      const opt1Desc = document.getElementById('vqFlowHookahOpt1Desc')?.value.trim() || 'Curated house blends and signature shisha flavors';
+      const opt1Dest = document.getElementById('vqFlowHookahOpt1Dest')?.value || 'menu:hookah';
+      const opt2Name = document.getElementById('vqFlowHookahOpt2Name')?.value.trim() || 'Create Your Own Hookah';
+      const opt2Desc = document.getElementById('vqFlowHookahOpt2Desc')?.value.trim() || 'Craft your custom bowl in our interactive Mix Lab';
+      const opt2Dest = document.getElementById('vqFlowHookahOpt2Dest')?.value || 'flow:mix_lab';
+
+      const foodPrompt = document.getElementById('vqFlowFoodQuestion')?.value.trim() || 'What are we craving? 🍽️';
+
+      const dessertEnabled = document.getElementById('vqFlowDessertEnabled')?.checked ?? true;
+      const dessertPrompt = document.getElementById('vqFlowDessertText')?.value.trim() || 'Should we save room for something sweet? 🍰';
+      const dessertDest = document.getElementById('vqFlowDessertDest')?.value || 'category:CAT_DESSERTS';
+
+      const drinkEnabled = document.getElementById('vqFlowDrinkEnabled')?.checked ?? true;
+      const drinkPrompt = document.getElementById('vqFlowDrinkText')?.value.trim() || 'Would you like something to drink? 🥤';
+      const drinkDest = document.getElementById('vqFlowDrinkDest')?.value || 'category:cat_super_drinks';
+
+      // Update top-level settings
+      vibeQuestDraft.settings.hookah_selection_screen_enabled = hookahEnabled;
+      vibeQuestDraft.settings.dessert_reminder_enabled = dessertEnabled;
+      vibeQuestDraft.settings.dessert_reminder_text = dessertPrompt;
+      vibeQuestDraft.settings.dessert_destination_category = dessertDest;
+      vibeQuestDraft.settings.drink_reminder_enabled = drinkEnabled;
+      vibeQuestDraft.settings.drink_reminder_text = drinkPrompt;
+      vibeQuestDraft.settings.drink_destination_category = drinkDest;
+
+      // Update or create q_hookah_experience
+      let hQ = vibeQuestDraft.questions.find(q => q.id === 'q_hookah_experience' || q.id === 'q_hookah_path');
+      if (!hQ) {
+        hQ = {
+          id: 'q_hookah_experience',
+          stage: 'hookah',
+          title: 'Hookah Experience',
+          question_text: hookahPrompt,
+          helper_text: 'Choose a signature house blend or build your own bowl in Custom Mix Lab',
+          order: 1,
+          sort_order: 1,
+          active: hookahEnabled,
+          skippable: false,
+          repeat_policy: 'once_per_session',
+          answers: []
+        };
+        vibeQuestDraft.questions.unshift(hQ);
+      }
+      hQ.active = hookahEnabled;
+      hQ.question_text = hookahPrompt;
+      hQ.answers = [
+        {
+          id: 'ans_house_mix',
+          label: opt1Name,
+          emoji: '💨',
+          subtext: opt1Desc,
+          preference_signals: ['house_mix'],
+          destination: opt1Dest,
+          curated_product_ids: []
+        },
+        {
+          id: 'ans_custom_lab',
+          label: opt2Name,
+          emoji: '🧪',
+          subtext: opt2Desc,
+          preference_signals: ['custom_mix'],
+          destination: opt2Dest,
+          curated_product_ids: []
+        }
+      ];
+
+      // Update q_food_craving
+      const fQ = vibeQuestDraft.questions.find(q => q.id === 'q_food_craving');
+      if (fQ) {
+        fQ.question_text = foodPrompt;
+      }
+
+      // Update or create q_dessert_reminder
+      let dQ = vibeQuestDraft.questions.find(q => q.id === 'q_dessert_reminder' || q.id === 'q_dessert_prompt');
+      if (!dQ) {
+        dQ = {
+          id: 'q_dessert_reminder',
+          stage: 'dessert',
+          title: 'Dessert Reminder',
+          question_text: dessertPrompt,
+          order: 1,
+          sort_order: 1,
+          active: dessertEnabled,
+          skippable: true,
+          repeat_policy: 'cart_conditional',
+          answers: []
+        };
+        vibeQuestDraft.questions.push(dQ);
+      }
+      dQ.active = dessertEnabled;
+      dQ.question_text = dessertPrompt;
+      dQ.answers = [
+        {
+          id: 'ans_d_browse',
+          label: 'Browse Desserts',
+          emoji: '🍰',
+          subtext: 'View Kunafa, molten cakes & sweet specialties',
+          destination: dessertDest,
+          curated_product_ids: ['MI_kunafa_dessert', 'MI_biscoff_cake_dessert']
+        },
+        {
+          id: 'ans_d_skip',
+          label: 'Skip Dessert',
+          emoji: '⏩',
+          subtext: 'Continue with the rest of your order',
+          destination: 'skip',
+          curated_product_ids: []
+        }
+      ];
+
+      // Update or create q_drink_reminder
+      let bQ = vibeQuestDraft.questions.find(q => q.id === 'q_drink_reminder');
+      if (!bQ) {
+        bQ = {
+          id: 'q_drink_reminder',
+          stage: 'drinks',
+          title: 'Drink Reminder',
+          question_text: drinkPrompt,
+          order: 1,
+          sort_order: 1,
+          active: drinkEnabled,
+          skippable: true,
+          repeat_policy: 'cart_conditional',
+          answers: []
+        };
+        vibeQuestDraft.questions.push(bQ);
+      }
+      bQ.active = drinkEnabled;
+      bQ.question_text = drinkPrompt;
+      bQ.answers = [
+        {
+          id: 'ans_b_browse',
+          label: 'Browse Drinks',
+          emoji: '🥤',
+          subtext: 'Explore craft mocktails, sodas, and iced teas',
+          destination: drinkDest,
+          curated_product_ids: ['MI_classic_mint_mojito', 'MI_mango_mojito']
+        },
+        {
+          id: 'ans_b_skip',
+          label: 'Skip Drinks',
+          emoji: '⏩',
+          subtext: 'Continue to order review',
+          destination: 'skip',
+          curated_product_ids: []
+        }
+      ];
+
+      try {
+        const headers = getAuthHeaders();
+        // 1. Save draft
+        const draftRes = await fetch(`${API_URL}/api/vibe-quest/admin/draft`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ draft: vibeQuestDraft })
+        });
+        const draftData = await draftRes.json();
+        if (!draftData.success) throw new Error(draftData.error || 'Failed to save draft');
+
+        // 2. Publish live
+        const pubRes = await fetch(`${API_URL}/api/vibe-quest/admin/publish`, {
+          method: 'POST',
+          headers
+        });
+        const pubData = await pubRes.json();
+        if (!pubData.success) throw new Error(pubData.error || 'Failed to publish draft');
+
+        alert('Customer Ordering Flow & Smart Reminders saved and published successfully!');
+        renderVibeQuestPage();
+      } catch (err) {
+        alert('Error saving flow settings: ' + err.message);
       }
     }
 
@@ -7601,6 +7996,16 @@
         });
       }
 
+      // Build dynamic category destination options
+      let catDestOptions = '';
+      const allMenuCats = typeof getAllMenuCategoriesList === 'function' ? getAllMenuCategoriesList() : [];
+      allMenuCats.forEach(cat => {
+        const cId = cat.id || cat._id;
+        const val = `category:${cId}`;
+        const isSel = destination === val ? 'selected' : '';
+        catDestOptions += `<option value="${val}" ${isSel}>📂 Category: ${cat.title}</option>`;
+      });
+
       const rowHtml = `
         <div id="${rowId}" class="vq-answer-row" style="background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -7628,11 +8033,14 @@
               <label style="display: block; font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 2px;">Destination Navigation</label>
               <select class="ans-destination" style="width: 100%; padding: 6px 8px; font-size: 11px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); color: var(--cream);">
                 <option value="default" ${destination === 'default' ? 'selected' : ''}>Default (Next Stage)</option>
-                <option value="menu:hookah" ${destination === 'menu:hookah' ? 'selected' : ''}>Menu: Hookah</option>
-                <option value="menu:food" ${destination === 'menu:food' ? 'selected' : ''}>Menu: Food</option>
-                <option value="menu:drinks" ${destination === 'menu:drinks' ? 'selected' : ''}>Menu: Drinks</option>
+                <option value="menu:hookah" ${destination === 'menu:hookah' ? 'selected' : ''}>Menu: House Mix Hookahs</option>
+                <option value="category:CAT_HOOKAH_HOUSE_MIXES" ${destination === 'category:CAT_HOOKAH_HOUSE_MIXES' ? 'selected' : ''}>Category: House Mixes</option>
                 <option value="flow:mix_lab" ${destination === 'flow:mix_lab' ? 'selected' : ''}>Open Custom Mix Lab 🧪</option>
+                <option value="menu:food" ${destination === 'menu:food' ? 'selected' : ''}>Menu: Food (All)</option>
+                <option value="menu:drinks" ${destination === 'menu:drinks' ? 'selected' : ''}>Menu: Drinks (All)</option>
+                ${catDestOptions}
                 <option value="stage:checkout" ${destination === 'stage:checkout' ? 'selected' : ''}>Review Order (Checkout)</option>
+                <option value="skip" ${destination === 'skip' ? 'selected' : ''}>Skip</option>
                 <option value="dismiss" ${destination === 'dismiss' ? 'selected' : ''}>Dismiss Discovery</option>
               </select>
             </div>

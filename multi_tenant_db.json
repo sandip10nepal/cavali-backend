@@ -993,6 +993,582 @@
               "active": true
             }
           ]
+        },
+        "vibe_quest": {
+          "enabled": true,
+          "published_version": 5,
+          "draft": {
+            "version": 5,
+            "enabled": true,
+            "settings": {
+              "hookah_selection_screen_enabled": true,
+              "dessert_reminder_enabled": true,
+              "dessert_reminder_text": "Should we save room for something sweet? 🍰",
+              "dessert_destination_category": "CAT_DESSERTS",
+              "drink_reminder_enabled": true,
+              "drink_reminder_text": "Would you like something to drink? 🥤",
+              "drink_destination_category": "cat_super_drinks",
+              "dessert_category_ids": [
+                "CAT_DESSERTS"
+              ],
+              "drink_category_ids": [
+                "CAT_DRINKS_REFRESHERS",
+                "CAT_DRINKS_TEA_COFFEE",
+                "CAT_DRINKS_SOFT",
+                "cat_super_drinks"
+              ],
+              "intro_title": "Welcome to Cavalli Huqqa",
+              "intro_subtitle": "Discover signature blends, chef specials, and pairing sips.",
+              "reactions": {
+                "fruity": "Sweet and fruity? We got a vibe for that 🍓",
+                "spicy": "Something spicy? Say less 🌶️",
+                "traditional": "A sweet ending sounds tempting 🍰",
+                "tropical": "Let us find your perfect sip 🥭",
+                "variety": "Not sure? We will surprise you 🎲",
+                "desi": "Authentic spice blends and rich heritage recipes 🥙"
+              }
+            },
+            "questions": [
+              {
+                "id": "q_hookah_experience",
+                "stage": "hookah",
+                "title": "Hookah Experience",
+                "question_text": "What kind of hookah experience would you like?",
+                "helper_text": "Choose a signature house blend or build your own bowl in Custom Mix Lab",
+                "emoji": "💨",
+                "type": "single_select",
+                "active": true,
+                "order": 1,
+                "sort_order": 1,
+                "required": false,
+                "skippable": false,
+                "repeat_policy": "once_per_session",
+                "answers": [
+                  {
+                    "id": "ans_house_mix",
+                    "label": "House Mix Hookahs",
+                    "emoji": "💨",
+                    "subtext": "Explore our curated house blends and signature flavors",
+                    "preference_signals": [
+                      "house_mix"
+                    ],
+                    "destination": "menu:hookah",
+                    "curated_product_ids": []
+                  },
+                  {
+                    "id": "ans_custom_lab",
+                    "label": "Create Your Own Hookah",
+                    "emoji": "🧪",
+                    "subtext": "Craft your custom bowl in our interactive Mix Lab",
+                    "preference_signals": [
+                      "custom_mix"
+                    ],
+                    "destination": "flow:mix_lab",
+                    "curated_product_ids": []
+                  }
+                ]
+              },
+              {
+                "id": "q_food_craving",
+                "stage": "food",
+                "title": "Food Craving",
+                "question_text": "What are we craving? 🍽️",
+                "helper_text": "Select your craving to jump straight to delicious plates",
+                "emoji": "🍽️",
+                "type": "single_select",
+                "active": true,
+                "order": 1,
+                "sort_order": 1,
+                "required": false,
+                "skippable": true,
+                "repeat_policy": "once_per_session",
+                "answers": [
+                  {
+                    "id": "ans_fc_desi",
+                    "label": "Desi & Pakistani",
+                    "emoji": "🥙",
+                    "subtext": "Biryani, Chicken Boti, Lamb Chops & Karahi classics",
+                    "preference_signals": [
+                      "desi",
+                      "pakistani"
+                    ],
+                    "destination": "category:CAT_MAINS",
+                    "curated_product_ids": [
+                      "MI_chicken_dum_biryani_main",
+                      "MI_chicken_boti_main",
+                      "MI_lamb_chops_main"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_grill",
+                    "label": "Straight from the grill",
+                    "emoji": "🔥",
+                    "subtext": "Charcoal skewers, kabobs & lamb chops",
+                    "preference_signals": [
+                      "grilled"
+                    ],
+                    "destination": "category:CAT_MAINS",
+                    "curated_product_ids": [
+                      "MI_chicken_boti_main",
+                      "MI_beef_koobideh_main",
+                      "MI_lamb_chops_main"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_burger",
+                    "label": "Burger or wrap",
+                    "emoji": "🍔",
+                    "subtext": "Smashed beef, zinger & crispy paratha rolls",
+                    "preference_signals": [
+                      "burger",
+                      "wrap"
+                    ],
+                    "destination": "category:CAT_BURGERS",
+                    "curated_product_ids": [
+                      "MI_beef_smash_burger",
+                      "MI_chicken_zinger_burger",
+                      "MI_shawarma_wrap"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_indochinese",
+                    "label": "Indo-Chinese & street food",
+                    "emoji": "🍜",
+                    "subtext": "Chili chicken, chow mein & steamed momos",
+                    "preference_signals": [
+                      "indochinese",
+                      "street_food"
+                    ],
+                    "destination": "category:CAT_CONTINENTAL",
+                    "curated_product_ids": [
+                      "MI_chili_chicken_cont",
+                      "MI_chow_mein_cont",
+                      "MI_momo_cont"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_comfort",
+                    "label": "Comfort food",
+                    "emoji": "🧀",
+                    "subtext": "Cheesy loaded nachos, fries & bites",
+                    "preference_signals": [
+                      "comfort",
+                      "cheesy"
+                    ],
+                    "destination": "category:CAT_APPETIZERS",
+                    "curated_product_ids": [
+                      "MI_loaded_nachos_app",
+                      "MI_loaded_fries_app"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_meatfree",
+                    "label": "Meat-free favorites",
+                    "emoji": "🌱",
+                    "subtext": "Crisp falafel, creamy hummus & samosas",
+                    "preference_signals": [
+                      "vegetarian"
+                    ],
+                    "destination": "category:CAT_VEGETARIAN",
+                    "curated_product_ids": [
+                      "MI_falafel_app",
+                      "MI_hummus_app",
+                      "MI_veg_samosa_veg"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_wings",
+                    "label": "Crispy Wings",
+                    "emoji": "🍗",
+                    "subtext": "Sauced and tossed crispy wings",
+                    "preference_signals": [
+                      "wings"
+                    ],
+                    "destination": "category:CAT_WINGS",
+                    "curated_product_ids": [
+                      "MI_wings_10pc",
+                      "MI_wings_6pc"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_surprise",
+                    "label": "Surprise me",
+                    "emoji": "🎲",
+                    "subtext": "Browse all chef favorites",
+                    "preference_signals": [
+                      "variety"
+                    ],
+                    "destination": "menu:food",
+                    "curated_product_ids": [
+                      "MI_chicken_dum_biryani_main",
+                      "MI_beef_smash_burger"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "q_dessert_reminder",
+                "stage": "dessert",
+                "title": "Dessert Reminder",
+                "question_text": "Should we save room for something sweet? 🍰",
+                "helper_text": "Warm Kunafa, artisanal cakes, and desi sweets",
+                "emoji": "🍰",
+                "type": "single_select",
+                "active": true,
+                "order": 1,
+                "sort_order": 1,
+                "required": false,
+                "skippable": true,
+                "repeat_policy": "cart_conditional",
+                "answers": [
+                  {
+                    "id": "ans_d_browse",
+                    "label": "Browse Desserts",
+                    "emoji": "🍰",
+                    "subtext": "View Kunafa, molten cakes & sweet specialties",
+                    "destination": "category:CAT_DESSERTS",
+                    "curated_product_ids": [
+                      "MI_kunafa_dessert",
+                      "MI_biscoff_cake_dessert"
+                    ]
+                  },
+                  {
+                    "id": "ans_d_skip",
+                    "label": "Skip Dessert",
+                    "emoji": "⏩",
+                    "subtext": "Continue with the rest of your order",
+                    "destination": "skip",
+                    "curated_product_ids": []
+                  }
+                ]
+              },
+              {
+                "id": "q_drink_reminder",
+                "stage": "drinks",
+                "title": "Drink Reminder",
+                "question_text": "Would you like something to drink? 🥤",
+                "helper_text": "Craft mocktails, mojitos, fresh juices & signature teas",
+                "emoji": "🥤",
+                "type": "single_select",
+                "active": true,
+                "order": 1,
+                "sort_order": 1,
+                "required": false,
+                "skippable": true,
+                "repeat_policy": "cart_conditional",
+                "answers": [
+                  {
+                    "id": "ans_b_browse",
+                    "label": "Browse Drinks",
+                    "emoji": "🥤",
+                    "subtext": "Explore craft mocktails, sodas, and iced teas",
+                    "destination": "category:cat_super_drinks",
+                    "curated_product_ids": [
+                      "MI_classic_mint_mojito",
+                      "MI_mango_mojito"
+                    ]
+                  },
+                  {
+                    "id": "ans_b_skip",
+                    "label": "Skip Drinks",
+                    "emoji": "⏩",
+                    "subtext": "Continue to order review",
+                    "destination": "skip",
+                    "curated_product_ids": []
+                  }
+                ]
+              }
+            ],
+            "updated_at": "2026-10-10T03:21:50.817Z",
+            "published_at": "2026-10-10T03:21:50.817Z"
+          },
+          "published": {
+            "version": 5,
+            "enabled": true,
+            "settings": {
+              "hookah_selection_screen_enabled": true,
+              "dessert_reminder_enabled": true,
+              "dessert_reminder_text": "Should we save room for something sweet? 🍰",
+              "dessert_destination_category": "CAT_DESSERTS",
+              "drink_reminder_enabled": true,
+              "drink_reminder_text": "Would you like something to drink? 🥤",
+              "drink_destination_category": "cat_super_drinks",
+              "dessert_category_ids": [
+                "CAT_DESSERTS"
+              ],
+              "drink_category_ids": [
+                "CAT_DRINKS_REFRESHERS",
+                "CAT_DRINKS_TEA_COFFEE",
+                "CAT_DRINKS_SOFT",
+                "cat_super_drinks"
+              ],
+              "intro_title": "Welcome to Cavalli Huqqa",
+              "intro_subtitle": "Discover signature blends, chef specials, and pairing sips.",
+              "reactions": {
+                "fruity": "Sweet and fruity? We got a vibe for that 🍓",
+                "spicy": "Something spicy? Say less 🌶️",
+                "traditional": "A sweet ending sounds tempting 🍰",
+                "tropical": "Let us find your perfect sip 🥭",
+                "variety": "Not sure? We will surprise you 🎲",
+                "desi": "Authentic spice blends and rich heritage recipes 🥙"
+              }
+            },
+            "questions": [
+              {
+                "id": "q_hookah_experience",
+                "stage": "hookah",
+                "title": "Hookah Experience",
+                "question_text": "What kind of hookah experience would you like?",
+                "helper_text": "Choose a signature house blend or build your own bowl in Custom Mix Lab",
+                "emoji": "💨",
+                "type": "single_select",
+                "active": true,
+                "order": 1,
+                "sort_order": 1,
+                "required": false,
+                "skippable": false,
+                "repeat_policy": "once_per_session",
+                "answers": [
+                  {
+                    "id": "ans_house_mix",
+                    "label": "House Mix Hookahs",
+                    "emoji": "💨",
+                    "subtext": "Explore our curated house blends and signature flavors",
+                    "preference_signals": [
+                      "house_mix"
+                    ],
+                    "destination": "menu:hookah",
+                    "curated_product_ids": []
+                  },
+                  {
+                    "id": "ans_custom_lab",
+                    "label": "Create Your Own Hookah",
+                    "emoji": "🧪",
+                    "subtext": "Craft your custom bowl in our interactive Mix Lab",
+                    "preference_signals": [
+                      "custom_mix"
+                    ],
+                    "destination": "flow:mix_lab",
+                    "curated_product_ids": []
+                  }
+                ]
+              },
+              {
+                "id": "q_food_craving",
+                "stage": "food",
+                "title": "Food Craving",
+                "question_text": "What are we craving? 🍽️",
+                "helper_text": "Select your craving to jump straight to delicious plates",
+                "emoji": "🍽️",
+                "type": "single_select",
+                "active": true,
+                "order": 1,
+                "sort_order": 1,
+                "required": false,
+                "skippable": true,
+                "repeat_policy": "once_per_session",
+                "answers": [
+                  {
+                    "id": "ans_fc_desi",
+                    "label": "Desi & Pakistani",
+                    "emoji": "🥙",
+                    "subtext": "Biryani, Chicken Boti, Lamb Chops & Karahi classics",
+                    "preference_signals": [
+                      "desi",
+                      "pakistani"
+                    ],
+                    "destination": "category:CAT_MAINS",
+                    "curated_product_ids": [
+                      "MI_chicken_dum_biryani_main",
+                      "MI_chicken_boti_main",
+                      "MI_lamb_chops_main"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_grill",
+                    "label": "Straight from the grill",
+                    "emoji": "🔥",
+                    "subtext": "Charcoal skewers, kabobs & lamb chops",
+                    "preference_signals": [
+                      "grilled"
+                    ],
+                    "destination": "category:CAT_MAINS",
+                    "curated_product_ids": [
+                      "MI_chicken_boti_main",
+                      "MI_beef_koobideh_main",
+                      "MI_lamb_chops_main"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_burger",
+                    "label": "Burger or wrap",
+                    "emoji": "🍔",
+                    "subtext": "Smashed beef, zinger & crispy paratha rolls",
+                    "preference_signals": [
+                      "burger",
+                      "wrap"
+                    ],
+                    "destination": "category:CAT_BURGERS",
+                    "curated_product_ids": [
+                      "MI_beef_smash_burger",
+                      "MI_chicken_zinger_burger",
+                      "MI_shawarma_wrap"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_indochinese",
+                    "label": "Indo-Chinese & street food",
+                    "emoji": "🍜",
+                    "subtext": "Chili chicken, chow mein & steamed momos",
+                    "preference_signals": [
+                      "indochinese",
+                      "street_food"
+                    ],
+                    "destination": "category:CAT_CONTINENTAL",
+                    "curated_product_ids": [
+                      "MI_chili_chicken_cont",
+                      "MI_chow_mein_cont",
+                      "MI_momo_cont"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_comfort",
+                    "label": "Comfort food",
+                    "emoji": "🧀",
+                    "subtext": "Cheesy loaded nachos, fries & bites",
+                    "preference_signals": [
+                      "comfort",
+                      "cheesy"
+                    ],
+                    "destination": "category:CAT_APPETIZERS",
+                    "curated_product_ids": [
+                      "MI_loaded_nachos_app",
+                      "MI_loaded_fries_app"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_meatfree",
+                    "label": "Meat-free favorites",
+                    "emoji": "🌱",
+                    "subtext": "Crisp falafel, creamy hummus & samosas",
+                    "preference_signals": [
+                      "vegetarian"
+                    ],
+                    "destination": "category:CAT_VEGETARIAN",
+                    "curated_product_ids": [
+                      "MI_falafel_app",
+                      "MI_hummus_app",
+                      "MI_veg_samosa_veg"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_wings",
+                    "label": "Crispy Wings",
+                    "emoji": "🍗",
+                    "subtext": "Sauced and tossed crispy wings",
+                    "preference_signals": [
+                      "wings"
+                    ],
+                    "destination": "category:CAT_WINGS",
+                    "curated_product_ids": [
+                      "MI_wings_10pc",
+                      "MI_wings_6pc"
+                    ]
+                  },
+                  {
+                    "id": "ans_fc_surprise",
+                    "label": "Surprise me",
+                    "emoji": "🎲",
+                    "subtext": "Browse all chef favorites",
+                    "preference_signals": [
+                      "variety"
+                    ],
+                    "destination": "menu:food",
+                    "curated_product_ids": [
+                      "MI_chicken_dum_biryani_main",
+                      "MI_beef_smash_burger"
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "q_dessert_reminder",
+                "stage": "dessert",
+                "title": "Dessert Reminder",
+                "question_text": "Should we save room for something sweet? 🍰",
+                "helper_text": "Warm Kunafa, artisanal cakes, and desi sweets",
+                "emoji": "🍰",
+                "type": "single_select",
+                "active": true,
+                "order": 1,
+                "sort_order": 1,
+                "required": false,
+                "skippable": true,
+                "repeat_policy": "cart_conditional",
+                "answers": [
+                  {
+                    "id": "ans_d_browse",
+                    "label": "Browse Desserts",
+                    "emoji": "🍰",
+                    "subtext": "View Kunafa, molten cakes & sweet specialties",
+                    "destination": "category:CAT_DESSERTS",
+                    "curated_product_ids": [
+                      "MI_kunafa_dessert",
+                      "MI_biscoff_cake_dessert"
+                    ]
+                  },
+                  {
+                    "id": "ans_d_skip",
+                    "label": "Skip Dessert",
+                    "emoji": "⏩",
+                    "subtext": "Continue with the rest of your order",
+                    "destination": "skip",
+                    "curated_product_ids": []
+                  }
+                ]
+              },
+              {
+                "id": "q_drink_reminder",
+                "stage": "drinks",
+                "title": "Drink Reminder",
+                "question_text": "Would you like something to drink? 🥤",
+                "helper_text": "Craft mocktails, mojitos, fresh juices & signature teas",
+                "emoji": "🥤",
+                "type": "single_select",
+                "active": true,
+                "order": 1,
+                "sort_order": 1,
+                "required": false,
+                "skippable": true,
+                "repeat_policy": "cart_conditional",
+                "answers": [
+                  {
+                    "id": "ans_b_browse",
+                    "label": "Browse Drinks",
+                    "emoji": "🥤",
+                    "subtext": "Explore craft mocktails, sodas, and iced teas",
+                    "destination": "category:cat_super_drinks",
+                    "curated_product_ids": [
+                      "MI_classic_mint_mojito",
+                      "MI_mango_mojito"
+                    ]
+                  },
+                  {
+                    "id": "ans_b_skip",
+                    "label": "Skip Drinks",
+                    "emoji": "⏩",
+                    "subtext": "Continue to order review",
+                    "destination": "skip",
+                    "curated_product_ids": []
+                  }
+                ]
+              }
+            ],
+            "updated_at": "2026-10-10T03:21:50.817Z",
+            "published_at": "2026-10-10T03:21:50.817Z"
+          },
+          "updated_at": "2026-10-10T03:21:50.817Z",
+          "published_at": "2026-10-10T03:21:50.817Z"
         }
       },
       "active": true,
