@@ -1242,8 +1242,10 @@
           <button class="sub-tab" id="vqStageFilter-dessert" onclick="filterVibeQuestStage('dessert')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍨 Dessert (Cart-Conditional)</button>
           <button class="sub-tab" id="vqStageFilter-drinks" onclick="filterVibeQuestStage('drinks')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">🍹 Drinks</button>
           <button class="sub-tab" id="vqStageFilter-checkout" onclick="filterVibeQuestStage('checkout')" style="padding: 6px 14px; font-size: 12px; border-radius: 20px;">📋 Checkout Nudge</button>
+        </div>
+
         <!-- Ordering Flow & Reminders Configuration Card -->
-        <div id="vqOrderingFlowCard" style="background: var(--card); border: 1.5px solid var(--gold); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+        <div id="vqOrderingFlowCard" style="background: var(--card); border: 1.5px solid var(--gold); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <div>
               <div style="font-size: 16px; font-weight: 800; color: var(--cream); display: flex; align-items: center; gap: 8px;">
@@ -1377,6 +1379,13 @@
         </div>
 
         <!-- Question Cards List Container -->
+        <div style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <h3 style="font-size: 16px; font-weight: 800; color: var(--cream); margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📋</span>
+            <span>Configured Journey Questions</span>
+          </h3>
+          <span style="font-size: 11px; color: var(--muted); font-weight: 700; background: var(--card2); border: 1px solid var(--line); padding: 4px 10px; border-radius: 20px;" id="vqQuestionsStageLabel">Showing: All Stages</span>
+        </div>
         <div id="vqQuestionsListContainer" style="display: flex; flex-direction: column; gap: 16px;">
           <div style="text-align: center; padding: 40px; color: var(--muted);">Loading Vibe Quest draft...</div>
         </div>
@@ -7456,7 +7465,29 @@
       if (dPromptInput) dPromptInput.value = settings.dessert_reminder_text || dQ?.question_text || 'Should we save room for something sweet? 🍰';
 
       const dDestSelect = document.getElementById('vqFlowDessertDest');
-      if (dDestSelect) dDestSelect.value = settings.dessert_destination_category || dQ?.answers?.[0]?.destination || 'category:CAT_DESSERTS';
+      if (dDestSelect) {
+        let currentDessertVal = settings.dessert_destination_category || dQ?.answers?.[0]?.destination || 'category:CAT_DESSERTS';
+        let normVal = currentDessertVal.startsWith('category:') ? currentDessertVal : `category:${currentDessertVal}`;
+        let dOptions = `
+          <option value="category:CAT_DESSERTS">Category: Desserts (CAT_DESSERTS)</option>
+          <option value="menu:food">Menu: All Food</option>
+        `;
+        const allCats = typeof getAllMenuCategoriesList === 'function' ? getAllMenuCategoriesList() : [];
+        allCats.forEach(c => {
+          const cid = c.id || c._id;
+          if (cid && cid !== 'CAT_DESSERTS') {
+            dOptions += `<option value="category:${cid}">Category: ${c.name || cid} (${cid})</option>`;
+          }
+        });
+        dDestSelect.innerHTML = dOptions;
+        if (Array.from(dDestSelect.options).some(o => o.value === normVal)) {
+          dDestSelect.value = normVal;
+        } else if (Array.from(dDestSelect.options).some(o => o.value === currentDessertVal)) {
+          dDestSelect.value = currentDessertVal;
+        } else {
+          dDestSelect.value = 'category:CAT_DESSERTS';
+        }
+      }
 
       // 4. Drink Reminder
       const bQ = questions.find(q => q.id === 'q_drink_reminder');
@@ -7468,7 +7499,32 @@
       if (bPromptInput) bPromptInput.value = settings.drink_reminder_text || bQ?.question_text || 'Would you like something to drink? 🥤';
 
       const bDestSelect = document.getElementById('vqFlowDrinkDest');
-      if (bDestSelect) bDestSelect.value = settings.drink_destination_category || bQ?.answers?.[0]?.destination || 'category:cat_super_drinks';
+      if (bDestSelect) {
+        let currentDrinkVal = settings.drink_destination_category || bQ?.answers?.[0]?.destination || 'category:cat_super_drinks';
+        let normVal = currentDrinkVal.startsWith('category:') ? currentDrinkVal : `category:${currentDrinkVal}`;
+        let bOptions = `
+          <option value="category:cat_super_drinks">Beverages / Drinks (cat_super_drinks)</option>
+          <option value="category:CAT_DRINKS_REFRESHERS">Refreshers (CAT_DRINKS_REFRESHERS)</option>
+          <option value="category:CAT_DRINKS_TEA_COFFEE">Tea &amp; Coffee (CAT_DRINKS_TEA_COFFEE)</option>
+          <option value="category:CAT_DRINKS_SOFT">Soft Drinks (CAT_DRINKS_SOFT)</option>
+          <option value="menu:drinks">Menu: All Drinks</option>
+        `;
+        const allCats = typeof getAllMenuCategoriesList === 'function' ? getAllMenuCategoriesList() : [];
+        allCats.forEach(c => {
+          const cid = c.id || c._id;
+          if (cid && !['cat_super_drinks', 'CAT_DRINKS_REFRESHERS', 'CAT_DRINKS_TEA_COFFEE', 'CAT_DRINKS_SOFT'].includes(cid)) {
+            bOptions += `<option value="category:${cid}">Category: ${c.name || cid} (${cid})</option>`;
+          }
+        });
+        bDestSelect.innerHTML = bOptions;
+        if (Array.from(bDestSelect.options).some(o => o.value === normVal)) {
+          bDestSelect.value = normVal;
+        } else if (Array.from(bDestSelect.options).some(o => o.value === currentDrinkVal)) {
+          bDestSelect.value = currentDrinkVal;
+        } else {
+          bDestSelect.value = 'category:cat_super_drinks';
+        }
+      }
     }
 
     async function saveVibeQuestFlowSettings() {
@@ -7670,8 +7726,8 @@
 
       const versionBadge = document.getElementById('vqVersionBadge');
       if (versionBadge) {
-        const pubVer = vibeQuestPublished?.published_version || vibeQuestDraft?.published_version;
-        versionBadge.innerText = pubVer ? `Live: v${pubVer}` : 'Live: Unversioned Draft';
+        const pubVer = vibeQuestPublished?.published_version || vibeQuestPublished?.version || vibeQuestDraft?.published_version || vibeQuestDraft?.version;
+        versionBadge.innerText = pubVer ? `Live: v${pubVer}` : 'Live: Active';
       }
 
       const countBadge = document.getElementById('vqQuestionsCountBadge');
@@ -7690,6 +7746,18 @@
           else el.classList.remove('active');
         }
       });
+      const lbl = document.getElementById('vqQuestionsStageLabel');
+      if (lbl) {
+        const stageNames = {
+          all: 'All Stages',
+          hookah: '💨 Hookah Experience',
+          food: '🍔 Food Cravings',
+          dessert: '🍨 Dessert Reminders',
+          drinks: '🍹 Drink Reminders',
+          checkout: '📋 Checkout Nudge'
+        };
+        lbl.innerText = `Showing: ${stageNames[stage] || stage.toUpperCase()}`;
+      }
       renderVibeQuestQuestionsList();
     }
 
